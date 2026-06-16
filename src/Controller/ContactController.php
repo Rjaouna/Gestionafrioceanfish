@@ -27,15 +27,21 @@ final class ContactController extends AbstractController
     }
 
     #[Route('', name: 'app_contact_index', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'contacts');
         $createForm = $this->buildForm(new Contact(), 'app_contact_create');
+        $filters = [
+            'type' => trim((string) $request->query->get('type', '')),
+            'city' => trim((string) $request->query->get('city', '')),
+        ];
 
         return $this->render('contact/index.html.twig', [
-            'contacts' => $this->contactService->getVisibleContacts($this->currentUser()),
+            'contacts' => $this->contactService->getVisibleContacts($this->currentUser(), $filters),
             'create_form' => $createForm,
             'type_suggestions' => $this->contactService->getTypeSuggestions(),
+            'city_suggestions' => $this->contactService->getCitySuggestions(),
+            'filters' => $filters,
         ]);
     }
 

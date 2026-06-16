@@ -15,8 +15,12 @@ class ContactRepository extends ServiceEntityRepository
         parent::__construct($registry, Contact::class);
     }
 
-    /** @return list<Contact> */
-    public function findVisibleFor(User $user, bool $admin): array
+    /**
+     * @param array{type?: string|null, city?: string|null} $filters
+     *
+     * @return list<Contact>
+     */
+    public function findVisibleFor(User $user, bool $admin, array $filters = []): array
     {
         $builder = $this->createQueryBuilder('c')
             ->distinct()
@@ -30,6 +34,20 @@ class ContactRepository extends ServiceEntityRepository
             $builder
                 ->andWhere('c.createdBy = :user OR (c.isActive = true AND s.user = :user AND s.isActive = true AND s.canView = true)')
                 ->setParameter('user', $user);
+        }
+
+        $type = trim((string) ($filters['type'] ?? ''));
+        if ($type !== '') {
+            $builder
+                ->andWhere('c.type = :contactType')
+                ->setParameter('contactType', $type);
+        }
+
+        $city = trim((string) ($filters['city'] ?? ''));
+        if ($city !== '') {
+            $builder
+                ->andWhere('c.city = :contactCity')
+                ->setParameter('contactCity', $city);
         }
 
         return $builder->getQuery()->getResult();
@@ -47,6 +65,24 @@ class ContactRepository extends ServiceEntityRepository
 
         return array_values(array_filter(array_map(
             static fn (array $row): string => (string) $row['type'],
+            $rows,
+        )));
+    }
+
+    /** @return list<string> */
+    public function findDistinctCities(): array
+    {
+        $rows = $this->createQueryBuilder('c')
+            ->select('DISTINCT c.city AS city')
+            ->andWhere('c.city IS NOT NULL')
+            ->andWhere('c.city != :empty')
+            ->setParameter('empty', '')
+            ->orderBy('c.city', 'ASC')
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_values(array_filter(array_map(
+            static fn (array $row): string => (string) $row['city'],
             $rows,
         )));
     }

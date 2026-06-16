@@ -15,8 +15,26 @@
                 </datalist>
             </div>
             <div class="col-md-6">{{ form_row(form.email) }}</div>
-            <div class="col-md-3">{{ form_row(form.mobile) }}</div>
-            <div class="col-md-3">{{ form_row(form.landline) }}</div>
+            <div class="col-md-6">{{ form_row(form.contactPersonName) }}</div>
+            <div class="col-md-6">{{ form_row(form.contactPersonPosition) }}</div>
+            <div class="col-md-6">{{ form_row(form.city) }}</div>
+            <div class="col-12" data-contact-mobile-group>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        {{ form_row(form.mobile) }}
+                        <button type="button" class="btn btn-link btn-sm px-0 text-decoration-none" data-contact-add-mobile>
+                            <i class="bi bi-plus-circle me-1"></i>Ajouter un autre portable
+                        </button>
+                    </div>
+                    <div class="col-md-4 {{ form.mobileSecondary.vars.value ? '' : 'd-none' }}" data-contact-extra-mobile>
+                        {{ form_row(form.mobileSecondary) }}
+                    </div>
+                    <div class="col-md-4 {{ form.mobileTertiary.vars.value ? '' : 'd-none' }}" data-contact-extra-mobile>
+                        {{ form_row(form.mobileTertiary) }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">{{ form_row(form.landline) }}</div>
             <div class="col-12">{{ form_row(form.postalAddress) }}</div>
         </div>
     </div>

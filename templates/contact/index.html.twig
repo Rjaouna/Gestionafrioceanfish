@@ -13,58 +13,83 @@
     </button>
 </div>
 
-{% if contacts %}
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-3">
-            <div class="row align-items-center g-3">
-                <div class="col-lg">
-                    <div class="input-group input-group-lg">
-                        <span class="input-group-text bg-white border-end-0">
-                            <i class="bi bi-search text-primary"></i>
-                        </span>
-                        <input
-                            type="search"
-                            class="form-control border-start-0"
-                            placeholder="Rechercher par nom, type, email, téléphone ou adresse..."
-                            aria-label="Rechercher un contact"
-                            data-list-search
-                            data-search-target="contactCardGrid"
-                        >
-                        <button class="btn btn-outline-secondary d-none" type="button" data-clear-search aria-label="Effacer la recherche">
-                            <i class="bi bi-x-lg"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="col-lg-auto">
-                    <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis px-3 py-2">
-                        <i class="bi bi-person-lines-fill me-1"></i>
-                        <span data-search-count>{{ contacts|length }}</span>
-                        <span data-search-label>résultat{{ contacts|length > 1 ? 's' : '' }}</span>
+{% set active_filter_count = (filters.type|default('') ? 1 : 0) + (filters.city|default('') ? 1 : 0) %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <form method="get" action="{{ path('app_contact_index') }}" class="row align-items-end g-3">
+            <div class="col-lg">
+                <label class="form-label small text-secondary fw-semibold">Recherche rapide</label>
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="bi bi-search text-primary"></i>
                     </span>
+                    <input
+                        type="search"
+                        class="form-control border-start-0"
+                        placeholder="Rechercher par nom, contact, poste, type, ville, email ou téléphone..."
+                        aria-label="Rechercher un contact"
+                        data-list-search
+                        data-search-target="contactCardGrid"
+                    >
+                    <button class="btn btn-outline-secondary d-none" type="button" data-clear-search aria-label="Effacer la recherche">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
             </div>
-        </div>
+            <div class="col-md-4 col-lg-2">
+                <label for="contactTypeFilter" class="form-label small text-secondary fw-semibold">Type</label>
+                <select id="contactTypeFilter" name="type" class="form-select" onchange="this.form.submit()">
+                    <option value="">Tous les types</option>
+                    {% for type in type_suggestions|default([]) %}
+                        <option value="{{ type }}" {{ filters.type|default('') == type ? 'selected' : '' }}>{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 col-lg-2">
+                <label for="contactCityFilter" class="form-label small text-secondary fw-semibold">Ville</label>
+                <select id="contactCityFilter" name="city" class="form-select" onchange="this.form.submit()">
+                    <option value="">Toutes les villes</option>
+                    {% for city in city_suggestions|default([]) %}
+                        <option value="{{ city }}" {{ filters.city|default('') == city ? 'selected' : '' }}>{{ city }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 col-lg-auto">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <button class="btn btn-outline-primary" type="submit">
+                        <i class="bi bi-funnel me-1"></i>Filtrer
+                    </button>
+                    {% if active_filter_count > 0 %}
+                        <a class="btn btn-link text-decoration-none px-1" href="{{ path('app_contact_index') }}">Réinitialiser</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-auto ms-lg-auto">
+                <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis px-3 py-2">
+                    <i class="bi bi-person-lines-fill me-1"></i>
+                    <span data-search-count>{{ contacts|length }}</span>
+                    <span data-search-label>résultat{{ contacts|length > 1 ? 's' : '' }}</span>
+                </span>
+            </div>
+        </form>
     </div>
-{% endif %}
+</div>
 
 <div class="row g-4" id="contactCardGrid">
     {% for contact in contacts %}
-        {% set mobile_href = contact.mobile ? 'tel:' ~ contact.mobile|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) : null %}
+        {% set mobile_numbers = contact.mobileNumbers %}
         {% set landline_href = contact.landline ? 'tel:' ~ contact.landline|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) : null %}
         {% set waze_url = contact.postalAddress ? 'https://waze.com/ul?q=' ~ contact.postalAddress|url_encode ~ '&navigate=yes' : null %}
         <div
             class="col-12 col-md-4 col-xl-3"
             data-search-item
-            data-search-value="{{ (contact.fullName ~ ' ' ~ contact.type ~ ' ' ~ (contact.email ?? '') ~ ' ' ~ (contact.mobile ?? '') ~ ' ' ~ (contact.landline ?? '') ~ ' ' ~ (contact.postalAddress ?? ''))|lower }}"
+            data-search-value="{{ (contact.fullName ~ ' ' ~ contact.type ~ ' ' ~ (contact.contactPersonName ?? '') ~ ' ' ~ (contact.contactPersonPosition ?? '') ~ ' ' ~ (contact.city ?? '') ~ ' ' ~ (contact.email ?? '') ~ ' ' ~ (contact.mobile ?? '') ~ ' ' ~ (contact.mobileSecondary ?? '') ~ ' ' ~ (contact.mobileTertiary ?? '') ~ ' ' ~ (contact.landline ?? '') ~ ' ' ~ (contact.postalAddress ?? ''))|lower }}"
         >
             {% embed 'components/_entity_card.html.twig' with {
                 title: contact.fullName,
                 title_remote_url: is_granted('CONTACT_EDIT', contact) ? path('app_contact_form', {id: contact.id}) : null,
                 icon: 'bi-person-lines-fill',
                 icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-4 module-mark',
-                status_label: contact.type,
-                status_class: 'text-bg-light border',
-                status_icon: 'bi-tag',
                 compact: false,
                 created_at: contact.createdAt,
                 updated_at: contact.updatedAt
@@ -94,29 +119,48 @@
 
                 {% block body %}
                     <div class="app-card-detail-line mb-2">
-                        <span class="app-card-detail-label"><i class="bi bi-tag"></i>Type</span>
-                        <span class="app-card-detail-value" title="{{ contact.type }}">{{ contact.type }}</span>
+                        <span class="app-card-detail-label"><i class="bi bi-person-badge"></i>Contact</span>
+                        <span class="app-card-detail-value" title="{{ contact.contactPersonName ?: 'Non renseigné' }}">{{ contact.contactPersonName ?: 'Non renseigné' }}</span>
+                    </div>
+
+                    <div class="app-card-detail-line mb-2">
+                        <span class="app-card-detail-label"><i class="bi bi-briefcase"></i>Poste</span>
+                        <span class="app-card-detail-value" title="{{ contact.contactPersonPosition ?: 'Non renseigné' }}">{{ contact.contactPersonPosition ?: 'Non renseigné' }}</span>
+                    </div>
+
+                    <div class="app-card-detail-line mb-2">
+                        <span class="app-card-detail-label"><i class="bi bi-building"></i>Ville</span>
+                        <span class="app-card-detail-value" title="{{ contact.city ?: 'Non renseignée' }}">{{ contact.city ?: 'Non renseignée' }}</span>
                     </div>
 
                     <div class="app-card-detail-line mb-2">
                         <span class="app-card-detail-label"><i class="bi bi-phone"></i>Portable</span>
-                        {% if contact.mobile %}
-                            <a href="{{ mobile_href }}" class="app-card-detail-value text-decoration-none" title="Appeler {{ contact.mobile }}">{{ contact.mobile }}</a>
+                        {% if mobile_numbers %}
+                            <span class="app-card-detail-value">
+                                {% for mobile in mobile_numbers %}
+                                    <a href="tel:{{ mobile|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) }}" class="text-decoration-none" title="Appeler {{ mobile }}">{{ mobile }}</a>{{ not loop.last ? ' · ' : '' }}
+                                {% endfor %}
+                            </span>
                         {% else %}
                             <span class="app-card-detail-value text-secondary">Non renseigné</span>
                         {% endif %}
                     </div>
 
+                    <div class="mt-3">
+                        <span class="badge app-card-status text-bg-light border" title="{{ contact.type }}">
+                            <i class="bi bi-tag me-1"></i>{{ contact.type }}
+                        </span>
+                    </div>
                 {% endblock %}
 
                 {% block actions %}
                     <div class="app-card-actions-row">
                         <div class="btn-group btn-group-sm">
-                            {% if contact.mobile %}
-                                <a class="btn btn-outline-primary" href="{{ mobile_href }}" title="Appeler le portable" aria-label="Appeler le portable">
-                                    <i class="bi bi-phone"></i>
+                            {% for mobile in mobile_numbers %}
+                                <a class="btn btn-outline-primary" href="tel:{{ mobile|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) }}" title="Appeler {{ mobile }}" aria-label="Appeler {{ mobile }}">
+                                    <i class="bi {{ loop.first ? 'bi-phone' : 'bi-phone-vibrate' }}"></i>
                                 </a>
-                            {% endif %}
+                            {% endfor %}
                             {% if contact.landline %}
                                 <a class="btn btn-outline-primary" href="{{ landline_href }}" title="Appeler le fixe" aria-label="Appeler le fixe">
                                     <i class="bi bi-telephone"></i>
@@ -163,7 +207,7 @@
                         <i class="bi bi-search"></i>
                     </span>
                     <h2 class="h5 mt-3">Aucun contact trouvé</h2>
-                    <p class="text-secondary mb-0">Essayez avec un autre nom, type, téléphone ou email.</p>
+                    <p class="text-secondary mb-0">Essayez avec un autre nom, contact, poste, type, ville, téléphone ou email.</p>
                 </div>
             </div>
         </div>

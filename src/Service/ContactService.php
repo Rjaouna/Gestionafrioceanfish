@@ -18,16 +18,26 @@ final readonly class ContactService
     ) {
     }
 
-    /** @return list<Contact> */
-    public function getVisibleContacts(User $user): array
+    /**
+     * @param array{type?: string|null, city?: string|null} $filters
+     *
+     * @return list<Contact>
+     */
+    public function getVisibleContacts(User $user, array $filters = []): array
     {
-        return $this->repository->findVisibleFor($user, $this->access->isAdmin($user));
+        return $this->repository->findVisibleFor($user, $this->access->isAdmin($user), $filters);
     }
 
     /** @return list<string> */
     public function getTypeSuggestions(): array
     {
         return $this->repository->findDistinctTypes();
+    }
+
+    /** @return list<string> */
+    public function getCitySuggestions(): array
+    {
+        return $this->repository->findDistinctCities();
     }
 
     public function create(Contact $contact, User $actor): Contact

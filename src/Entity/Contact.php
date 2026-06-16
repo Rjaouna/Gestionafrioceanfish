@@ -14,6 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_contact_created_by', columns: ['created_by_id'])]
 #[ORM\Index(name: 'idx_contact_updated_by', columns: ['updated_by_id'])]
 #[ORM\Index(name: 'idx_contact_type', columns: ['type'])]
+#[ORM\Index(name: 'idx_contact_city', columns: ['city'])]
 class Contact
 {
     use TimestampableUserTrait;
@@ -38,13 +39,33 @@ class Contact
     #[Assert\Length(max: 180)]
     private ?string $email = null;
 
+    #[ORM\Column(length: 180, nullable: true)]
+    #[Assert\Length(max: 180)]
+    private ?string $contactPersonName = null;
+
+    #[ORM\Column(length: 180, nullable: true)]
+    #[Assert\Length(max: 180)]
+    private ?string $contactPersonPosition = null;
+
     #[ORM\Column(length: 40, nullable: true)]
     #[Assert\Length(max: 40)]
     private ?string $mobile = null;
 
     #[ORM\Column(length: 40, nullable: true)]
     #[Assert\Length(max: 40)]
+    private ?string $mobileSecondary = null;
+
+    #[ORM\Column(length: 40, nullable: true)]
+    #[Assert\Length(max: 40)]
+    private ?string $mobileTertiary = null;
+
+    #[ORM\Column(length: 40, nullable: true)]
+    #[Assert\Length(max: 40)]
     private ?string $landline = null;
+
+    #[ORM\Column(length: 120, nullable: true)]
+    #[Assert\Length(max: 120)]
+    private ?string $city = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $postalAddress = null;
@@ -103,6 +124,32 @@ class Contact
         return $this;
     }
 
+    public function getContactPersonName(): ?string
+    {
+        return $this->contactPersonName;
+    }
+
+    public function setContactPersonName(?string $contactPersonName): static
+    {
+        $contactPersonName = trim((string) $contactPersonName);
+        $this->contactPersonName = $contactPersonName !== '' ? $contactPersonName : null;
+
+        return $this;
+    }
+
+    public function getContactPersonPosition(): ?string
+    {
+        return $this->contactPersonPosition;
+    }
+
+    public function setContactPersonPosition(?string $contactPersonPosition): static
+    {
+        $contactPersonPosition = trim((string) $contactPersonPosition);
+        $this->contactPersonPosition = $contactPersonPosition !== '' ? $contactPersonPosition : null;
+
+        return $this;
+    }
+
     public function getMobile(): ?string
     {
         return $this->mobile;
@@ -116,6 +163,42 @@ class Contact
         return $this;
     }
 
+    public function getMobileSecondary(): ?string
+    {
+        return $this->mobileSecondary;
+    }
+
+    public function setMobileSecondary(?string $mobileSecondary): static
+    {
+        $mobileSecondary = trim((string) $mobileSecondary);
+        $this->mobileSecondary = $mobileSecondary !== '' ? $mobileSecondary : null;
+
+        return $this;
+    }
+
+    public function getMobileTertiary(): ?string
+    {
+        return $this->mobileTertiary;
+    }
+
+    public function setMobileTertiary(?string $mobileTertiary): static
+    {
+        $mobileTertiary = trim((string) $mobileTertiary);
+        $this->mobileTertiary = $mobileTertiary !== '' ? $mobileTertiary : null;
+
+        return $this;
+    }
+
+    /** @return list<string> */
+    public function getMobileNumbers(): array
+    {
+        return array_values(array_filter([
+            $this->mobile,
+            $this->mobileSecondary,
+            $this->mobileTertiary,
+        ], static fn (?string $mobile): bool => $mobile !== null && $mobile !== ''));
+    }
+
     public function getLandline(): ?string
     {
         return $this->landline;
@@ -125,6 +208,19 @@ class Contact
     {
         $landline = trim((string) $landline);
         $this->landline = $landline !== '' ? $landline : null;
+
+        return $this;
+    }
+
+    public function getCity(): ?string
+    {
+        return $this->city;
+    }
+
+    public function setCity(?string $city): static
+    {
+        $city = trim((string) $city);
+        $this->city = $city !== '' ? $city : null;
 
         return $this;
     }
