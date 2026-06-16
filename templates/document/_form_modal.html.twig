@@ -1,0 +1,22 @@
+{{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">{{ title }}</h2>
+            <p class="text-secondary small mb-0">Les fichiers sont stockés dans un espace privé, hors dossier public.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-lg-6">{{ form_row(form.name) }}</div>
+            <div class="col-lg-6">{{ form_row(form.file) }}</div>
+            <div class="col-12">{{ form_row(form.description) }}</div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>{{ submit_label }}
+        </button>
+    </div>
+{{ form_end(form) }}

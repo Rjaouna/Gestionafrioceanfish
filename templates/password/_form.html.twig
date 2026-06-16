@@ -1,0 +1,36 @@
+{{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
+    <div class="modal-header">
+        <h2 class="modal-title fs-5">{{ title }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-md-6">{{ form_row(form.name) }}</div>
+            <div class="col-md-6">{{ form_row(form.login) }}</div>
+            <div class="col-12" data-secret-field>
+                {{ form_label(form.plainPassword) }}
+                <div class="input-group">
+                    {{ form_widget(form.plainPassword) }}
+                    <button type="button" class="btn btn-outline-secondary secret-action" data-secret-toggle aria-label="Afficher le mot de passe pendant 2 secondes" title="Afficher pendant 2 secondes">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary secret-action" data-secret-copy aria-label="Copier le mot de passe" title="Copier">
+                        <i class="bi bi-copy"></i>
+                    </button>
+                </div>
+                {{ form_errors(form.plainPassword) }}
+                <button type="button" class="btn btn-link btn-sm text-secondary text-decoration-none px-0 pt-2" data-secret-generate>
+                    <i class="bi bi-stars me-1"></i>Générer un mot de passe sécurisé
+                </button>
+            </div>
+            <div class="col-12">{{ form_row(form.link) }}</div>
+            <div class="col-12">{{ form_row(form.description) }}</div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>{{ submit_label }}
+        </button>
+    </div>
+{{ form_end(form) }}

@@ -1,0 +1,89 @@
+{{ form_start(form, {attr: {'data-ajax-form': 'true', 'data-maintenance-contract-form': 'true'}}) }}
+    <div class="modal-header">
+        <h2 class="modal-title fs-5">{{ title }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row g-3">
+            {% set current_contract_type = form.contractType.vars.value|default('') %}
+            {% set known_contract_type = current_contract_type in contract_type_suggestions|default([]) %}
+            <div class="col-md-4">
+                <label class="form-label">Référence</label>
+                <div class="form-control bg-light d-flex align-items-center justify-content-between">
+                    <span>{{ form.vars.data.reference ?: 'Générée automatiquement' }}</span>
+                    <i class="bi bi-lock text-secondary" title="Référence non modifiable"></i>
+                </div>
+                <div class="form-text">La référence est générée automatiquement.</div>
+            </div>
+            <div class="col-md-4">
+                {{ form_row(form.intervenant) }}
+                <button class="btn btn-link btn-sm text-secondary text-decoration-none px-0" type="button" data-bs-toggle="collapse" data-bs-target="#contractIntervenantExplorer{{ form.intervenant.vars.id }}" aria-expanded="false">
+                    <i class="bi bi-search me-1"></i>Explorer la liste des intervenants
+                </button>
+            </div>
+            <div class="col-md-4">
+                {{ form_widget(form.contractType) }}
+                <label class="form-label" for="contractTypeSelect{{ form.contractType.vars.id }}">Type de contrat</label>
+                <select class="form-select" id="contractTypeSelect{{ form.contractType.vars.id }}" data-maintenance-contract-type-select data-target-input="#{{ form.contractType.vars.id }}">
+                    <option value="">Sélectionner un type de contrat</option>
+                    {% for type in contract_type_suggestions|default([]) %}
+                        <option value="{{ type }}" {{ current_contract_type == type ? 'selected' : '' }}>{{ type }}</option>
+                    {% endfor %}
+                    <option value="__other__" {{ current_contract_type and not known_contract_type ? 'selected' : '' }}>Autre...</option>
+                </select>
+                <input
+                    type="text"
+                    class="form-control mt-2 {{ current_contract_type and not known_contract_type ? '' : 'd-none' }}"
+                    value="{{ current_contract_type and not known_contract_type ? current_contract_type : '' }}"
+                    placeholder="Nom du nouveau type de contrat"
+                    data-maintenance-contract-type-custom
+                    data-target-input="#{{ form.contractType.vars.id }}"
+                >
+                {{ form_errors(form.contractType) }}
+                <div class="form-text">Un nouveau type saisi dans “Autre” sera proposé dans les prochains contrats.</div>
+            </div>
+            <div class="col-12">
+                <div class="collapse" id="contractIntervenantExplorer{{ form.intervenant.vars.id }}">
+                    <div class="list-group list-group-flush border rounded-3">
+                        {% for intervenant in available_intervenants|default([]) %}
+                            <button type="button" class="list-group-item list-group-item-action" data-maintenance-pick-intervenant data-target-select="#{{ form.intervenant.vars.id }}" data-intervenant-id="{{ intervenant.id }}">
+                                <div class="d-flex flex-wrap justify-content-between gap-2">
+                                    <span class="fw-semibold">{{ intervenant.displayName }}</span>
+                                    <span class="small text-secondary">{{ intervenant.speciality ?: intervenant.type }}</span>
+                                </div>
+                                <div class="small text-secondary">{{ intervenant.email ?: 'Email non renseigné' }} · {{ intervenant.phone ?: 'Téléphone non renseigné' }}</div>
+                            </button>
+                        {% else %}
+                            <div class="list-group-item text-secondary small">Aucun intervenant actif disponible.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">{{ form_row(form.customerName) }}</div>
+            <div class="col-md-6">{{ form_row(form.customerEmail) }}</div>
+            <div class="col-md-6">{{ form_row(form.customerPhone) }}</div>
+            <div class="col-12">{{ form_row(form.customerAddress) }}</div>
+            <div class="col-md-4">{{ form_row(form.startDate) }}</div>
+            <div class="col-md-4">{{ form_row(form.endDate) }}</div>
+            <div class="col-md-4">
+                <label class="form-label">Date de renouvellement</label>
+                <div class="form-control bg-light">Identique à la date de fin</div>
+                <div class="form-text">L’application la renseigne automatiquement.</div>
+            </div>
+            <div class="col-12">
+                <div class="alert alert-danger d-none mb-0" data-maintenance-date-error></div>
+            </div>
+            <div class="col-md-4">{{ form_row(form.interventionFrequency) }}</div>
+            <div class="col-md-4">{{ form_row(form.amount) }}</div>
+            <div class="col-md-4">{{ form_row(form.status) }}</div>
+            <div class="col-md-6">{{ form_row(form.description) }}</div>
+            <div class="col-md-6">{{ form_row(form.notes) }}</div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>{{ submit_label }}
+        </button>
+    </div>
+{{ form_end(form) }}

@@ -1,0 +1,110 @@
+{% set status_labels = {'a_planifier': 'À planifier', 'planifiee': 'Planifiée', 'en_cours': 'En cours', 'terminee': 'Terminée', 'annulee': 'Annulée'} %}
+{% set status_classes = {'a_planifier': 'text-bg-secondary', 'planifiee': 'text-bg-primary', 'en_cours': 'text-bg-warning', 'terminee': 'text-bg-success', 'annulee': 'text-bg-dark'} %}
+{% set priority_labels = {'basse': 'Basse', 'normale': 'Normale', 'haute': 'Haute', 'urgente': 'Urgente'} %}
+{% set priority_classes = {'basse': 'text-bg-light border', 'normale': 'text-bg-primary-subtle text-primary-emphasis', 'haute': 'text-bg-warning', 'urgente': 'text-bg-danger'} %}
+{% set phone_href = intervention.customerPhone ? 'tel:' ~ intervention.customerPhone|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) : null %}
+{% set waze_url = intervention.customerAddress ? 'https://waze.com/ul?q=' ~ intervention.customerAddress|url_encode ~ '&navigate=yes' : null %}
+
+<div class="col-12 col-md-4 col-xl-3">
+    {% embed 'components/_entity_card.html.twig' with {
+        title: intervention.title,
+        title_remote_url: path('app_maintenance_intervention_view', {id: intervention.id}),
+        icon: 'bi-tools',
+        icon_container_class: 'rounded-3 bg-warning-subtle text-warning-emphasis fs-4 module-mark',
+        status_label: status_labels[intervention.status]|default(intervention.status),
+        status_class: status_classes[intervention.status]|default('text-bg-light border'),
+        status_icon: intervention.active ? 'bi-activity' : 'bi-archive',
+        muted: not intervention.active,
+        created_at: intervention.createdAt,
+        updated_at: intervention.updatedAt
+    } %}
+        {% block top_actions %}
+            {% if is_granted('INTERVENTION_EDIT', intervention) %}
+                <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_maintenance_intervention_form', {id: intervention.id}) }}">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            {% endif %}
+            {% if is_granted('INTERVENTION_DELETE', intervention) %}
+                <button class="btn btn-outline-danger btn-sm" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_maintenance_intervention_delete', {id: intervention.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_maintenance_intervention_' ~ intervention.id) }}" data-confirm-message="Supprimer définitivement cette intervention ?">
+                    <i class="bi bi-trash"></i>
+                </button>
+            {% endif %}
+        {% endblock %}
+
+        {% block subtitle %}
+            <span class="small text-secondary text-break">
+                <i class="bi bi-building me-1"></i>{{ intervention.customerName }}
+            </span>
+        {% endblock %}
+
+        {% block body %}
+            <div class="app-card-detail-line mb-2">
+                <span class="app-card-detail-label"><i class="bi bi-hash"></i>Référence</span>
+                <span class="app-card-detail-value">{{ intervention.reference }}</span>
+            </div>
+            <div class="app-card-detail-line mb-2">
+                <span class="app-card-detail-label"><i class="bi bi-calendar-event"></i>Prévue</span>
+                <span class="app-card-detail-value">{{ intervention.plannedAt ? intervention.plannedAt|date('d/m/Y H:i') : 'Non planifiée' }}</span>
+            </div>
+            <div class="app-card-detail-line mb-2">
+                <span class="app-card-detail-label"><i class="bi bi-exclamation-circle"></i>Priorité</span>
+                <span class="badge app-card-detail-badge {{ priority_classes[intervention.priority]|default('text-bg-light border') }}">{{ priority_labels[intervention.priority]|default(intervention.priority) }}</span>
+            </div>
+            <div class="app-card-detail-line mb-2">
+                <span class="app-card-detail-label"><i class="bi bi-file-earmark-check"></i>Contrat</span>
+                <span class="app-card-detail-value">{{ intervention.contract ? intervention.contract.reference : 'Sans contrat' }}</span>
+            </div>
+            <div class="app-card-detail-line">
+                <span class="app-card-detail-label"><i class="bi bi-people"></i>Intervenants</span>
+                <span class="app-card-detail-value">{{ intervention.assignments|length > 0 ? intervention.assignments|length ~ ' affecté(s)' : 'Aucun' }}</span>
+            </div>
+        {% endblock %}
+
+        {% block actions %}
+            <div class="app-card-actions-row">
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" type="button" title="Consulter" aria-label="Consulter" data-remote-modal="{{ path('app_maintenance_intervention_view', {id: intervention.id}) }}">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </button>
+                    {% if is_granted('INTERVENTION_ASSIGN_INTERVENANT', intervention) %}
+                        <button class="btn btn-outline-secondary" type="button" title="Affecter" aria-label="Affecter" data-remote-modal="{{ path('app_maintenance_intervention_assign_modal', {id: intervention.id}) }}">
+                            <i class="bi bi-person-plus"></i>
+                        </button>
+                    {% endif %}
+                    {% if intervention.customerPhone %}
+                        <a class="btn btn-outline-primary" href="{{ phone_href }}" title="Appeler" aria-label="Appeler">
+                            <i class="bi bi-telephone"></i>
+                        </a>
+                    {% endif %}
+                    {% if intervention.customerEmail %}
+                        <a class="btn btn-outline-secondary" href="mailto:{{ intervention.customerEmail }}" title="Envoyer un e-mail" aria-label="Envoyer un e-mail">
+                            <i class="bi bi-envelope"></i>
+                        </a>
+                    {% endif %}
+                    {% if intervention.customerAddress %}
+                        <a class="btn btn-outline-secondary" href="{{ waze_url }}" target="_blank" rel="noopener noreferrer" title="Ouvrir dans Waze" aria-label="Ouvrir dans Waze">
+                            <i class="bi bi-geo-alt"></i>
+                        </a>
+                    {% endif %}
+                </div>
+
+                <div class="btn-group btn-group-sm">
+                    {% if is_granted('INTERVENTION_CHANGE_STATUS', intervention) and intervention.status not in ['en_cours', 'terminee', 'annulee'] %}
+                        <button class="btn btn-outline-success" data-confirm-url="{{ path('app_maintenance_intervention_start', {id: intervention.id}) }}" data-token="{{ csrf_token('start_maintenance_intervention_' ~ intervention.id) }}" data-confirm-message="Démarrer cette intervention maintenant ?">
+                            <i class="bi bi-play-fill me-1"></i>Démarrer
+                        </button>
+                    {% elseif is_granted('INTERVENTION_CLOSE', intervention) and intervention.status == 'en_cours' %}
+                        <button class="btn btn-outline-success" type="button" data-remote-modal="{{ path('app_maintenance_intervention_view', {id: intervention.id}) }}">
+                            <i class="bi bi-stop-fill me-1"></i>Terminer
+                        </button>
+                    {% endif %}
+                    {% if is_granted('INTERVENTION_ARCHIVE', intervention) %}
+                        <button class="btn btn-outline-secondary" data-confirm-url="{{ path('app_maintenance_intervention_archive', {id: intervention.id}) }}" data-token="{{ csrf_token('archive_maintenance_intervention_' ~ intervention.id) }}" data-confirm-message="{{ intervention.active ? 'Archiver cette intervention ?' : 'Désarchiver cette intervention ?' }}">
+                            <i class="bi {{ intervention.active ? 'bi-archive' : 'bi-arrow-counterclockwise' }}"></i>
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        {% endblock %}
+    {% endembed %}
+</div>

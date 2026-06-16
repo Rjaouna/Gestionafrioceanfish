@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Interventions{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Interventions</h1>
+        <p class="text-secondary mb-0">{{ interventions|length }} intervention{{ interventions|length > 1 ? 's' : '' }} visible{{ interventions|length > 1 ? 's' : '' }}.</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createInterventionModal">
+        <i class="bi bi-tools me-2"></i>Nouvelle intervention
+    </button>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <div class="row align-items-center g-3">
+            <div class="col-lg">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="bi bi-search text-primary"></i>
+                    </span>
+                    <input
+                        type="search"
+                        class="form-control border-start-0"
+                        placeholder="Rechercher par référence, titre, intervenant, contrat ou téléphone..."
+                        aria-label="Rechercher une intervention"
+                        data-maintenance-search
+                        data-maintenance-search-url="{{ path('app_maintenance_intervention_search') }}"
+                        data-maintenance-target="interventionGrid"
+                        data-maintenance-status-selector="#interventionStatusFilter"
+                    >
+                    <button class="btn btn-outline-secondary d-none" type="button" data-maintenance-clear-search aria-label="Effacer la recherche">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <select class="form-select form-select-lg" id="interventionStatusFilter" data-maintenance-filter>
+                    <option value="">Tous les statuts</option>
+                    <option value="a_planifier" {{ selected_status == 'a_planifier' ? 'selected' : '' }}>À planifier</option>
+                    <option value="planifiee" {{ selected_status == 'planifiee' ? 'selected' : '' }}>Planifiée</option>
+                    <option value="en_cours" {{ selected_status == 'en_cours' ? 'selected' : '' }}>En cours</option>
+                    <option value="terminee" {{ selected_status == 'terminee' ? 'selected' : '' }}>Terminée</option>
+                    <option value="annulee" {{ selected_status == 'annulee' ? 'selected' : '' }}>Annulée</option>
+                </select>
+            </div>
+            <div class="col-lg-auto">
+                <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis px-3 py-2">
+                    <i class="bi bi-tools me-1"></i>
+                    <span data-maintenance-search-count>{{ interventions|length }}</span>
+                    <span data-maintenance-search-label>résultat{{ interventions|length > 1 ? 's' : '' }}</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="interventionGrid">
+    {% include 'maintenance/intervention/_grid.html.twig' with {interventions: interventions} %}
+</div>
+
+<div class="modal fade" id="createInterventionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+        <div class="modal-content">
+            {% include 'maintenance/intervention/_form_modal.html.twig' with {form: create_form, title: 'Créer une intervention', submit_label: 'Créer', available_intervenants: available_intervenants} %}
+        </div>
+    </div>
+</div>
+{% endblock %}

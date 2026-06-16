@@ -1,0 +1,81 @@
+{% set type_labels = {'interne': 'Interne', 'externe': 'Externe', 'prestataire': 'Prestataire'} %}
+{% set phone_href = intervenant.phone ? 'tel:' ~ intervenant.phone|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) : null %}
+
+<div class="col-12 col-md-4 col-xl-3">
+    {% embed 'components/_entity_card.html.twig' with {
+        title: intervenant.displayName,
+        title_remote_url: is_granted('INTERVENANT_EDIT', intervenant) ? path('app_maintenance_intervenant_form', {id: intervenant.id}) : null,
+        icon: 'bi-person-gear',
+        icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-4 module-mark',
+        status_label: type_labels[intervenant.type]|default(intervenant.type),
+        status_class: intervenant.active ? 'text-bg-light border' : 'text-bg-secondary',
+        status_icon: intervenant.active ? 'bi-check-circle' : 'bi-pause-circle',
+        muted: not intervenant.active,
+        created_at: intervenant.createdAt,
+        updated_at: intervenant.updatedAt
+    } %}
+        {% block top_actions %}
+            {% if is_granted('INTERVENANT_EDIT', intervenant) %}
+                <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_maintenance_intervenant_form', {id: intervenant.id}) }}">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            {% endif %}
+            {% if is_granted('INTERVENANT_DELETE', intervenant) %}
+                <button class="btn btn-outline-danger btn-sm" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_maintenance_intervenant_delete', {id: intervenant.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_maintenance_intervenant_' ~ intervenant.id) }}" data-confirm-message="Supprimer définitivement cet intervenant ?">
+                    <i class="bi bi-trash"></i>
+                </button>
+            {% endif %}
+        {% endblock %}
+
+        {% block subtitle %}
+            {% if intervenant.email %}
+                <a href="mailto:{{ intervenant.email }}" class="small text-secondary text-decoration-none text-break" title="{{ intervenant.email }}">
+                    <i class="bi bi-envelope me-1"></i>{{ intervenant.email }}
+                </a>
+            {% else %}
+                <span class="small text-secondary">Aucun email renseigné</span>
+            {% endif %}
+        {% endblock %}
+
+        {% block body %}
+            <div class="app-card-detail-line mb-2">
+                <span class="app-card-detail-label"><i class="bi bi-telephone"></i>Téléphone</span>
+                {% if intervenant.phone %}
+                    <a href="{{ phone_href }}" class="app-card-detail-value text-decoration-none" title="Appeler {{ intervenant.phone }}">{{ intervenant.phone }}</a>
+                {% else %}
+                    <span class="app-card-detail-value text-secondary">Non renseigné</span>
+                {% endif %}
+            </div>
+            <div class="app-card-detail-line mb-2">
+                <span class="app-card-detail-label"><i class="bi bi-tools"></i>Spécialité</span>
+                <span class="app-card-detail-value">{{ intervenant.speciality ?: 'Non renseignée' }}</span>
+            </div>
+            <div class="app-card-detail-line">
+                <span class="app-card-detail-label"><i class="bi bi-circle-fill"></i>Statut</span>
+                <span class="app-card-detail-value">{{ intervenant.active ? 'Actif' : 'Désactivé' }}</span>
+            </div>
+        {% endblock %}
+
+        {% block actions %}
+            <div class="app-card-actions-row">
+                <div class="btn-group btn-group-sm">
+                    {% if intervenant.phone %}
+                        <a class="btn btn-outline-primary" href="{{ phone_href }}" title="Appeler" aria-label="Appeler">
+                            <i class="bi bi-telephone"></i>
+                        </a>
+                    {% endif %}
+                    {% if intervenant.email %}
+                        <a class="btn btn-outline-secondary" href="mailto:{{ intervenant.email }}" title="Envoyer un e-mail" aria-label="Envoyer un e-mail">
+                            <i class="bi bi-envelope"></i>
+                        </a>
+                    {% endif %}
+                </div>
+                {% if is_granted('INTERVENANT_ARCHIVE', intervenant) %}
+                    <button class="btn btn-outline-secondary btn-sm" data-confirm-url="{{ path('app_maintenance_intervenant_toggle', {id: intervenant.id}) }}" data-token="{{ csrf_token('toggle_maintenance_intervenant_' ~ intervenant.id) }}" data-confirm-message="{{ intervenant.active ? 'Désactiver cet intervenant ?' : 'Réactiver cet intervenant ?' }}">
+                        <i class="bi {{ intervenant.active ? 'bi-pause-circle' : 'bi-check-circle' }} me-1"></i>{{ intervenant.active ? 'Désactiver' : 'Réactiver' }}
+                    </button>
+                {% endif %}
+            </div>
+        {% endblock %}
+    {% endembed %}
+</div>

@@ -1,0 +1,28 @@
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <h3 class="h6 mb-3">Historique</h3>
+        <div class="list-group list-group-flush">
+            {% for item in history %}
+                <div class="list-group-item px-0">
+                    <div class="d-flex flex-wrap justify-content-between gap-2">
+                        <div>
+                            <div class="fw-semibold">{{ item.action }}</div>
+                            {% if item.oldStatus or item.newStatus %}
+                                <div class="small text-secondary">{{ item.oldStatus ?: '-' }} → {{ item.newStatus ?: '-' }}</div>
+                            {% endif %}
+                            {% if item.comment %}
+                                <div class="small text-secondary">{{ item.comment }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="small text-secondary text-end">
+                            <div>{{ item.createdAt ? item.createdAt|date('d/m/Y H:i') : '-' }}</div>
+                            <div>{{ item.createdBy ? item.createdBy.displayName : 'Système' }}</div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-secondary small">Aucun historique pour le moment.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

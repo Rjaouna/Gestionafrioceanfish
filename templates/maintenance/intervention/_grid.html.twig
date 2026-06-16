@@ -1,0 +1,17 @@
+<div class="row g-4">
+    {% for intervention in interventions %}
+        {% include 'maintenance/intervention/_card.html.twig' with {intervention: intervention} %}
+    {% else %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
+                        <i class="bi bi-tools"></i>
+                    </span>
+                    <h2 class="h5 mt-3">Aucune intervention trouvée</h2>
+                    <p class="text-secondary mb-0">Créez une intervention ou ajustez votre recherche.</p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>

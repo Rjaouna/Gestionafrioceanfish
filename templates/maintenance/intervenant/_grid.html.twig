@@ -1,0 +1,17 @@
+<div class="row g-4">
+    {% for intervenant in intervenants %}
+        {% include 'maintenance/intervenant/_card.html.twig' with {intervenant: intervenant} %}
+    {% else %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
+                        <i class="bi bi-person-gear"></i>
+                    </span>
+                    <h2 class="h5 mt-3">Aucun intervenant trouvé</h2>
+                    <p class="text-secondary mb-0">Ajoutez vos techniciens internes, externes ou prestataires.</p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>

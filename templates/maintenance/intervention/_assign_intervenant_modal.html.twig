@@ -1,0 +1,77 @@
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">Affecter un intervenant</h2>
+        <p class="text-secondary mb-0">{{ intervention.reference }} · {{ intervention.title }}</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h3 class="h6 mb-3">Nouvelle affectation</h3>
+                    <form action="{{ path('app_maintenance_intervention_assign', {id: intervention.id}) }}" method="post" data-ajax-form>
+                        <input type="hidden" name="token" value="{{ csrf_token('assign_maintenance_intervention_' ~ intervention.id) }}">
+                        <div class="mb-3">
+                            <label class="form-label" for="assignIntervenant{{ intervention.id }}">Intervenant</label>
+                            <select class="form-select" id="assignIntervenant{{ intervention.id }}" name="intervenantId" required>
+                                <option value="">Sélectionner un intervenant</option>
+                                {% for intervenant in intervenants %}
+                                    <option value="{{ intervenant.id }}">{{ intervenant.displayName }} · {{ intervenant.speciality ?: intervenant.type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="assignRole{{ intervention.id }}">Rôle sur l’intervention</label>
+                            <input class="form-control" id="assignRole{{ intervention.id }}" name="roleOnIntervention" placeholder="Ex. Technicien principal, support, contrôle qualité">
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch" id="assignMain{{ intervention.id }}" name="isMainIntervenant" value="1">
+                            <label class="form-check-label" for="assignMain{{ intervention.id }}">Intervenant principal</label>
+                        </div>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-person-plus me-1"></i>Affecter
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h3 class="h6 mb-3">Affectations actuelles</h3>
+                    <div class="list-group list-group-flush">
+                        {% for assignment in intervention.assignments %}
+                            <div class="list-group-item px-0">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                    <div>
+                                        <div class="fw-semibold">{{ assignment.intervenant.displayName }}</div>
+                                        <div class="small text-secondary">{{ assignment.roleOnIntervention ?: 'Rôle non renseigné' }}</div>
+                                        {% if assignment.mainIntervenant %}
+                                            <span class="badge text-bg-primary mt-1">Principal</span>
+                                        {% endif %}
+                                    </div>
+                                    <button
+                                        class="btn btn-outline-danger btn-sm"
+                                        data-confirm-url="{{ path('app_maintenance_intervention_remove_assignment', {id: intervention.id, assignmentId: assignment.id}) }}"
+                                        data-confirm-method="DELETE"
+                                        data-token="{{ csrf_token('remove_maintenance_assignment_' ~ intervention.id) }}"
+                                        data-confirm-message="Retirer cette affectation ?"
+                                    >
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-secondary small">Aucun intervenant affecté.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+</div>

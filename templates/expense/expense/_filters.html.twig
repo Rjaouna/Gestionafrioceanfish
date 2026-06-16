@@ -1,0 +1,83 @@
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-xl-4">
+                <label class="form-label small text-secondary" for="expenseSearch">Recherche</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-primary"></i></span>
+                    <input
+                        type="search"
+                        id="expenseSearch"
+                        class="form-control border-start-0"
+                        placeholder="Référence, libellé, fournisseur, facture..."
+                        value="{{ filters.q }}"
+                        data-expense-search
+                        data-expense-target="expenseCardGrid"
+                        data-expense-search-url="{{ path('app_expense_search') }}"
+                    >
+                    <button class="btn btn-outline-secondary {{ filters.q ? '' : 'd-none' }}" type="button" data-expense-clear-search aria-label="Effacer la recherche">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <label class="form-label small text-secondary" for="expenseCategoryFilter">Catégorie</label>
+                <select id="expenseCategoryFilter" class="form-select" data-expense-filter>
+                    <option value="">Toutes</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {{ filters.category == category.id ? 'selected' : '' }}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <label class="form-label small text-secondary" for="expenseStatusFilter">Statut</label>
+                <select id="expenseStatusFilter" class="form-select" data-expense-filter>
+                    <option value="">Tous</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {{ filters.status == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <label class="form-label small text-secondary" for="expensePaymentFilter">Paiement</label>
+                <select id="expensePaymentFilter" class="form-select" data-expense-filter>
+                    <option value="">Tous</option>
+                    {% for value, label in payment_methods %}
+                        <option value="{{ value }}" {{ filters.paymentMethod == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <label class="form-label small text-secondary" for="expenseActiveFilter">Affichage</label>
+                <select id="expenseActiveFilter" class="form-select" data-expense-filter>
+                    <option value="active" {{ filters.active == 'active' ? 'selected' : '' }}>Actives</option>
+                    <option value="archived" {{ filters.active == 'archived' ? 'selected' : '' }}>Archivées</option>
+                    <option value="all" {{ filters.active == 'all' ? 'selected' : '' }}>Toutes</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <label class="form-label small text-secondary" for="expenseDateFrom">Du</label>
+                <input id="expenseDateFrom" type="date" class="form-control" value="{{ filters.dateFrom }}" data-expense-filter>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <label class="form-label small text-secondary" for="expenseDateTo">Au</label>
+                <input id="expenseDateTo" type="date" class="form-control" value="{{ filters.dateTo }}" data-expense-filter>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <label class="form-label small text-secondary" for="expenseMinAmount">Min TTC</label>
+                <input id="expenseMinAmount" type="number" step="0.01" min="0" class="form-control" placeholder="Ex. 50" value="{{ filters.minAmount }}" data-expense-filter>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <label class="form-label small text-secondary" for="expenseMaxAmount">Max TTC</label>
+                <input id="expenseMaxAmount" type="number" step="0.01" min="0" class="form-control" placeholder="Ex. 500" value="{{ filters.maxAmount }}" data-expense-filter>
+            </div>
+            <div class="col-12 col-xl text-xl-end">
+                <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis px-3 py-2">
+                    <i class="bi bi-receipt me-1"></i>
+                    <span data-expense-search-count>{{ pagination.total }}</span>
+                    <span data-expense-search-label>résultat{{ pagination.total > 1 ? 's' : '' }}</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

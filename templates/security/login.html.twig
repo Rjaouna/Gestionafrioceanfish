@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion &middot; Afriocean fish Gestion{% endblock %}
+
+{% block guest_body %}
+<main class="login-page">
+    <span class="login-dots" aria-hidden="true"></span>
+    <div class="login-page-inner">
+        <div class="login-hero text-center">
+            <span class="login-brand-mark">
+                <i class="bi bi-shield-lock"></i>
+            </span>
+            <h1 class="login-title">Afriocean fish Gestion</h1>
+            <p class="login-subtitle">Acc&eacute;dez &agrave; votre espace s&eacute;curis&eacute;</p>
+        </div>
+
+        <div class="login-card">
+            {% if error %}
+                <div class="alert alert-danger login-alert" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ error.messageKey|trans(error.messageData, 'security') }}
+                </div>
+            {% endif %}
+
+            <form method="post" class="login-form">
+                <div class="login-field">
+                    <label for="username" class="login-label">Adresse e-mail</label>
+                    <div class="input-group login-input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" value="{{ last_username }}" name="_username" id="username" class="form-control" autocomplete="email" placeholder="Ex. nom@afrioceanfish.com" required autofocus>
+                    </div>
+                </div>
+
+                <div class="login-field" data-secret-field>
+                    <label for="password" class="login-label">Mot de passe</label>
+                    <div class="input-group login-input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="_password" id="password" class="form-control" autocomplete="current-password" placeholder="Votre mot de passe" data-secret-input required>
+                        <button type="button" class="btn login-password-toggle" data-secret-toggle aria-label="Afficher le mot de passe pendant 2 secondes" title="Afficher pendant 2 secondes">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                <input type="hidden" name="_remember_me" value="1">
+                <button class="btn btn-primary login-submit" type="submit">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>Se connecter</span>
+                </button>
+            </form>
+        </div>
+
+    
+    </div>
+</main>
+{% endblock %}

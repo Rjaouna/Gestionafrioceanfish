@@ -1,0 +1,107 @@
+{% set card_classes = ('app-card app-card-accent-primary card h-100 border-0 shadow-sm ' ~ (muted|default(false) ? 'app-card-muted ' : '') ~ (extra_classes|default('')))|trim %}
+{% set has_href = href|default(null) is not empty %}
+{% set created = created_at|default(null) %}
+{% set updated = updated_at|default(null) %}
+{% set compact = compact is defined ? compact : true %}
+{% set top_action_content %}
+    {% block top_actions %}{% endblock %}
+{% endset %}
+{% set body_content %}
+    {% block body %}{% endblock %}
+{% endset %}
+
+{% if has_href %}
+    <a href="{{ href }}" class="{{ card_classes }} text-decoration-none text-body">
+{% else %}
+    <article class="{{ card_classes }}">
+{% endif %}
+    <div class="card-body app-card-body">
+        <div class="app-card-header">
+            <span class="app-card-icon d-inline-flex align-items-center justify-content-center flex-shrink-0 {{ avatar_text|default(null) ? 'app-card-avatar-text ' : '' }}{{ icon_container_class|default('rounded-3 bg-primary-subtle text-primary fs-4 module-mark') }}">
+                {% if avatar_text|default(null) %}
+                    {{ avatar_text }}
+                {% else %}
+                    <i class="bi {{ icon|default('bi-grid') }}"></i>
+                {% endif %}
+            </span>
+
+            <div class="app-card-main min-w-0 flex-grow-1">
+                <div class="app-card-heading">
+                    <h2 class="app-card-title h5 mb-0" title="{{ title }}">
+                        {% if has_href %}
+                            <span class="app-card-title-link">{{ title }}</span>
+                        {% elseif title_remote_url|default(null) %}
+                            <a
+                                href="{{ title_remote_url }}"
+                                class="app-card-title-link"
+                                data-remote-modal="{{ title_remote_url }}"
+                                {% if title_secret_url|default(null) %}
+                                    data-secret-url="{{ title_secret_url }}"
+                                    data-secret-token="{{ title_secret_token|default('') }}"
+                                {% endif %}
+                            >{{ title }}</a>
+                        {% elseif title_url|default(null) %}
+                            <a href="{{ title_url }}" class="app-card-title-link">{{ title }}</a>
+                        {% else %}
+                            {{ title }}
+                        {% endif %}
+                    </h2>
+
+                    <div class="app-card-head-actions">
+                        {% if status_label|default(null) %}
+                            <span class="badge app-card-status {{ status_class|default('text-bg-light border') }}">
+                                {% if status_icon|default(null) %}
+                                    <i class="bi {{ status_icon }} me-1"></i>
+                                {% endif %}
+                                {{ status_label }}
+                            </span>
+                        {% endif %}
+                        {% if top_action_content|trim is not empty %}
+                            <div class="app-card-top-actions">
+                                {{ top_action_content|raw }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="app-card-subtitle">
+                    {% block subtitle %}
+                        {% if subtitle|default(null) %}
+                            <span class="small text-secondary">{{ subtitle }}</span>
+                        {% endif %}
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+
+        {% if not compact and body_content|trim is not empty %}
+            <div class="app-card-content">
+                {{ body_content|raw }}
+            </div>
+        {% endif %}
+
+        <div class="app-card-meta">
+            <span class="app-card-meta-item" title="{{ created ? 'Créé le ' ~ created|date('d/m/Y à H:i') : 'Date de création indisponible' }}">
+                <i class="bi bi-calendar-plus"></i>
+                Créé le {{ created ? created|date('d/m/Y à H:i') : '-' }}
+            </span>
+            <span class="app-card-meta-item" title="{{ updated ? 'Modifié le ' ~ updated|date('d/m/Y à H:i') : 'Aucune modification enregistrée' }}">
+                <i class="bi bi-pencil-square"></i>
+                Modifié le {{ updated ? updated|date('d/m/Y à H:i') : 'jamais' }}
+            </span>
+        </div>
+    </div>
+
+    {% set action_content %}
+        {% block actions %}{% endblock %}
+    {% endset %}
+    {% if action_content|trim is not empty %}
+        <div class="card-footer app-card-actions p-3">
+            {{ action_content|raw }}
+        </div>
+    {% endif %}
+{% if has_href %}
+    </a>
+{% else %}
+    </article>
+{% endif %}

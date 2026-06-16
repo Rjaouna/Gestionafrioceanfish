@@ -1,0 +1,193 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Utilisateurs{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Gestion des utilisateurs</h1>
+        <p class="text-secondary mb-0">{{ users|length }} compte{{ users|length > 1 ? 's' : '' }} enregistré{{ users|length > 1 ? 's' : '' }}.</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+        <i class="bi bi-person-plus me-2"></i>Nouvel utilisateur
+    </button>
+</div>
+
+{% if users %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row align-items-center g-3">
+                <div class="col-lg">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search text-primary"></i>
+                        </span>
+                        <input
+                            type="search"
+                            class="form-control border-start-0"
+                            placeholder="Rechercher par nom, e-mail, rôle ou statut..."
+                            aria-label="Rechercher un utilisateur"
+                            data-list-search
+                            data-search-target="userCardGrid"
+                        >
+                        <button class="btn btn-outline-secondary d-none" type="button" data-clear-search aria-label="Effacer la recherche">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-auto">
+                    <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis px-3 py-2">
+                        <i class="bi bi-people me-1"></i>
+                        <span data-search-count>{{ users|length }}</span>
+                        <span data-search-label>résultat{{ users|length > 1 ? 's' : '' }}</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<div class="row g-4" id="userCardGrid">
+    {% for user in users %}
+        {% set can_send_accesses = user.email is not empty and user.email matches '/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/' %}
+        {% set primary_role = 'ROLE_USER' %}
+        {% if 'ROLE_SUPER_ADMIN' in user.roles %}
+            {% set primary_role = 'ROLE_SUPER_ADMIN' %}
+        {% elseif 'ROLE_ADMIN' in user.roles %}
+            {% set primary_role = 'ROLE_ADMIN' %}
+        {% endif %}
+        {% set role_badges = [
+            {
+                role: 'ROLE_USER',
+                label: 'Utilisateur',
+                class: 'text-bg-secondary'
+            },
+            {
+                role: 'ROLE_ADMIN',
+                label: 'Administrateur',
+                class: 'text-bg-primary'
+            },
+            {
+                role: 'ROLE_SUPER_ADMIN',
+                label: 'Super administrateur',
+                class: 'text-bg-dark'
+            }
+        ] %}
+        <div
+            class="col-12 col-md-4 col-xl-3"
+            data-search-item
+            data-search-value="{{ (user.displayName ~ ' ' ~ user.email ~ ' ' ~ user.roles|join(' ') ~ ' ' ~ (user.active ? 'actif' : 'désactivé'))|lower }}"
+        >
+            {% embed 'components/_entity_card.html.twig' with {
+                title: user.displayName,
+                title_remote_url: path('app_user_form', {id: user.id}),
+                avatar_text: user.displayName|slice(0, 1)|upper,
+                icon_container_class: 'rounded-circle bg-primary text-white fw-bold fs-5 user-avatar',
+                status_label: user.active ? 'Actif' : 'Désactivé',
+                status_class: user.active ? 'text-bg-success' : 'text-bg-danger',
+                status_icon: user.active ? 'bi-check-circle' : 'bi-x-circle',
+                compact: false,
+                created_at: user.createdAt,
+                updated_at: user.updatedAt
+            } %}
+                {% block top_actions %}
+                    <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_user_form', {id: user.id}) }}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    {% if is_granted('USER_DELETE', user) %}
+                        <button class="btn btn-outline-danger btn-sm" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_user_delete', {id: user.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_user_' ~ user.id) }}" data-confirm-message="Supprimer définitivement cet utilisateur ?">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    {% endif %}
+                {% endblock %}
+
+                {% block subtitle %}
+                    <a href="mailto:{{ user.email }}" class="small text-secondary text-decoration-none" title="{{ user.email }}">
+                        <i class="bi bi-envelope me-1"></i>{{ user.email }}
+                    </a>
+                {% endblock %}
+
+                {% block body %}
+                    <div class="app-card-detail-line mb-3 align-items-start">
+                        <span class="app-card-detail-label pt-1"><i class="bi bi-person-badge"></i>Rôles</span>
+                        <span class="d-flex flex-wrap gap-1 justify-content-end">
+                            {% for role_badge in role_badges %}
+                                {% if role_badge.role in user.roles %}
+                                    <span class="badge app-card-detail-badge {{ role_badge.class }}">
+                                        {{ role_badge.label }}
+                                    </span>
+                                {% endif %}
+                            {% endfor %}
+                        </span>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between border-top pt-3">
+                        <span class="text-secondary small">
+                            <i class="bi bi-grid me-1"></i>Modules accessibles
+                        </span>
+                        <span class="badge rounded-pill text-bg-primary">{{ user.moduleAccesses|length }}</span>
+                    </div>
+                {% endblock %}
+
+                {% block actions %}
+                    <div class="app-card-actions-row">
+                        <button
+                            class="btn btn-outline-success btn-sm"
+                            title="{{ can_send_accesses ? 'Envoyer les accès par e-mail' : 'Adresse e-mail absente ou invalide' }}"
+                            aria-label="{{ can_send_accesses ? 'Envoyer les accès par e-mail' : 'Adresse e-mail absente ou invalide' }}"
+                            {% if can_send_accesses %}
+                                data-confirm-url="{{ path('app_user_send_accesses', {id: user.id}) }}"
+                                data-confirm-method="POST"
+                                data-token="{{ csrf_token('send_user_accesses_' ~ user.id) }}"
+                                data-confirm-message="Générer un nouveau mot de passe et envoyer les informations de connexion à {{ user.email }} ?"
+                            {% else %}
+                                disabled
+                            {% endif %}
+                        >
+                            <i class="bi bi-send"></i>
+                        </button>
+                        {% if user != app.user %}
+                            <button class="btn btn-outline-secondary btn-sm" title="{{ user.active ? 'Désactiver' : 'Activer' }}" aria-label="{{ user.active ? 'Désactiver' : 'Activer' }}" data-confirm-url="{{ path('app_user_toggle', {id: user.id}) }}" data-confirm-method="POST" data-token="{{ csrf_token('toggle_user_' ~ user.id) }}" data-confirm-message="{{ user.active ? 'Désactiver ce compte ?' : 'Réactiver ce compte ?' }}">
+                                <i class="bi {{ user.active ? 'bi-pause-circle' : 'bi-play-circle' }}"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                {% endblock %}
+            {% endembed %}
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
+                        <i class="bi bi-people"></i>
+                    </span>
+                    <h2 class="h5 mt-3">Aucun utilisateur</h2>
+                    <p class="text-secondary mb-0">Créez un compte pour commencer.</p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    {% if users %}
+        <div class="col-12 d-none" data-search-empty>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning-emphasis fs-2 empty-state-mark">
+                        <i class="bi bi-person-x"></i>
+                    </span>
+                    <h2 class="h5 mt-3">Aucun utilisateur trouvé</h2>
+                    <p class="text-secondary mb-0">Essayez avec un autre nom, e-mail ou rôle.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+        <div class="modal-content">
+            {% include 'user/_form_modal.html.twig' with {form: create_form, title: 'Créer un utilisateur', submit_label: 'Créer'} %}
+        </div>
+    </div>
+</div>
+{% endblock %}

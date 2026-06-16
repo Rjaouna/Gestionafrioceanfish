@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>Document partagé</title>
+    </head>
+    <body style="margin:0;background:#f6f7fb;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+        <div style="max-width:640px;margin:0 auto;padding:24px 16px;">
+            <div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;">
+                <p style="margin:0 0 6px;font-size:13px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;">Afriocean fish Gestion</p>
+                <h1 style="margin:0 0 18px;font-size:22px;line-height:1.25;color:#111827;">Document partagé</h1>
+
+                <p style="margin:0 0 14px;font-size:15px;line-height:1.6;">Bonjour {{ recipient.displayName }},</p>
+                <p style="margin:0 0 20px;font-size:15px;line-height:1.6;">
+                    {{ actor.displayName }} vous a donné accès à un document.
+                </p>
+
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:14px;">
+                    <tr>
+                        <td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#64748b;width:170px;">Expéditeur</td>
+                        <td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#111827;">{{ actor.displayName }}</td>
+                    </tr>
+                    {% if actor.email %}
+                        <tr>
+                            <td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#64748b;">Email expéditeur</td>
+                            <td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#111827;">{{ actor.email }}</td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#64748b;">Document</td>
+                        <td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#111827;">{{ document.name }}</td>
+                    </tr>
+                    {% if share.expiresAt %}
+                        <tr>
+                            <td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#64748b;">Expiration</td>
+                            <td style="padding:10px 0;border-top:1px solid #e5e7eb;color:#111827;">{{ share.expiresAt|date('d/m/Y à H:i') }}</td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <td style="padding:10px 0;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;color:#64748b;">Lien</td>
+                        <td style="padding:10px 0;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;color:#111827;">{{ document_url }}</td>
+                    </tr>
+                </table>
+
+                <p style="margin:20px 0 0;font-size:13px;line-height:1.5;color:#64748b;">
+                    Connectez-vous à l’application avec votre compte autorisé pour consulter ce document.
+                </p>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,33 @@
+<div class="row g-4">
+    {% for document in documents %}
+        {% include 'document/_document_row.html.twig' with {document: document} %}
+    {% else %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
+                        <i class="bi bi-folder2-open"></i>
+                    </span>
+                    <h2 class="h5 mt-3">Aucun document trouvé</h2>
+                    <p class="text-secondary mb-0">Ajoutez un document ou ajustez votre recherche.</p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% if pagination.pages > 1 %}
+    <nav class="d-flex justify-content-center mt-4" aria-label="Pagination des documents">
+        <div class="btn-group shadow-sm">
+            <button class="btn btn-outline-primary" type="button" data-document-page="{{ pagination.page - 1 }}" {{ pagination.page <= 1 ? 'disabled' : '' }}>
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="btn btn-primary" type="button" disabled>
+                Page {{ pagination.page }} / {{ pagination.pages }}
+            </button>
+            <button class="btn btn-outline-primary" type="button" data-document-page="{{ pagination.page + 1 }}" {{ pagination.page >= pagination.pages ? 'disabled' : '' }}>
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </nav>
+{% endif %}

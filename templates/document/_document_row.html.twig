@@ -1,0 +1,74 @@
+<div
+    class="col-12 col-md-4 col-xl-3"
+    data-search-item
+    data-search-value="{{ (document.name ~ ' ' ~ document.description ~ ' ' ~ document.mimeType ~ ' ' ~ document.originalFileName ~ ' ' ~ document.createdBy.displayName|default('') ~ ' ' ~ (document.active ? 'actif' : 'archivé'))|lower }}"
+>
+    {% embed 'components/_entity_card.html.twig' with {
+        title: document.name,
+        title_remote_url: is_granted('DOCUMENT_VIEW', document) ? path('app_document_view', {id: document.id}) : null,
+        subtitle: document.originalFileName,
+        icon: 'bi-file-earmark-text',
+        icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-3 module-mark',
+        status_label: document.active ? 'Actif' : 'Archivé',
+        status_class: document.active ? 'text-bg-success' : 'text-bg-secondary',
+        status_icon: document.active ? 'bi-check-circle' : 'bi-archive',
+        muted: not document.active,
+        created_at: document.createdAt,
+        updated_at: document.updatedAt
+    } %}
+        {% block top_actions %}
+            {% if is_granted('DOCUMENT_EDIT', document) %}
+                <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_document_form', {id: document.id}) }}">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            {% endif %}
+            {% if is_granted('DOCUMENT_DELETE', document) %}
+                <button class="btn btn-outline-danger btn-sm" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_document_delete', {id: document.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_document_' ~ document.id) }}" data-confirm-message="Supprimer définitivement ce document et son fichier ?">
+                    <i class="bi bi-trash"></i>
+                </button>
+            {% endif %}
+        {% endblock %}
+
+        {% block body %}
+            <div class="d-grid gap-2 small">
+                <div class="app-card-info-row">
+                    <span class="text-secondary"><i class="bi bi-file-earmark me-1"></i>Type</span>
+                    <span class="fw-semibold text-end">{{ document.mimeType }}</span>
+                </div>
+                <div class="app-card-info-row">
+                    <span class="text-secondary"><i class="bi bi-hdd me-1"></i>Taille</span>
+                    <span class="fw-semibold">{{ (document.fileSize / 1024)|number_format(1, ',', ' ') }} Ko</span>
+                </div>
+                <div class="app-card-info-row">
+                    <span class="text-secondary"><i class="bi bi-person me-1"></i>Créateur</span>
+                    <span class="fw-semibold text-end">{{ document.createdBy ? document.createdBy.displayName : 'Système' }}</span>
+                </div>
+            </div>
+        {% endblock %}
+
+        {% block actions %}
+            <div class="app-card-actions-row">
+                {% if is_granted('DOCUMENT_DOWNLOAD', document) %}
+                    <a class="btn btn-primary btn-sm flex-grow-1" href="{{ path('app_document_download', {id: document.id}) }}">
+                        <i class="bi bi-download me-1"></i>Télécharger
+                    </a>
+                {% endif %}
+                {% if is_granted('DOCUMENT_EMAIL', document) %}
+                    <button class="btn btn-outline-primary btn-sm" title="Envoyer par e-mail" aria-label="Envoyer par e-mail" data-remote-modal="{{ path('app_document_email_modal', {id: document.id}) }}">
+                        <i class="bi bi-envelope"></i>
+                    </button>
+                {% endif %}
+                {% if is_granted('DOCUMENT_SHARE', document) %}
+                    <button class="btn btn-outline-success btn-sm" title="Partager" aria-label="Partager" data-remote-modal="{{ path('app_document_share_modal', {id: document.id}) }}">
+                        <i class="bi bi-share"></i>
+                    </button>
+                {% endif %}
+                {% if is_granted('DOCUMENT_ARCHIVE', document) %}
+                    <button class="btn btn-outline-secondary btn-sm" title="{{ document.active ? 'Archiver' : 'Désarchiver' }}" aria-label="{{ document.active ? 'Archiver' : 'Désarchiver' }}" data-confirm-url="{{ path('app_document_archive', {id: document.id}) }}" data-confirm-method="POST" data-token="{{ csrf_token('archive_document_' ~ document.id) }}" data-confirm-message="{{ document.active ? 'Archiver ce document ?' : 'Désarchiver ce document ?' }}">
+                        <i class="bi {{ document.active ? 'bi-archive' : 'bi-arrow-counterclockwise' }}"></i>
+                    </button>
+                {% endif %}
+            </div>
+        {% endblock %}
+    {% endembed %}
+</div>

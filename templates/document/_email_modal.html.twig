@@ -1,0 +1,67 @@
+{{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">Envoyer « {{ document.name }} » par e-mail</h2>
+            <p class="text-secondary small mb-0">Renseignez uniquement le destinataire. Le message est généré automatiquement.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary-subtle text-primary fs-3 module-mark mb-3">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </span>
+                        <h3 class="h5 mb-2">{{ document.name }}</h3>
+                        <p class="text-secondary small mb-4">{{ document.description ?: 'Aucun descriptif renseigné.' }}</p>
+                        <div class="d-grid gap-2 small">
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-secondary"><i class="bi bi-paperclip me-1"></i>Fichier</span>
+                                <span class="fw-semibold text-end text-break">{{ document.originalFileName }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-secondary"><i class="bi bi-hdd me-1"></i>Taille</span>
+                                <span class="fw-semibold">{{ (document.fileSize / 1024)|number_format(1, ',', ' ') }} Ko</span>
+                            </div>
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-secondary"><i class="bi bi-person me-1"></i>Envoyé par</span>
+                                <span class="fw-semibold text-end">{{ app.user.displayName }}</span>
+                            </div>
+                            {% if app.user.email %}
+                                <div class="d-flex justify-content-between gap-3">
+                                    <span class="text-secondary"><i class="bi bi-envelope me-1"></i>E-mail</span>
+                                    <span class="fw-semibold text-end text-break">{{ app.user.email }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        {{ form_row(form.recipientEmail) }}
+
+                        <div class="alert alert-primary-subtle border-0 mt-4 mb-0">
+                            <div class="fw-semibold mb-1">
+                                <i class="bi bi-stars me-1"></i>Message automatique
+                            </div>
+                            <div class="small text-secondary">
+                                Le destinataire recevra un e-mail soigné indiquant que {{ app.user.displayName }} lui transmet le document
+                                « {{ document.name }} », avec vos coordonnées d’expéditeur et le fichier en pièce jointe.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-send me-1"></i>Envoyer le document
+        </button>
+    </div>
+{{ form_end(form) }}

@@ -1,0 +1,255 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mots de passe{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Gestion des mots de passe</h1>
+        <p class="text-secondary mb-0">{{ entries|length }} accès visible{{ entries|length > 1 ? 's' : '' }}.</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createPasswordModal">
+        <i class="bi bi-plus-lg me-2"></i>Nouvelle entrée
+    </button>
+</div>
+
+{% if pending_validation_count > 0 %}
+    <div class="alert {{ is_granted('ROLE_ADMIN') ? 'alert-warning' : 'alert-secondary' }} border-0 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <div class="fw-semibold">
+                <i class="bi {{ is_granted('ROLE_ADMIN') ? 'bi-hourglass-split' : 'bi-info-circle' }} me-2"></i>
+                {{ pending_validation_count }} mot de passe {{ pending_validation_count > 1 ? 'attendent' : 'attend' }} une validation
+            </div>
+            <div class="small mb-0">
+                {% if is_granted('ROLE_ADMIN') %}
+                    Validez les accès en attente pour les rendre disponibles normalement.
+                {% else %}
+                    Vos créations restent grisées jusqu’à validation par un administrateur.
+                {% endif %}
+            </div>
+        </div>
+        {% if is_granted('ROLE_ADMIN') %}
+            <a href="#passwordCardGrid" class="btn btn-sm btn-warning">
+                <i class="bi bi-check2-circle me-1"></i>Voir les accès à valider
+            </a>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% if entries %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row align-items-center g-3">
+                <div class="col-lg">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search text-primary"></i>
+                        </span>
+                        <input
+                            type="search"
+                            class="form-control border-start-0"
+                            placeholder="Rechercher par nom, identifiant ou lien..."
+                            aria-label="Rechercher un mot de passe"
+                            data-list-search
+                            data-search-target="passwordCardGrid"
+                        >
+                        <button class="btn btn-outline-secondary d-none" type="button" data-clear-search aria-label="Effacer la recherche">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-auto">
+                    <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis px-3 py-2">
+                        <i class="bi bi-funnel me-1"></i>
+                        <span data-search-count>{{ entries|length }}</span>
+                        <span data-search-label>résultat{{ entries|length > 1 ? 's' : '' }}</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<div class="row g-4" id="passwordCardGrid">
+    {% for entry in entries %}
+        {% set entry_status_label = not entry.active ? 'Désactivé' : (not entry.validated ? 'À valider' : 'Accès sécurisé') %}
+        {% set entry_status_class = not entry.active ? 'text-bg-secondary' : (not entry.validated ? 'text-bg-warning' : 'text-bg-light border') %}
+        {% set entry_status_icon = not entry.active ? 'bi-pause-circle' : (not entry.validated ? 'bi-hourglass-split' : 'bi-shield-lock') %}
+        {% set shared_users = entry.shares|filter(share => share.user and (entry.createdBy is null or share.user.id != entry.createdBy.id)) %}
+        {% set shared_count = shared_users|length %}
+        <div
+            class="col-12 col-md-4 col-xl-3"
+            data-search-item
+            data-search-value="{{ (entry.name ~ ' ' ~ entry.login ~ ' ' ~ (entry.link ?? '') ~ ' ' ~ (entry.validated ? 'validé' : 'à valider') ~ ' ' ~ (entry.active ? 'actif' : 'désactivé'))|lower }}"
+        >
+            {% embed 'components/_entity_card.html.twig' with {
+                title: entry.name,
+                title_remote_url: entry.active and is_granted('PASSWORD_EDIT', entry) ? path('app_password_form', {id: entry.id}) : null,
+                title_secret_url: entry.active and is_granted('PASSWORD_EDIT', entry) ? path('app_password_reveal', {id: entry.id}) : null,
+                title_secret_token: entry.active and is_granted('PASSWORD_EDIT', entry) ? csrf_token('reveal_' ~ entry.id) : null,
+                icon: 'bi-key',
+                icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-4 module-mark',
+                status_label: entry_status_label,
+                status_class: entry_status_class,
+                status_icon: entry_status_icon,
+                muted: not entry.validated or not entry.active,
+                compact: false,
+                created_at: entry.createdAt,
+                updated_at: entry.updatedAt
+            } %}
+                {% block top_actions %}
+                    {% if entry.active and is_granted('PASSWORD_EDIT', entry) %}
+                        <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_password_form', {id: entry.id}) }}" data-secret-url="{{ path('app_password_reveal', {id: entry.id}) }}" data-secret-token="{{ csrf_token('reveal_' ~ entry.id) }}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    {% endif %}
+                    {% if is_granted('PASSWORD_DELETE', entry) %}
+                        <button class="btn btn-outline-danger btn-sm" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_password_delete', {id: entry.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_password_' ~ entry.id) }}" data-confirm-message="Supprimer définitivement cet accès ?">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    {% endif %}
+                {% endblock %}
+
+                {% block body %}
+                    {% set href = entry.link ? (entry.link starts with 'http://' or entry.link starts with 'https://' ? entry.link : 'https://' ~ entry.link) : null %}
+                    <div class="d-grid gap-2 small">
+                        <div class="app-card-info-row">
+                            <span class="text-secondary"><i class="bi bi-person me-1"></i>Identifiant</span>
+                            <code class="fw-semibold text-end app-card-truncate" title="{{ entry.login }}">{{ entry.login }}</code>
+                        </div>
+                        <div class="app-card-info-row">
+                            <span class="text-secondary"><i class="bi bi-box-arrow-up-right me-1"></i>URL / IP</span>
+                            {% if href %}
+                                <a href="{{ href }}" target="_blank" rel="noopener noreferrer" class="fw-semibold text-end text-decoration-none app-card-truncate" title="{{ entry.link }}">{{ entry.link }}</a>
+                            {% else %}
+                                <span class="text-secondary">Non renseign&eacute;</span>
+                            {% endif %}
+                        </div>
+                        {% if shared_count > 0 and is_granted('PASSWORD_SHARE', entry) %}
+                            <button class="btn btn-outline-info btn-sm justify-content-between" type="button" data-remote-modal="{{ path('app_password_share_modal', {id: entry.id}) }}">
+                                <span><i class="bi bi-people me-1"></i>Mot de passe partag&eacute;</span>
+                                <span class="badge rounded-pill text-bg-info">{{ shared_count }}</span>
+                            </button>
+                        {% endif %}
+
+                        {% if not entry.validated %}
+                            <div class="alert alert-warning small border-0 mb-0 py-2">
+                                <i class="bi bi-info-circle me-1"></i>En attente de validation.
+                            </div>
+                        {% elseif not entry.active %}
+                            <div class="alert alert-secondary small border-0 mb-0 py-2">
+                                <i class="bi bi-pause-circle me-1"></i>Acc&egrave;s d&eacute;sactiv&eacute;.
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endblock %}
+
+                {% block actions %}
+                    <div class="app-card-actions-row">
+                        {% if not entry.active %}
+                            <button class="btn btn-outline-secondary btn-sm flex-grow-1" type="button" disabled>
+                                <i class="bi bi-lock me-1"></i>Indisponible
+                            </button>
+                        {% endif %}
+                        {% if entry.active %}
+                            <button class="btn btn-primary btn-sm flex-grow-1" type="button" title="Copier le mot de passe" aria-label="Copier le mot de passe" data-copy-password data-url="{{ path('app_password_reveal', {id: entry.id}) }}" data-token="{{ csrf_token('reveal_' ~ entry.id) }}">
+                                <i class="bi bi-clipboard me-1"></i>Copier le mot de passe
+                            </button>
+                        {% endif %}
+                        {% if entry.active and is_granted('PASSWORD_SHARE', entry) %}
+                            <button class="btn btn-outline-success btn-sm" type="button" title="Partager l'accès" aria-label="Partager l'accès" data-remote-modal="{{ path('app_password_share_modal', {id: entry.id}) }}">
+                                <i class="bi bi-people me-1"></i>Partager
+                            </button>
+                        {% endif %}
+                        <div class="btn-group btn-group-sm ms-auto">
+                            {% if is_granted('PASSWORD_VALIDATE', entry) %}
+                                <button class="btn btn-outline-success" title="Valider" aria-label="Valider" data-confirm-url="{{ path('app_password_validate', {id: entry.id}) }}" data-confirm-method="POST" data-token="{{ csrf_token('validate_password_' ~ entry.id) }}" data-confirm-message="Valider ce mot de passe ?">
+                                    <i class="bi bi-check2-circle"></i>
+                                </button>
+                            {% endif %}
+                            {% if is_granted('PASSWORD_TOGGLE_STATUS', entry) %}
+                                <button class="btn btn-outline-secondary" title="{{ entry.active ? 'Désactiver' : 'Réactiver' }}" aria-label="{{ entry.active ? 'Désactiver' : 'Réactiver' }}" data-confirm-url="{{ path('app_password_toggle_status', {id: entry.id}) }}" data-confirm-method="POST" data-token="{{ csrf_token('toggle_password_' ~ entry.id) }}" data-confirm-message="{{ entry.active ? 'Désactiver ce mot de passe ?' : 'Réactiver ce mot de passe ?' }}">
+                                    <i class="bi {{ entry.active ? 'bi-pause-circle' : 'bi-play-circle' }}"></i>
+                                </button>
+                            {% endif %}
+                            {% if entry.active and is_granted('PASSWORD_EDIT_VALUE', entry) %}
+                                <button class="btn btn-outline-secondary" title="Modifier le mot de passe" aria-label="Modifier le mot de passe" data-quick-password data-url="{{ path('app_password_quick_edit', {id: entry.id}) }}" data-token="{{ csrf_token('password_update_' ~ entry.id) }}" data-reveal-url="{{ path('app_password_reveal', {id: entry.id}) }}" data-reveal-token="{{ csrf_token('reveal_' ~ entry.id) }}" data-name="{{ entry.name }}">
+                                    <i class="bi bi-key"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endblock %}
+            {% endembed %}
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
+                        <i class="bi bi-key"></i>
+                    </span>
+                    <h2 class="h5 mt-3">Aucun mot de passe accessible</h2>
+                    <p class="text-secondary mb-0">Les accès disponibles apparaîtront ici.</p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    {% if entries %}
+        <div class="col-12 d-none" data-search-empty>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning-emphasis fs-2 empty-state-mark">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <h2 class="h5 mt-3">Aucun accès trouvé</h2>
+                    <p class="text-secondary mb-0">Essayez avec un autre nom, identifiant ou lien.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<div class="modal fade" id="createPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+        <div class="modal-content">
+            {% include 'password/_form.html.twig' with {form: create_form, title: 'Créer une entrée', submit_label: 'Créer'} %}
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="quickPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+        <div class="modal-content">
+            <form id="quickPasswordForm">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5">Modifier le mot de passe</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary" id="quickPasswordName"></p>
+                    <div data-secret-field>
+                        <label for="quickPasswordValue" class="form-label">Mot de passe</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="quickPasswordValue" autocomplete="off" placeholder="Saisissez ou générez un mot de passe" data-secret-input required>
+                            <button type="button" class="btn btn-outline-secondary secret-action" data-secret-toggle aria-label="Afficher le mot de passe pendant 2 secondes" title="Afficher pendant 2 secondes">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary secret-action" data-secret-copy aria-label="Copier le mot de passe" title="Copier">
+                                <i class="bi bi-copy"></i>
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-link btn-sm text-secondary text-decoration-none px-0 pt-2" data-secret-generate>
+                            <i class="bi bi-stars me-1"></i>Générer un mot de passe sécurisé
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% set chart = chart|default([]) %}
+{% set chart_type = chart_type|default('bars') %}
+{% set tone = tone|default('primary') %}
+{% set title = title|default('Graphique') %}
+{% set subtitle = subtitle|default(null) %}
+{% set progress = progress|default(0) %}
+{% set progress_label = progress_label|default('OK') %}
+
+<div class="dashboard-card-chart {{ extra_classes|default('') }}">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small fw-bold text-secondary text-uppercase dashboard-label">{{ title }}</span>
+        {% if subtitle %}
+            <span class="small text-secondary text-truncate">{{ subtitle }}</span>
+        {% endif %}
+    </div>
+
+    {% if chart is empty %}
+        <div class="dashboard-chart-empty">
+            <i class="bi bi-bar-chart"></i>
+            <span>Aucune donnee</span>
+        </div>
+    {% elseif chart_type == 'pie' %}
+        <div class="dashboard-pie-layout">
+            <div class="dashboard-pie-shell">
+                <svg class="dashboard-pie" viewBox="0 0 44 44" role="img" aria-label="Camembert {{ subtitle ?? title }}">
+                    <circle class="dashboard-pie-bg" cx="22" cy="22" r="16"></circle>
+                    {% for point in chart %}
+                        {% if point.share|default(0) > 0 %}
+                            <circle
+                                class="dashboard-pie-segment dashboard-pie-color-{{ ((loop.index0 % 6) + 1) }}"
+                                cx="22"
+                                cy="22"
+                                r="16"
+                                pathLength="100"
+                                stroke-dasharray="{{ point.share }} {{ 100 - point.share }}"
+                                stroke-dashoffset="-{{ point.offset|default(0) }}"
+                            ></circle>
+                        {% endif %}
+                    {% endfor %}
+                </svg>
+                <div class="dashboard-pie-center">
+                    <strong>{{ progress }}%</strong>
+                    <span>{{ progress_label }}</span>
+                </div>
+            </div>
+            <div class="dashboard-pie-legend">
+                {% for point in chart %}
+                    <div class="dashboard-pie-legend-item">
+                        <span class="dashboard-pie-dot dashboard-pie-color-{{ ((loop.index0 % 6) + 1) }}"></span>
+                        <span class="text-truncate">{{ point.label }}</span>
+                        <strong>{{ point.display|default(point.value) }}</strong>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="dashboard-chart-columns">
+            {% for point in chart %}
+                {% set point_tone = point.tone|default(tone) %}
+                {% set percent = point.percent|default(0) %}
+                <div class="dashboard-chart-column-wrap" title="{{ point.label }} : {{ point.display|default(point.value) }}">
+                    <div class="dashboard-chart-value">{{ point.display|default(point.value) }}</div>
+                    <div class="dashboard-chart-track">
+                        <div class="dashboard-chart-column bg-{{ point_tone }}" style="height: {{ percent > 0 ? percent : 4 }}%"></div>
+                    </div>
+                    <div class="dashboard-chart-label">{{ point.short_label|default(point.label) }}</div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>

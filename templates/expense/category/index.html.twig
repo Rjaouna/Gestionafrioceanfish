@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Catégories de dépenses{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Catégories de dépenses</h1>
+        <p class="text-secondary mb-0">{{ categories|length }} catégorie{{ categories|length > 1 ? 's' : '' }} configurée{{ categories|length > 1 ? 's' : '' }}.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path('app_expense_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Dépenses
+        </a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createExpenseCategoryModal">
+            <i class="bi bi-plus-circle me-2"></i>Nouvelle catégorie
+        </button>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for category in categories %}
+        <div class="col-12 col-md-4 col-xl-3">
+            {% embed 'components/_entity_card.html.twig' with {
+                title: category.name,
+                icon: category.icon,
+                icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-4 module-mark',
+                status_label: category.active ? 'Active' : 'Inactive',
+                status_class: category.active ? 'text-bg-success' : 'text-bg-secondary',
+                status_icon: category.active ? 'bi-check-circle' : 'bi-slash-circle',
+                created_at: category.createdAt,
+                updated_at: category.updatedAt,
+                muted: not category.active
+            } %}
+                {% block top_actions %}
+                    <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_expense_category_form', {id: category.id}) }}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                {% endblock %}
+
+                {% block subtitle %}
+                    <span class="small text-secondary text-nowrap">{{ category.slug }}</span>
+                {% endblock %}
+
+                {% block body %}
+                    <p class="text-secondary small mb-0">{{ category.description ?: 'Aucune description.' }}</p>
+                {% endblock %}
+
+                {% block actions %}
+                    <div class="app-card-actions-row">
+                    <button class="btn btn-outline-secondary btn-sm" data-confirm-url="{{ path('app_expense_category_toggle', {id: category.id}) }}" data-token="{{ csrf_token('toggle_expense_category_' ~ category.id) }}" data-confirm-message="{{ category.active ? 'Désactiver cette catégorie ?' : 'Activer cette catégorie ?' }}">
+                        <i class="bi {{ category.active ? 'bi-slash-circle' : 'bi-check-circle' }} me-1"></i>
+                        {{ category.active ? 'Désactiver' : 'Activer' }}
+                    </button>
+                    </div>
+                {% endblock %}
+            {% endembed %}
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
+                        <i class="bi bi-tags"></i>
+                    </span>
+                    <h2 class="h5 mt-3">Aucune catégorie</h2>
+                    <p class="text-secondary mb-0">Créez les premières catégories de dépenses.</p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="modal fade" id="createExpenseCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+        <div class="modal-content">
+            {% include 'expense/category/_form_modal.html.twig' with {
+                form: create_form,
+                title: 'Créer une catégorie',
+                submit_label: 'Créer'
+            } %}
+        </div>
+    </div>
+</div>
+{% endblock %}

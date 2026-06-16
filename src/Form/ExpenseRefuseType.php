@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Form;
+
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints as Assert;
+
+final class ExpenseRefuseType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $builder->add('reason', TextareaType::class, [
+            'label' => 'Motif de refus',
+            'mapped' => false,
+            'constraints' => [
+                new Assert\NotBlank(message: 'Le motif de refus est obligatoire.'),
+                new Assert\Length(max: 1000),
+            ],
+            'attr' => [
+                'rows' => 4,
+                'placeholder' => 'Expliquez clairement pourquoi cette dépense est refusée...',
+            ],
+        ]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults(['csrf_token_id' => 'expense_refuse']);
+    }
+}

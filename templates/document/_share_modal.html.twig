@@ -1,0 +1,68 @@
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">Partager « {{ document.name }} »</h2>
+        <p class="text-secondary small mb-0">Recherchez un utilisateur actif, puis envoyez-lui un lien sécurisé vers le document.</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    <div
+        data-document-share-panel
+        data-document-share-url="{{ path('app_document_share_save', {id: document.id}) }}"
+        data-document-share-search-url="{{ path('app_document_share_user_search', {id: document.id}) }}"
+        data-document-share-token="{{ csrf_token('share_document_' ~ document.id) }}"
+    >
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <label for="documentShareSearch{{ document.id }}" class="form-label">Rechercher un utilisateur</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input id="documentShareSearch{{ document.id }}" type="search" class="form-control" placeholder="Tapez au moins 2 caractères..." data-document-user-search>
+                        </div>
+                        <div class="form-text">La recherche est limitée aux utilisateurs actifs. Le partage donne accès uniquement à ce document.</div>
+                        <div class="d-none align-items-center gap-2 text-secondary small mt-3" data-document-share-loading>
+                            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                            Recherche en cours...
+                        </div>
+                        <div class="list-group list-group-flush mt-3" data-document-user-results>
+                            <div class="text-secondary small py-3">Commencez à saisir un nom ou une adresse e-mail.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white fw-semibold">
+                        <i class="bi bi-people me-1 text-primary"></i>Partages actifs
+                    </div>
+                    <div class="list-group list-group-flush">
+                        {% for share in shares %}
+                            <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                <div class="min-w-0">
+                                    <div class="fw-semibold text-break">{{ share.user.displayName }}</div>
+                                    <div class="small text-secondary text-break">{{ share.user.email }}</div>
+                                    <div class="small text-secondary mt-1">
+                                        <span class="badge text-bg-primary-subtle text-primary-emphasis">{{ share.canDownload ? 'Consultation + téléchargement' : 'Consultation seule' }}</span>
+                                        {% if share.expiresAt %}
+                                            <span class="badge text-bg-warning-subtle text-warning-emphasis">Expire le {{ share.expiresAt|date('d/m/Y') }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline-danger btn-sm" type="button" data-document-share-remove data-url="{{ path('app_document_share_remove', {id: document.id, shareId: share.id}) }}" data-token="{{ csrf_token('remove_document_share_' ~ document.id) }}" aria-label="Retirer le partage">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        {% else %}
+                            <div class="list-group-item text-secondary py-4">Aucun partage actif pour ce document.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+</div>

@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des documents{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Gestion des documents</h1>
+        <p class="text-secondary mb-0">Stockage privé, partage sécurisé et téléchargement contrôlé.</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createDocumentModal">
+        <i class="bi bi-file-earmark-plus me-2"></i>Nouveau document
+    </button>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+        <div class="row align-items-center g-3">
+            <div class="col-lg">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="bi bi-search text-primary"></i>
+                    </span>
+                    <input
+                        type="search"
+                        class="form-control border-start-0"
+                        placeholder="Rechercher par nom, descriptif, type, créateur ou statut..."
+                        aria-label="Rechercher un document"
+                        data-document-search
+                        data-document-search-url="{{ path('app_document_search') }}"
+                        data-document-target="documentGrid"
+                    >
+                    <button class="btn btn-outline-secondary d-none" type="button" data-document-clear-search aria-label="Effacer la recherche">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-lg-auto">
+                <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis px-3 py-2">
+                    <i class="bi bi-folder2-open me-1"></i>
+                    <span data-document-search-count>{{ pagination.total }}</span>
+                    <span data-document-search-label>résultat{{ pagination.total > 1 ? 's' : '' }}</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="documentGrid" data-document-grid>
+    {% include 'document/_document_grid.html.twig' with {documents: documents, pagination: pagination} %}
+</div>
+
+<div class="modal fade" id="createDocumentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+        <div class="modal-content">
+            {% include 'document/_form_modal.html.twig' with {form: create_form, title: 'Ajouter un document', submit_label: 'Ajouter'} %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% set status_labels = {'brouillon': 'Brouillon', 'actif': 'Actif', 'suspendu': 'Suspendu', 'expire': 'Expiré', 'resilie': 'Résilié'} %}
+{% set status_classes = {'brouillon': 'text-bg-secondary', 'actif': 'text-bg-success', 'suspendu': 'text-bg-warning', 'expire': 'text-bg-dark', 'resilie': 'text-bg-danger'} %}
+{% set frequency_labels = {'mensuelle': 'Mensuelle', 'trimestrielle': 'Trimestrielle', 'semestrielle': 'Semestrielle', 'annuelle': 'Annuelle', 'personnalisee': 'Personnalisée'} %}
+{% set phone_href = contract.customerPhone ? 'tel:' ~ contract.customerPhone|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) : null %}
+{% set waze_url = contract.customerAddress ? 'https://waze.com/ul?q=' ~ contract.customerAddress|url_encode ~ '&navigate=yes' : null %}
+
+<div class="col-12 col-md-4 col-xl-3">
+    {% embed 'components/_entity_card.html.twig' with {
+        title: contract.reference,
+        title_remote_url: path('app_maintenance_contract_view', {id: contract.id}),
+        icon: 'bi-file-earmark-check',
+        icon_container_class: 'rounded-3 bg-info-subtle text-info fs-4 module-mark',
+        status_label: status_labels[contract.status]|default(contract.status),
+        status_class: status_classes[contract.status]|default('text-bg-light border'),
+        status_icon: contract.active ? 'bi-check-circle' : 'bi-archive',
+        muted: not contract.active,
+        created_at: contract.createdAt,
+        updated_at: contract.updatedAt
+    } %}
+        {% block top_actions %}
+            {% if is_granted('MAINTENANCE_CONTRACT_EDIT', contract) %}
+                <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_maintenance_contract_form', {id: contract.id}) }}">
+                    <i class="bi bi-pencil"></i>
+                </button>
+            {% endif %}
+            {% if is_granted('MAINTENANCE_CONTRACT_DELETE', contract) %}
+                <button class="btn btn-outline-danger btn-sm" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_maintenance_contract_delete', {id: contract.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_maintenance_contract_' ~ contract.id) }}" data-confirm-message="Supprimer définitivement ce contrat ?">
+                    <i class="bi bi-trash"></i>
+                </button>
+            {% endif %}
+        {% endblock %}
+
+        {% block subtitle %}
+            <span class="small text-secondary text-break">
+                <i class="bi bi-building me-1"></i>{{ contract.customerName }}
+            </span>
+        {% endblock %}
+
+        {% block body %}
+            <div class="app-card-detail-line mb-2">
+                <span class="app-card-detail-label"><i class="bi bi-tag"></i>Type</span>
+                <span class="app-card-detail-value">{{ contract.contractType ?: 'Non renseigné' }}</span>
+            </div>
+            <div class="app-card-detail-line mb-2">
+                <span class="app-card-detail-label"><i class="bi bi-repeat"></i>Fréquence</span>
+                <span class="app-card-detail-value">{{ frequency_labels[contract.interventionFrequency]|default(contract.interventionFrequency) }}</span>
+            </div>
+            <div class="app-card-detail-line mb-2">
+                <span class="app-card-detail-label"><i class="bi bi-calendar-event"></i>Renouvellement</span>
+                <span class="app-card-detail-value">{{ contract.renewalDate ? contract.renewalDate|date('d/m/Y') : 'Non renseigné' }}</span>
+            </div>
+            <div class="app-card-detail-line mb-2">
+                <span class="app-card-detail-label"><i class="bi bi-telephone"></i>Téléphone</span>
+                {% if contract.customerPhone %}
+                    <a class="app-card-detail-value text-decoration-none" href="{{ phone_href }}">{{ contract.customerPhone }}</a>
+                {% else %}
+                    <span class="app-card-detail-value text-secondary">Non renseigné</span>
+                {% endif %}
+            </div>
+            <div class="app-card-detail-line">
+                <span class="app-card-detail-label"><i class="bi bi-currency-euro"></i>Montant</span>
+                <span class="app-card-detail-value">{{ contract.amount ? contract.amount|number_format(2, ',', ' ') ~ ' €' : 'Non renseigné' }}</span>
+            </div>
+        {% endblock %}
+
+        {% block actions %}
+            <div class="app-card-actions-row">
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" type="button" title="Consulter" aria-label="Consulter" data-remote-modal="{{ path('app_maintenance_contract_view', {id: contract.id}) }}">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </button>
+                    {% if contract.customerPhone %}
+                        <a class="btn btn-outline-primary" href="{{ phone_href }}" title="Appeler" aria-label="Appeler">
+                            <i class="bi bi-telephone"></i>
+                        </a>
+                    {% endif %}
+                    {% if contract.customerEmail %}
+                        <a class="btn btn-outline-secondary" href="mailto:{{ contract.customerEmail }}" title="Envoyer un e-mail" aria-label="Envoyer un e-mail">
+                            <i class="bi bi-envelope"></i>
+                        </a>
+                    {% endif %}
+                    {% if contract.customerAddress %}
+                        <a class="btn btn-outline-secondary" href="{{ waze_url }}" target="_blank" rel="noopener noreferrer" title="Ouvrir dans Waze" aria-label="Ouvrir dans Waze">
+                            <i class="bi bi-geo-alt"></i>
+                        </a>
+                    {% endif %}
+                </div>
+                {% if is_granted('MAINTENANCE_CONTRACT_ARCHIVE', contract) %}
+                    <button class="btn btn-outline-secondary btn-sm" data-confirm-url="{{ path('app_maintenance_contract_archive', {id: contract.id}) }}" data-token="{{ csrf_token('archive_maintenance_contract_' ~ contract.id) }}" data-confirm-message="{{ contract.active ? 'Archiver ce contrat ?' : 'Désarchiver ce contrat ?' }}">
+                        <i class="bi {{ contract.active ? 'bi-archive' : 'bi-arrow-counterclockwise' }} me-1"></i>{{ contract.active ? 'Archiver' : 'Désarchiver' }}
+                    </button>
+                {% endif %}
+            </div>
+        {% endblock %}
+    {% endembed %}
+</div>

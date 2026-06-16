@@ -1,0 +1,124 @@
+{{ form_start(form, {attr: {'data-ajax-form': 'true', 'data-expense-form': 'true'}}) }}
+    <div class="modal-header border-0 pb-0">
+        <div>
+            <h2 class="modal-title h4">{{ title }}</h2>
+            <p class="text-secondary mb-0">
+                {% if expense and expense.reference %}
+                    Référence {{ expense.reference }} · statut {{ expense.statusLabel }}
+                {% else %}
+                    La référence sera générée automatiquement.
+                {% endif %}
+            </p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row g-4">
+            <div class="col-12 col-xl-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h3 class="h6 mb-3">Informations principales</h3>
+                        <div class="row g-3">
+                            <div class="col-12 col-lg-8">{{ form_row(form.title) }}</div>
+                            <div class="col-12 col-lg-4">{{ form_row(form.expenseDate) }}</div>
+                            <div class="col-12 col-lg-6">
+                                {% set selected_category = form.category.vars.value|default('') %}
+                                {% set custom_category = form.customCategoryName.vars.value|default('') %}
+                                <label class="form-label" for="{{ form.category.vars.id }}">Catégorie</label>
+                                <select
+                                    class="form-select{{ not form.category.vars.valid ? ' is-invalid' : '' }}"
+                                    id="{{ form.category.vars.id }}"
+                                    name="{{ form.category.vars.full_name }}"
+                                    data-expense-category-select
+                                >
+                                    <option value="">Sélectionner une catégorie</option>
+                                    {% for choice in form.category.vars.choices %}
+                                        <option value="{{ choice.value }}" {{ choice.value == selected_category ? 'selected' : '' }}>{{ choice.label }}</option>
+                                    {% endfor %}
+                                    <option value="__other__" {{ custom_category and not selected_category ? 'selected' : '' }}>Autre...</option>
+                                </select>
+                                {% do form.category.setRendered %}
+                                {{ form_errors(form.category) }}
+                                {{ form_widget(form.customCategoryName, {
+                                    attr: {
+                                        class: 'form-control mt-2 ' ~ (custom_category and not selected_category ? '' : 'd-none'),
+                                        placeholder: 'Nom de la nouvelle catégorie',
+                                        'data-expense-category-custom': 'true'
+                                    }
+                                }) }}
+                                {{ form_errors(form.customCategoryName) }}
+                                <div class="form-text">Le choix “Autre” ajoute la catégorie à la liste pour les prochaines dépenses.</div>
+                            </div>
+                            <div class="col-12 col-lg-6">{{ form_row(form.paymentMethod) }}</div>
+                            <div class="col-12 col-lg-4">{{ form_row(form.amountHt) }}</div>
+                            <div class="col-12 col-lg-4">{{ form_row(form.vatRate) }}</div>
+                            <div class="col-12 col-lg-4">
+                                <label class="form-label">Montant TTC calculé</label>
+                                <div class="form-control bg-light" data-expense-ttc-preview>
+                                    {{ (expense ? expense.amountTtc : 0)|number_format(2, ',', ' ') }} €
+                                </div>
+                            </div>
+                            <div class="col-12">{{ form_row(form.description) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-4">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h3 class="h6 mb-3">Fournisseur</h3>
+                        {{ form_row(form.supplierIntervenant) }}
+                        <button class="btn btn-link btn-sm text-secondary text-decoration-none px-0" type="button" data-bs-toggle="collapse" data-bs-target="#expenseSupplierExplorer{{ form.supplierIntervenant.vars.id }}" aria-expanded="false">
+                            <i class="bi bi-search me-1"></i>Explorer la liste des intervenants
+                        </button>
+                        <div class="collapse mb-3" id="expenseSupplierExplorer{{ form.supplierIntervenant.vars.id }}">
+                            <div class="list-group list-group-flush border rounded-3">
+                                {% for choice in form.supplierIntervenant.vars.choices %}
+                                    <button
+                                        type="button"
+                                        class="list-group-item list-group-item-action"
+                                        data-expense-pick-supplier
+                                        data-target-select="#{{ form.supplierIntervenant.vars.id }}"
+                                        data-intervenant-id="{{ choice.value }}"
+                                    >
+                                        <div class="d-flex flex-wrap justify-content-between gap-2">
+                                            <span class="fw-semibold">{{ choice.label }}</span>
+                                            <span class="small text-secondary">{{ choice.attr['data-speciality']|default(choice.attr['data-type']|default('Intervenant')) }}</span>
+                                        </div>
+                                        <div class="small text-secondary">{{ choice.attr['data-email']|default('Email non renseigné') ?: 'Email non renseigné' }} · {{ choice.attr['data-phone']|default('Téléphone non renseigné') ?: 'Téléphone non renseigné' }}</div>
+                                    </button>
+                                {% else %}
+                                    <div class="list-group-item text-secondary small">Aucun intervenant actif disponible.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="form-text mb-3">Choisissez un intervenant pour remplir automatiquement les champs, ou laissez “Autre” pour saisir librement.</div>
+                        {{ form_row(form.supplierName) }}
+                        {{ form_row(form.supplierEmail) }}
+                        {{ form_row(form.supplierPhone) }}
+                        {{ form_row(form.invoiceNumber) }}
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h3 class="h6 mb-3">Justificatif privé</h3>
+                        {{ form_row(form.documentType) }}
+                        {{ form_row(form.documentFile) }}
+                        {% if expense and expense.activeDocuments|length > 0 %}
+                            <div class="alert alert-info small mb-0">
+                                Un justificatif existe déjà. Un nouveau fichier le remplacera.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{ form_rest(form) }}
+    </div>
+    <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check2 me-2"></i>{{ submit_label }}
+        </button>
+    </div>
+{{ form_end(form) }}

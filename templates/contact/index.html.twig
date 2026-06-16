@@ -1,0 +1,180 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Carnet de contacts{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Carnet de contacts</h1>
+        <p class="text-secondary mb-0">{{ contacts|length }} contact{{ contacts|length > 1 ? 's' : '' }} visible{{ contacts|length > 1 ? 's' : '' }}.</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createContactModal">
+        <i class="bi bi-person-lines-fill me-2"></i>Nouveau contact
+    </button>
+</div>
+
+{% if contacts %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row align-items-center g-3">
+                <div class="col-lg">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search text-primary"></i>
+                        </span>
+                        <input
+                            type="search"
+                            class="form-control border-start-0"
+                            placeholder="Rechercher par nom, type, email, téléphone ou adresse..."
+                            aria-label="Rechercher un contact"
+                            data-list-search
+                            data-search-target="contactCardGrid"
+                        >
+                        <button class="btn btn-outline-secondary d-none" type="button" data-clear-search aria-label="Effacer la recherche">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-auto">
+                    <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis px-3 py-2">
+                        <i class="bi bi-person-lines-fill me-1"></i>
+                        <span data-search-count>{{ contacts|length }}</span>
+                        <span data-search-label>résultat{{ contacts|length > 1 ? 's' : '' }}</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<div class="row g-4" id="contactCardGrid">
+    {% for contact in contacts %}
+        {% set mobile_href = contact.mobile ? 'tel:' ~ contact.mobile|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) : null %}
+        {% set landline_href = contact.landline ? 'tel:' ~ contact.landline|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) : null %}
+        {% set waze_url = contact.postalAddress ? 'https://waze.com/ul?q=' ~ contact.postalAddress|url_encode ~ '&navigate=yes' : null %}
+        <div
+            class="col-12 col-md-4 col-xl-3"
+            data-search-item
+            data-search-value="{{ (contact.fullName ~ ' ' ~ contact.type ~ ' ' ~ (contact.email ?? '') ~ ' ' ~ (contact.mobile ?? '') ~ ' ' ~ (contact.landline ?? '') ~ ' ' ~ (contact.postalAddress ?? ''))|lower }}"
+        >
+            {% embed 'components/_entity_card.html.twig' with {
+                title: contact.fullName,
+                title_remote_url: is_granted('CONTACT_EDIT', contact) ? path('app_contact_form', {id: contact.id}) : null,
+                icon: 'bi-person-lines-fill',
+                icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-4 module-mark',
+                status_label: contact.type,
+                status_class: 'text-bg-light border',
+                status_icon: 'bi-tag',
+                compact: false,
+                created_at: contact.createdAt,
+                updated_at: contact.updatedAt
+            } %}
+                {% block top_actions %}
+                    {% if is_granted('CONTACT_EDIT', contact) %}
+                        <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_contact_form', {id: contact.id}) }}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    {% endif %}
+                    {% if is_granted('CONTACT_DELETE', contact) %}
+                        <button class="btn btn-outline-danger btn-sm" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_contact_delete', {id: contact.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_contact_' ~ contact.id) }}" data-confirm-message="Supprimer définitivement ce contact ?">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    {% endif %}
+                {% endblock %}
+
+                {% block subtitle %}
+                    {% if contact.email %}
+                        <a href="mailto:{{ contact.email }}" class="small text-secondary text-decoration-none text-break" title="{{ contact.email }}">
+                            <i class="bi bi-envelope me-1"></i>{{ contact.email }}
+                        </a>
+                    {% else %}
+                        <span class="small text-secondary">Aucun email renseigné</span>
+                    {% endif %}
+                {% endblock %}
+
+                {% block body %}
+                    <div class="app-card-detail-line mb-2">
+                        <span class="app-card-detail-label"><i class="bi bi-tag"></i>Type</span>
+                        <span class="app-card-detail-value" title="{{ contact.type }}">{{ contact.type }}</span>
+                    </div>
+
+                    <div class="app-card-detail-line mb-2">
+                        <span class="app-card-detail-label"><i class="bi bi-phone"></i>Portable</span>
+                        {% if contact.mobile %}
+                            <a href="{{ mobile_href }}" class="app-card-detail-value text-decoration-none" title="Appeler {{ contact.mobile }}">{{ contact.mobile }}</a>
+                        {% else %}
+                            <span class="app-card-detail-value text-secondary">Non renseigné</span>
+                        {% endif %}
+                    </div>
+
+                {% endblock %}
+
+                {% block actions %}
+                    <div class="app-card-actions-row">
+                        <div class="btn-group btn-group-sm">
+                            {% if contact.mobile %}
+                                <a class="btn btn-outline-primary" href="{{ mobile_href }}" title="Appeler le portable" aria-label="Appeler le portable">
+                                    <i class="bi bi-phone"></i>
+                                </a>
+                            {% endif %}
+                            {% if contact.landline %}
+                                <a class="btn btn-outline-primary" href="{{ landline_href }}" title="Appeler le fixe" aria-label="Appeler le fixe">
+                                    <i class="bi bi-telephone"></i>
+                                </a>
+                            {% endif %}
+                            {% if contact.email %}
+                                <a class="btn btn-outline-secondary" href="mailto:{{ contact.email }}" title="Envoyer un e-mail" aria-label="Envoyer un e-mail">
+                                    <i class="bi bi-envelope"></i>
+                                </a>
+                            {% endif %}
+                            {% if contact.postalAddress %}
+                                <a class="btn btn-outline-secondary" href="{{ waze_url }}" target="_blank" rel="noopener noreferrer" title="Ouvrir dans Waze" aria-label="Ouvrir dans Waze">
+                                    <i class="bi bi-geo-alt"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                        {% if is_granted('CONTACT_SHARE', contact) %}
+                            <button class="btn btn-outline-secondary btn-sm" title="Partager" aria-label="Partager" data-remote-modal="{{ path('app_contact_share_modal', {id: contact.id}) }}">
+                                <i class="bi bi-people"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                {% endblock %}
+            {% endembed %}
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
+                        <i class="bi bi-person-lines-fill"></i>
+                    </span>
+                    <h2 class="h5 mt-3">Aucun contact</h2>
+                    <p class="text-secondary mb-0">Ajoutez vos fournisseurs, clients et entreprises de dépannage.</p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    {% if contacts %}
+        <div class="col-12 d-none" data-search-empty>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning-emphasis fs-2 empty-state-mark">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <h2 class="h5 mt-3">Aucun contact trouvé</h2>
+                    <p class="text-secondary mb-0">Essayez avec un autre nom, type, téléphone ou email.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<div class="modal fade" id="createContactModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+        <div class="modal-content">
+            {% include 'contact/_form.html.twig' with {form: create_form, title: 'Créer un contact', submit_label: 'Créer', type_suggestions: type_suggestions} %}
+        </div>
+    </div>
+</div>
+{% endblock %}

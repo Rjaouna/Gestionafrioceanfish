@@ -1,0 +1,60 @@
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">{{ document.name }}</h2>
+        <p class="text-secondary small mb-0">{{ document.originalFileName }}</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="small text-uppercase text-secondary fw-semibold mb-2">Description</div>
+                    <p class="mb-0">{{ document.description ?: 'Aucun descriptif renseigné.' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <div class="d-flex justify-content-between gap-3">
+                            <span class="text-secondary">Type MIME</span>
+                            <span class="fw-semibold text-end">{{ document.mimeType }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between gap-3">
+                            <span class="text-secondary">Taille</span>
+                            <span class="fw-semibold">{{ (document.fileSize / 1024)|number_format(1, ',', ' ') }} Ko</span>
+                        </div>
+                        <div class="d-flex justify-content-between gap-3">
+                            <span class="text-secondary">Créateur</span>
+                            <span class="fw-semibold text-end">{{ document.createdBy ? document.createdBy.displayName : 'Système' }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between gap-3">
+                            <span class="text-secondary">Date</span>
+                            <span class="fw-semibold">{{ document.createdAt ? document.createdAt|date('d/m/Y H:i') : '-' }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between gap-3">
+                            <span class="text-secondary">Statut</span>
+                            <span class="badge {{ document.active ? 'text-bg-success' : 'text-bg-secondary' }}">{{ document.active ? 'Actif' : 'Archivé' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+    {% if is_granted('DOCUMENT_EMAIL', document) %}
+        <button class="btn btn-outline-primary" data-remote-modal="{{ path('app_document_email_modal', {id: document.id}) }}">
+            <i class="bi bi-envelope me-1"></i>Envoyer par e-mail
+        </button>
+    {% endif %}
+    {% if is_granted('DOCUMENT_DOWNLOAD', document) %}
+        <a class="btn btn-primary" href="{{ path('app_document_download', {id: document.id}) }}">
+            <i class="bi bi-download me-1"></i>Télécharger
+        </a>
+    {% endif %}
+</div>

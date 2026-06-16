@@ -1,0 +1,27 @@
+{% set menu_modules = accessible_modules(app.user) %}
+
+<nav class="d-none d-lg-block bg-white border-end sidebar-fixed">
+    <div class="sidebar-shell pt-4 px-3">
+        {% include 'layout/_sidebar_links.html.twig' with {
+            modules: menu_modules,
+            accordion_id: 'desktopSidebarAccordion',
+            item_prefix: 'desktopSidebar'
+        } %}
+    </div>
+</nav>
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="mobileSidebarLabel">
+            <i class="bi bi-shield-lock me-2 text-primary"></i>Navigation
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+    </div>
+    <div class="offcanvas-body sidebar-mobile-body">
+        {% include 'layout/_sidebar_links.html.twig' with {
+            modules: menu_modules,
+            accordion_id: 'mobileSidebarAccordion',
+            item_prefix: 'mobileSidebar'
+        } %}
+    </div>
+</div>

@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques{% endblock %}
+
+{% block body %}
+<div class="dashboard-shell">
+    <div class="dashboard-hero dashboard-hero-compact mb-4">
+        <span class="dashboard-kicker">Pilotage</span>
+        <h1 class="h3 fw-bold mb-1">Statistiques</h1>
+        <p class="text-secondary small mb-0">Graphes reutilisables pour suivre les modules actifs.</p>
+    </div>
+
+    <div class="dashboard-kpi-strip mb-4">
+        {% for kpi in dashboard.kpis %}
+            <a class="dashboard-kpi-card dashboard-kpi-card-{{ kpi.tone|default('primary') }} card border-0 shadow-sm" href="{{ path(kpi.route) }}">
+                <div class="dashboard-kpi-head">
+                    <span class="dashboard-kpi-title">{{ kpi.label }}</span>
+                    <span class="dashboard-kpi-icon">
+                        <i class="bi {{ kpi.icon }}"></i>
+                    </span>
+                </div>
+                <div class="dashboard-kpi-value">{{ kpi.value_display|default(kpi.value) }}</div>
+                <div class="dashboard-kpi-hint">{{ kpi.hint }}</div>
+            </a>
+        {% else %}
+            <div class="alert alert-info mb-0">
+                <i class="bi bi-info-circle me-2"></i>Aucun indicateur disponible pour vos modules.
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if dashboard.expense_type_chart|default([]) is not empty %}
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-xl-8">
+                <section class="dashboard-module-card card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <span class="dashboard-module-icon bg-warning-subtle text-warning-emphasis">
+                                <i class="bi bi-cash-coin"></i>
+                            </span>
+                            <div class="min-w-0">
+                                <h2 class="h5 mb-1 text-truncate">Dépenses par type</h2>
+                                <p class="small text-secondary mb-0">Sommes TTC par categorie de depense.</p>
+                            </div>
+                        </div>
+
+                        {% include 'components/_dashboard_chart.html.twig' with {
+                            title: 'Montants',
+                            subtitle: 'Types de depenses',
+                            chart: dashboard.expense_type_chart,
+                            chart_type: 'bars',
+                            tone: 'warning',
+                            progress: 100,
+                            progress_label: 'TTC'
+                        } only %}
+                    </div>
+                </section>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <div>
+            <h2 class="h4 mb-1">Graphes par module</h2>
+            <p class="text-secondary mb-0">Les memes composants sont reutilises ici et sur le tableau de bord.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for section in dashboard.sections %}
+            {% set tone = section.tone == 'dark' ? 'secondary' : section.tone %}
+            <div class="col-12 col-lg-6 col-xxl-4">
+                <section class="dashboard-module-card card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                            <div class="d-flex align-items-start gap-3 min-w-0">
+                                <span class="dashboard-module-icon bg-{{ tone }}-subtle text-{{ tone }}-emphasis">
+                                    <i class="bi {{ section.icon }}"></i>
+                                </span>
+                                <div class="min-w-0">
+                                    <h3 class="h5 mb-1 text-truncate">{{ section.name }}</h3>
+                                    <p class="small text-secondary mb-0">{{ section.headline }}</p>
+                                </div>
+                            </div>
+                            <a class="btn btn-sm btn-outline-{{ tone }}" href="{{ path(section.route) }}">Ouvrir</a>
+                        </div>
+
+                        {% include 'components/_dashboard_chart.html.twig' with {
+                            title: 'Graphique',
+                            subtitle: section.name,
+                            chart: section.chart,
+                            chart_type: section.chart_type,
+                            tone: tone,
+                            progress: section.progress,
+                            progress_label: section.progress_label
+                        } only %}
+                    </div>
+                </section>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="dashboard-empty">
+                    <i class="bi bi-bar-chart"></i>
+                    <span>Aucun graphe disponible.</span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+Afriocean fish Gestion - Document transmis
+
+Bonjour,
+
+{{ actor.displayName }} vous transmet un document en pièce jointe.
+
+Expéditeur : {{ actor.displayName }}
+{% if actor.email %}Email expéditeur : {{ actor.email }}
+{% endif %}Document : {{ document.name }}
+Fichier joint : {{ document.originalFileName }}
+Taille : {{ (document.fileSize / 1024)|number_format(1, ',', ' ') }} Ko
+{% if document.description %}Description : {{ document.description }}
+{% endif %}Lien : {{ document_url }}
+
+Le document est également attaché à cet e-mail. Vous pouvez répondre directement à ce message si besoin.

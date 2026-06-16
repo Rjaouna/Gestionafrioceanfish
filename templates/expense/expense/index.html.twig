@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des dépenses{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Gestion des dépenses</h1>
+        <p class="text-secondary mb-0">{{ pagination.total }} dépense{{ pagination.total > 1 ? 's' : '' }} visible{{ pagination.total > 1 ? 's' : '' }}.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        {% if is_granted('EXPENSE_MANAGE_CATEGORIES') %}
+            <a href="{{ path('app_expense_category_index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-tags me-2"></i>Catégories
+            </a>
+        {% endif %}
+        <a href="{{ path('app_expense_export_csv') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-filetype-csv me-2"></i>Export CSV
+        </a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createExpenseModal">
+            <i class="bi bi-cash-coin me-2"></i>Nouvelle dépense
+        </button>
+    </div>
+</div>
+
+{% include 'expense/expense/_stats.html.twig' with {stats: stats} %}
+
+{% include 'expense/expense/_filters.html.twig' with {
+    categories: categories,
+    status_choices: status_choices,
+    payment_methods: payment_methods,
+    filters: filters,
+    pagination: pagination
+} %}
+
+<div id="expenseCardGrid">
+    {% include 'expense/expense/_expense_grid.html.twig' with {expenses: expenses, pagination: pagination} %}
+</div>
+
+<div class="modal fade" id="createExpenseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+        <div class="modal-content">
+            {% include 'expense/expense/_form_modal.html.twig' with {
+                form: create_form,
+                expense: null,
+                title: 'Créer une dépense',
+                submit_label: 'Créer'
+            } %}
+        </div>
+    </div>
+</div>
+{% endblock %}

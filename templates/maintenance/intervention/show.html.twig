@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ intervention.reference }}{% endblock %}
+
+{% block body %}
+<div class="card border-0 shadow-sm">
+    {% include 'maintenance/intervention/_details_modal.html.twig' with {intervention: intervention, history: history} %}
+</div>
+{% endblock %}

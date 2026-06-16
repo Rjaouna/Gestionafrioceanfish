@@ -1,0 +1,13 @@
+Afriocean fish Gestion - Document partagé
+
+Bonjour {{ recipient.displayName }},
+
+{{ actor.displayName }} vous a donné accès à un document.
+
+Expéditeur : {{ actor.displayName }}
+{% if actor.email %}Email expéditeur : {{ actor.email }}
+{% endif %}Document : {{ document.name }}
+{% if share.expiresAt %}Expiration : {{ share.expiresAt|date('d/m/Y à H:i') }}
+{% endif %}Lien : {{ document_url }}
+
+Connectez-vous à l’application avec votre compte autorisé pour consulter ce document.

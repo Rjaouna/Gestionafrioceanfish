@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ expense.reference }} · Dépense{% endblock %}
+
+{% block body %}
+    <a href="{{ path('app_expense_index') }}" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </a>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            {% include 'expense/expense/_details_modal.html.twig' with {expense: expense} %}
+        </div>
+    </div>
+{% endblock %}

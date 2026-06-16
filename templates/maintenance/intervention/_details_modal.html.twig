@@ -1,0 +1,159 @@
+{% set status_labels = {'a_planifier': 'À planifier', 'planifiee': 'Planifiée', 'en_cours': 'En cours', 'terminee': 'Terminée', 'annulee': 'Annulée'} %}
+{% set priority_labels = {'basse': 'Basse', 'normale': 'Normale', 'haute': 'Haute', 'urgente': 'Urgente'} %}
+{% set result_labels = {'resolu': 'Résolu', 'non_resolu': 'Non résolu', 'a_reprogrammer': 'À reprogrammer'} %}
+{% set phone_href = intervention.customerPhone ? 'tel:' ~ intervention.customerPhone|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) : null %}
+{% set waze_url = intervention.customerAddress ? 'https://waze.com/ul?q=' ~ intervention.customerAddress|url_encode ~ '&navigate=yes' : null %}
+
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">{{ intervention.title }}</h2>
+        <p class="text-secondary mb-0">{{ intervention.reference }} · {{ intervention.customerName }}</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge text-bg-primary-subtle text-primary-emphasis">{{ status_labels[intervention.status]|default(intervention.status) }}</span>
+                        <span class="badge text-bg-light border">{{ priority_labels[intervention.priority]|default(intervention.priority) }}</span>
+                        <span class="badge {{ intervention.active ? 'text-bg-success' : 'text-bg-secondary' }}">{{ intervention.active ? 'Active' : 'Archivée' }}</span>
+                    </div>
+                    <dl class="row mb-0 g-3">
+                        <dt class="col-sm-4 text-secondary">Date prévue</dt>
+                        <dd class="col-sm-8">{{ intervention.plannedAt ? intervention.plannedAt|date('d/m/Y H:i') : 'Non planifiée' }}</dd>
+                        <dt class="col-sm-4 text-secondary">Début</dt>
+                        <dd class="col-sm-8">{{ intervention.startedAt ? intervention.startedAt|date('d/m/Y H:i') : 'Non renseigné' }}</dd>
+                        <dt class="col-sm-4 text-secondary">Fin</dt>
+                        <dd class="col-sm-8">{{ intervention.endedAt ? intervention.endedAt|date('d/m/Y H:i') : 'Non renseigné' }}</dd>
+                        <dt class="col-sm-4 text-secondary">Résultat</dt>
+                        <dd class="col-sm-8">{{ intervention.resultStatus ? result_labels[intervention.resultStatus]|default(intervention.resultStatus) : 'Non renseigné' }}</dd>
+                        <dt class="col-sm-4 text-secondary">Contrat</dt>
+                        <dd class="col-sm-8">{{ intervention.contract ? intervention.contract.reference ~ ' - ' ~ intervention.contract.customerName : 'Sans contrat' }}</dd>
+                    </dl>
+                    {% if intervention.description %}
+                        <hr>
+                        <h3 class="h6">Description</h3>
+                        <p class="mb-0 text-secondary">{{ intervention.description|nl2br }}</p>
+                    {% endif %}
+                    {% if intervention.workDone %}
+                        <hr>
+                        <h3 class="h6">Travail réalisé</h3>
+                        <p class="mb-0 text-secondary">{{ intervention.workDone|nl2br }}</p>
+                    {% endif %}
+                    {% if intervention.internalNotes %}
+                        <hr>
+                        <h3 class="h6">Notes internes</h3>
+                        <p class="mb-0 text-secondary">{{ intervention.internalNotes|nl2br }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% include 'maintenance/intervention/_history.html.twig' with {history: history} %}
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h3 class="h6 mb-3">Coordonnées intervenant</h3>
+                    <div class="d-grid gap-2">
+                        {% if intervention.customerEmail %}
+                            <a class="btn btn-outline-secondary text-start" href="mailto:{{ intervention.customerEmail }}">
+                                <i class="bi bi-envelope me-2"></i>{{ intervention.customerEmail }}
+                            </a>
+                        {% endif %}
+                        {% if intervention.customerPhone %}
+                            <a class="btn btn-outline-primary text-start" href="{{ phone_href }}">
+                                <i class="bi bi-telephone me-2"></i>{{ intervention.customerPhone }}
+                            </a>
+                        {% endif %}
+                        {% if intervention.customerAddress %}
+                            <a class="btn btn-outline-secondary text-start" href="{{ waze_url }}" target="_blank" rel="noopener noreferrer">
+                                <i class="bi bi-geo-alt me-2"></i>Ouvrir l’adresse dans Waze
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% if intervention.customerAddress %}
+                        <p class="small text-secondary mt-3 mb-0">{{ intervention.customerAddress }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+                        <h3 class="h6 mb-0">Intervenants affectés</h3>
+                        {% if is_granted('INTERVENTION_ASSIGN_INTERVENANT', intervention) %}
+                            <button class="btn btn-outline-primary btn-sm" data-remote-modal="{{ path('app_maintenance_intervention_assign_modal', {id: intervention.id}) }}">
+                                <i class="bi bi-person-plus"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                    <div class="list-group list-group-flush">
+                        {% for assignment in intervention.assignments %}
+                            <div class="list-group-item px-0">
+                                <div class="fw-semibold">{{ assignment.intervenant.displayName }}</div>
+                                <div class="small text-secondary">{{ assignment.roleOnIntervention ?: 'Rôle non renseigné' }}</div>
+                                {% if assignment.mainIntervenant %}
+                                    <span class="badge text-bg-primary mt-1">Principal</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="text-secondary small">Aucun intervenant affecté.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if is_granted('INTERVENTION_CLOSE', intervention) and intervention.status == 'en_cours' %}
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body">
+                <h3 class="h6">Terminer l’intervention</h3>
+                <p class="text-secondary small mb-3">Quel est le résultat de cette intervention ? Cette action renseigne automatiquement la date de fin.</p>
+                <form action="{{ path('app_maintenance_intervention_close', {id: intervention.id}) }}" method="post" data-ajax-form>
+                    <input type="hidden" name="token" value="{{ csrf_token('close_maintenance_intervention_' ~ intervention.id) }}">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="closeWorkDone{{ intervention.id }}">Travail réalisé</label>
+                            <textarea class="form-control" id="closeWorkDone{{ intervention.id }}" name="workDone" rows="3" placeholder="Compte rendu de l’intervention..." required></textarea>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="closeResultStatus{{ intervention.id }}">Résultat</label>
+                            <select class="form-select" id="closeResultStatus{{ intervention.id }}" name="resultStatus" required>
+                                <option value="">Sélectionner le résultat</option>
+                                <option value="resolu">Résolu</option>
+                                <option value="non_resolu">Non résolu</option>
+                                <option value="a_reprogrammer">À reprogrammer</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="closeComment{{ intervention.id }}">Commentaire</label>
+                            <input class="form-control" id="closeComment{{ intervention.id }}" name="comment" placeholder="Commentaire optionnel">
+                        </div>
+                        <div class="col-12">
+                            <button class="btn btn-success" type="submit">
+                                <i class="bi bi-check2-circle me-1"></i>Terminer l’intervention
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+    {% if is_granted('INTERVENTION_CHANGE_STATUS', intervention) and intervention.status not in ['en_cours', 'terminee', 'annulee'] %}
+        <button class="btn btn-success" data-confirm-url="{{ path('app_maintenance_intervention_start', {id: intervention.id}) }}" data-token="{{ csrf_token('start_maintenance_intervention_' ~ intervention.id) }}" data-confirm-message="Démarrer cette intervention maintenant ?">
+            <i class="bi bi-play-fill me-1"></i>Démarrer
+        </button>
+    {% endif %}
+    {% if is_granted('INTERVENTION_EDIT', intervention) %}
+        <button type="button" class="btn btn-primary" data-remote-modal="{{ path('app_maintenance_intervention_form', {id: intervention.id}) }}">
+            <i class="bi bi-pencil me-1"></i>Modifier
+        </button>
+    {% endif %}
+</div>

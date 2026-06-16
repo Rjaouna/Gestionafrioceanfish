@@ -1,0 +1,86 @@
+<div class="modal-header border-0 pb-0">
+    <div>
+        <h2 class="modal-title h4">{{ expense.title }}</h2>
+        <p class="text-secondary mb-0">{{ expense.reference }} · {{ expense.statusLabel }}</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    <div class="row g-4">
+        <div class="col-12 col-xl-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h3 class="h6 mb-3">Détails financiers</h3>
+                    <div class="row g-3">
+                        <div class="col-6 col-lg-3">
+                            <div class="text-secondary small">HT</div>
+                            <strong>{{ expense.amountHt|number_format(2, ',', ' ') }} €</strong>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="text-secondary small">TVA {{ expense.vatRate|number_format(2, ',', ' ') }}%</div>
+                            <strong>{{ expense.vatAmount|number_format(2, ',', ' ') }} €</strong>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="text-secondary small">TTC</div>
+                            <strong>{{ expense.amountTtc|number_format(2, ',', ' ') }} €</strong>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="text-secondary small">Paiement</div>
+                            <strong>{{ expense.paymentMethodLabel }}</strong>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="text-secondary small">Catégorie</div>
+                            <div>{{ expense.category ? expense.category.name : 'Sans catégorie' }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-secondary small">Date</div>
+                            <div>{{ expense.expenseDate ? expense.expenseDate|date('d/m/Y') : '-' }}</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="text-secondary small">Description</div>
+                            <div>{{ expense.description ?: 'Aucune description.' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h3 class="h6 mb-3">Fournisseur</h3>
+                    <div class="small text-secondary">Nom</div>
+                    <div class="mb-2">{{ expense.supplierName }}</div>
+                    <div class="small text-secondary">Email</div>
+                    <div class="mb-2">{{ expense.supplierEmail ?: '-' }}</div>
+                    <div class="small text-secondary">Téléphone</div>
+                    <div class="mb-2">{{ expense.supplierPhone ?: '-' }}</div>
+                    <div class="small text-secondary">Facture</div>
+                    <div>{{ expense.invoiceNumber ?: '-' }}</div>
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h3 class="h6 mb-3">Justificatifs</h3>
+                    {% for document in expense.activeDocuments %}
+                        <div class="d-flex justify-content-between align-items-center gap-2 border rounded-3 p-2 mb-2">
+                            <div class="min-w-0">
+                                <div class="fw-semibold text-truncate">{{ document.documentTypeLabel }}</div>
+                                <div class="small text-secondary text-truncate">{{ document.originalFileName }}</div>
+                            </div>
+                            {% if is_granted('EXPENSE_DOWNLOAD_DOCUMENT', document) %}
+                                <a class="btn btn-outline-primary btn-sm" href="{{ path('app_expense_document_download', {id: document.id}) }}">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="text-secondary small mb-0">Aucun justificatif ajouté.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

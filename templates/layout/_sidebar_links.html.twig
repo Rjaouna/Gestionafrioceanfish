@@ -1,0 +1,184 @@
+{% set current_route = app.request.attributes.get('_route')|default('') %}
+{% set password_modules = modules|filter(module => module.slug == 'passwords') %}
+{% set user_modules = modules|filter(module => module.slug == 'users') %}
+{% set module_admin_modules = modules|filter(module => module.slug == 'modules') %}
+{% set business_modules = modules|filter(module => module.slug not in ['passwords', 'users', 'modules']) %}
+{% set can_manage_users = user_modules|length > 0 and is_granted('ROLE_ADMIN') %}
+{% set can_manage_modules = module_admin_modules|length > 0 and is_granted('ROLE_SUPER_ADMIN') %}
+{% set security_active = current_route starts with 'app_password' %}
+{% set users_active = current_route starts with 'app_user' %}
+{% set configuration_active = current_route starts with 'app_module' %}
+{% set business_active = false %}
+
+{% for module in business_modules %}
+    {% if current_route starts with module.routeName|replace({'_index': ''}) or (module.slug == 'maintenance' and current_route starts with 'app_maintenance') %}
+        {% set business_active = true %}
+    {% endif %}
+{% endfor %}
+
+<div class="sidebar-navigation">
+    <div class="sidebar-primary">
+        <div class="sidebar-kicker">Vue d’ensemble</div>
+        <a class="sidebar-home-link {{ current_route == 'app_dashboard' ? 'active' : '' }}" href="{{ path('app_dashboard') }}">
+            <span class="sidebar-link-icon"><i class="bi bi-speedometer2"></i></span>
+            <span>
+                <strong>Tableau de bord</strong>
+                <small>Résumé de votre espace</small>
+            </span>
+        </a>
+
+        <div class="sidebar-kicker mt-3">Espaces de gestion</div>
+
+        {% if password_modules|length > 0 %}
+            <section class="sidebar-open-section {{ security_active ? 'active' : '' }}">
+                <div class="sidebar-open-heading">
+                    <span class="sidebar-section-icon"><i class="bi bi-shield-lock"></i></span>
+                    <strong>Gestion de sécurité</strong>
+                </div>
+                <div class="sidebar-open-body">
+                    <a class="sidebar-sub-link {{ security_active ? 'active' : '' }}" href="{{ path('app_password_index') }}">
+                        <i class="bi bi-key"></i>
+                        <span>Coffre de mots de passe</span>
+                    </a>
+                    <a
+                        class="sidebar-sub-link ps-4"
+                        href="{{ path('app_password_index') }}#nouveau-mot-de-passe"
+                        data-navigation-modal="#createPasswordModal"
+                    >
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Ajouter un mot de passe</span>
+                    </a>
+                </div>
+            </section>
+        {% endif %}
+
+        {% if can_manage_users %}
+            <section class="sidebar-open-section {{ users_active ? 'active' : '' }}">
+                <div class="sidebar-open-heading">
+                    <span class="sidebar-section-icon"><i class="bi bi-people"></i></span>
+                    <strong>Gestion des utilisateurs</strong>
+                </div>
+                <div class="sidebar-open-body">
+                    <a class="sidebar-sub-link {{ current_route starts with 'app_user' ? 'active' : '' }}" href="{{ path('app_user_index') }}">
+                        <i class="bi bi-people"></i>
+                        <span>Liste des utilisateurs</span>
+                    </a>
+                    <a
+                        class="sidebar-sub-link ps-4"
+                        href="{{ path('app_user_index') }}#nouvel-utilisateur"
+                        data-navigation-modal="#createUserModal"
+                    >
+                        <i class="bi bi-person-plus"></i>
+                        <span>Ajouter un utilisateur</span>
+                    </a>
+                </div>
+            </section>
+        {% endif %}
+
+        {% if business_modules|length > 0 %}
+            <section class="sidebar-open-section {{ business_active ? 'active' : '' }}">
+                <div class="sidebar-open-heading">
+                    <span class="sidebar-section-icon"><i class="bi bi-briefcase"></i></span>
+                    <strong>Gestion métier</strong>
+                </div>
+                <div class="sidebar-open-body">
+                    {% for module in business_modules %}
+                        {% set module_active = module.slug == 'maintenance' ? current_route starts with 'app_maintenance' : current_route starts with module.routeName|replace({'_index': ''}) %}
+                        {% if module.slug == 'maintenance' %}
+                            <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path('app_maintenance_intervenant_index') }}">
+                                <i class="bi bi-tools"></i>
+                                <span>Maintenance</span>
+                            </a>
+                            <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_maintenance_intervenant' ? 'active' : '' }}" href="{{ path('app_maintenance_intervenant_index') }}">
+                                <i class="bi bi-person-gear"></i>
+                                <span>Intervenants</span>
+                            </a>
+                            <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_maintenance_contract' ? 'active' : '' }}" href="{{ path('app_maintenance_contract_index') }}">
+                                <i class="bi bi-file-earmark-check"></i>
+                                <span>Contrats de maintenance</span>
+                            </a>
+                            <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_maintenance_intervention' ? 'active' : '' }}" href="{{ path('app_maintenance_intervention_index') }}">
+                                <i class="bi bi-wrench-adjustable"></i>
+                                <span>Interventions</span>
+                            </a>
+                        {% elseif module.slug == 'expenses' %}
+                            <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path('app_expense_index') }}">
+                                <i class="bi bi-cash-coin"></i>
+                                <span>Dépenses</span>
+                            </a>
+                            <a
+                                class="sidebar-sub-link ps-4"
+                                href="{{ path('app_expense_index') }}#nouvelle-depense"
+                                data-navigation-modal="#createExpenseModal"
+                            >
+                                <i class="bi bi-plus-circle"></i>
+                                <span>Nouvelle dépense</span>
+                            </a>
+                            {% if is_granted('EXPENSE_MANAGE_CATEGORIES') %}
+                                <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_expense_category' ? 'active' : '' }}" href="{{ path('app_expense_category_index') }}">
+                                    <i class="bi bi-tags"></i>
+                                    <span>Catégories</span>
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path(module.routeName) }}">
+                                <i class="bi {{ module.icon }}"></i>
+                                <span>{{ module.name }}</span>
+                            </a>
+                        {% endif %}
+
+                        {% if module.slug == 'contacts' %}
+                            <a
+                                class="sidebar-sub-link ps-4"
+                                href="{{ path(module.routeName) }}#nouveau-contact"
+                                data-navigation-modal="#createContactModal"
+                            >
+                                <i class="bi bi-person-plus"></i>
+                                <span>Ajouter un contact</span>
+                            </a>
+                        {% endif %}
+
+                        {% if module.slug == 'documents' %}
+                            <a
+                                class="sidebar-sub-link ps-4"
+                                href="{{ path(module.routeName) }}#nouveau-document"
+                                data-navigation-modal="#createDocumentModal"
+                            >
+                                <i class="bi bi-file-earmark-plus"></i>
+                                <span>Ajouter un document</span>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if modules is empty %}
+            <div class="small text-secondary px-2 py-3">Aucun module attribué.</div>
+        {% endif %}
+    </div>
+
+    <div class="sidebar-bottom-zone">
+        {% if can_manage_modules %}
+            <div class="sidebar-configuration">
+                <section class="sidebar-open-section {{ configuration_active ? 'active' : '' }}">
+                    <div class="sidebar-open-heading">
+                        <span class="sidebar-section-icon"><i class="bi bi-sliders"></i></span>
+                        <strong>Configuration</strong>
+                    </div>
+                    <div class="sidebar-open-body">
+                        <a class="sidebar-sub-link {{ current_route starts with 'app_module' ? 'active' : '' }}" href="{{ path('app_module_index') }}">
+                            <i class="bi bi-grid"></i>
+                            <span>Gestion des modules</span>
+                        </a>
+                    </div>
+                </section>
+            </div>
+        {% endif %}
+
+        <a class="sidebar-logout-button" href="{{ path('app_logout') }}">
+            <span class="sidebar-logout-icon"><i class="bi bi-box-arrow-right"></i></span>
+            <span>Déconnexion</span>
+        </a>
+    </div>
+</div>

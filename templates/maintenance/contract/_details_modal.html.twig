@@ -1,0 +1,84 @@
+{% set status_labels = {'brouillon': 'Brouillon', 'actif': 'Actif', 'suspendu': 'Suspendu', 'expire': 'Expiré', 'resilie': 'Résilié'} %}
+{% set frequency_labels = {'mensuelle': 'Mensuelle', 'trimestrielle': 'Trimestrielle', 'semestrielle': 'Semestrielle', 'annuelle': 'Annuelle', 'personnalisee': 'Personnalisée'} %}
+{% set phone_href = contract.customerPhone ? 'tel:' ~ contract.customerPhone|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) : null %}
+{% set waze_url = contract.customerAddress ? 'https://waze.com/ul?q=' ~ contract.customerAddress|url_encode ~ '&navigate=yes' : null %}
+
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">{{ contract.reference }}</h2>
+        <p class="text-secondary mb-0">{{ contract.customerName }}</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge text-bg-primary-subtle text-primary-emphasis">{{ status_labels[contract.status]|default(contract.status) }}</span>
+                        <span class="badge text-bg-light border">{{ frequency_labels[contract.interventionFrequency]|default(contract.interventionFrequency) }}</span>
+                        <span class="badge {{ contract.active ? 'text-bg-success' : 'text-bg-secondary' }}">{{ contract.active ? 'Actif' : 'Archivé' }}</span>
+                    </div>
+                    <dl class="row mb-0 g-3">
+                        <dt class="col-sm-4 text-secondary">Type</dt>
+                        <dd class="col-sm-8">{{ contract.contractType ?: 'Non renseigné' }}</dd>
+                        <dt class="col-sm-4 text-secondary">Début</dt>
+                        <dd class="col-sm-8">{{ contract.startDate ? contract.startDate|date('d/m/Y') : 'Non renseigné' }}</dd>
+                        <dt class="col-sm-4 text-secondary">Fin</dt>
+                        <dd class="col-sm-8">{{ contract.endDate ? contract.endDate|date('d/m/Y') : 'Non renseigné' }}</dd>
+                        <dt class="col-sm-4 text-secondary">Renouvellement</dt>
+                        <dd class="col-sm-8">{{ contract.renewalDate ? contract.renewalDate|date('d/m/Y') : 'Non renseigné' }}</dd>
+                        <dt class="col-sm-4 text-secondary">Montant</dt>
+                        <dd class="col-sm-8">{{ contract.amount ? contract.amount|number_format(2, ',', ' ') ~ ' €' : 'Non renseigné' }}</dd>
+                    </dl>
+                    {% if contract.description %}
+                        <hr>
+                        <h3 class="h6">Description</h3>
+                        <p class="mb-0 text-secondary">{{ contract.description|nl2br }}</p>
+                    {% endif %}
+                    {% if contract.notes %}
+                        <hr>
+                        <h3 class="h6">Notes internes</h3>
+                        <p class="mb-0 text-secondary">{{ contract.notes|nl2br }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h3 class="h6 mb-3">Coordonnées intervenant</h3>
+                    <div class="d-grid gap-2">
+                        {% if contract.customerEmail %}
+                            <a class="btn btn-outline-secondary text-start" href="mailto:{{ contract.customerEmail }}">
+                                <i class="bi bi-envelope me-2"></i>{{ contract.customerEmail }}
+                            </a>
+                        {% endif %}
+                        {% if contract.customerPhone %}
+                            <a class="btn btn-outline-primary text-start" href="{{ phone_href }}">
+                                <i class="bi bi-telephone me-2"></i>{{ contract.customerPhone }}
+                            </a>
+                        {% endif %}
+                        {% if contract.customerAddress %}
+                            <a class="btn btn-outline-secondary text-start" href="{{ waze_url }}" target="_blank" rel="noopener noreferrer">
+                                <i class="bi bi-geo-alt me-2"></i>Ouvrir l’adresse dans Waze
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% if contract.customerAddress %}
+                        <p class="small text-secondary mt-3 mb-0">{{ contract.customerAddress }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+    {% if is_granted('MAINTENANCE_CONTRACT_EDIT', contract) %}
+        <button type="button" class="btn btn-primary" data-remote-modal="{{ path('app_maintenance_contract_form', {id: contract.id}) }}">
+            <i class="bi bi-pencil me-1"></i>Modifier
+        </button>
+    {% endif %}
+</div>

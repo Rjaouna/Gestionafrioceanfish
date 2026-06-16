@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modules{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Gestion des modules</h1>
+        <p class="text-secondary mb-0">Pilotez les éléments disponibles dans la navigation.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for module in modules %}
+        <div class="col-12 col-md-4 col-xl-3">
+            {% embed 'components/_entity_card.html.twig' with {
+                title: module.name,
+                title_remote_url: path('app_module_form', {id: module.id}),
+                subtitle: module.description ?: 'Aucune description.',
+                icon: module.icon,
+                icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-4 module-mark',
+                status_label: module.active ? 'Actif' : 'Inactif',
+                status_class: module.active ? 'text-bg-success' : 'text-bg-secondary',
+                status_icon: module.active ? 'bi-check-circle' : 'bi-pause-circle',
+                muted: not module.active,
+                created_at: module.createdAt,
+                updated_at: module.updatedAt
+            } %}
+                {% block top_actions %}
+                    <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_module_form', {id: module.id}) }}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    {% if module.slug not in ['passwords', 'users', 'modules'] %}
+                        <button class="btn btn-outline-danger btn-sm" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_module_delete', {id: module.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_module_' ~ module.id) }}" data-confirm-message="Supprimer ce module et ses attributions ?">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    {% endif %}
+                {% endblock %}
+
+                {% block body %}
+                    <dl class="row small mb-0">
+                        <dt class="col-4 text-secondary">Slug</dt>
+                        <dd class="col-8 app-card-truncate" title="{{ module.slug }}"><code>{{ module.slug }}</code></dd>
+                        <dt class="col-4 text-secondary">Route</dt>
+                        <dd class="col-8 mb-0 app-card-truncate" title="{{ module.routeName }}"><code>{{ module.routeName }}</code></dd>
+                    </dl>
+                {% endblock %}
+
+            {% endembed %}
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

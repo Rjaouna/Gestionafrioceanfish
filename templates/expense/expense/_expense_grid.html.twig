@@ -1,0 +1,135 @@
+<div class="row g-4">
+    {% for expense in expenses %}
+        {% set document = expense.activeDocuments|first %}
+        <div class="col-12 col-md-4 col-xl-3">
+            {% embed 'components/_entity_card.html.twig' with {
+                title: expense.title,
+                title_remote_url: is_granted('EXPENSE_VIEW', expense) ? path('app_expense_view', {id: expense.id}) : null,
+                icon: 'bi-cash-coin',
+                icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-4 module-mark',
+                status_label: expense.statusLabel,
+                status_class: expense.statusBadgeClass,
+                status_icon: expense.status == 'paid' ? 'bi-check-circle' : 'bi-circle',
+                created_at: expense.createdAt,
+                updated_at: expense.updatedAt,
+                compact: false,
+                muted: not expense.active
+            } %}
+                {% block top_actions %}
+                    {% if is_granted('EXPENSE_EDIT', expense) %}
+                        <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_expense_form', {id: expense.id}) }}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    {% endif %}
+                    {% if is_granted('EXPENSE_DELETE', expense) %}
+                        <button class="btn btn-outline-danger btn-sm" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_expense_delete', {id: expense.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_expense_' ~ expense.id) }}" data-confirm-message="Supprimer définitivement cette dépense ?">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    {% endif %}
+                {% endblock %}
+
+                {% block subtitle %}
+                    <span class="small text-secondary text-nowrap">
+                        <i class="bi bi-calendar-event me-1"></i>{{ expense.expenseDate ? expense.expenseDate|date('d/m/Y') : '-' }}
+                    </span>
+                {% endblock %}
+
+                {% block body %}
+                    <div class="app-card-detail-line mb-2">
+                        <span class="app-card-detail-label"><i class="bi bi-hash"></i>Réf.</span>
+                        <span class="app-card-detail-value text-nowrap">{{ expense.reference }}</span>
+                    </div>
+                    <div class="app-card-detail-line mb-2">
+                        <span class="app-card-detail-label"><i class="bi bi-tag"></i>Catégorie</span>
+                        <span class="app-card-detail-value text-nowrap">{{ expense.category ? expense.category.name : 'Sans catégorie' }}</span>
+                    </div>
+                    <div class="app-card-detail-line mb-2">
+                        <span class="app-card-detail-label"><i class="bi bi-building"></i>Fournisseur</span>
+                        <span class="app-card-detail-value text-nowrap" title="{{ expense.supplierName }}">{{ expense.supplierName }}</span>
+                    </div>
+                    <div class="app-card-detail-line mb-2">
+                        <span class="app-card-detail-label"><i class="bi bi-credit-card"></i>Paiement</span>
+                        <span class="app-card-detail-value text-nowrap">{{ expense.paymentMethodLabel }}</span>
+                    </div>
+                    <div class="border-top pt-3 mt-3 d-flex justify-content-between align-items-end gap-2">
+                        <span class="text-secondary small">Montant TTC</span>
+                        <strong class="h5 mb-0 text-nowrap">{{ expense.amountTtc|number_format(2, ',', ' ') }} €</strong>
+                    </div>
+                    {% if expense.createdBy %}
+                        <div class="small text-secondary mt-2 text-truncate">
+                            <i class="bi bi-person-check me-1"></i>{{ expense.createdBy.displayName }}
+                        </div>
+                    {% endif %}
+                {% endblock %}
+
+                {% block actions %}
+                    <div class="app-card-actions-row">
+                        <div class="btn-group btn-group-sm">
+                            {% if document and is_granted('EXPENSE_DOWNLOAD_DOCUMENT', document) %}
+                                <a class="btn btn-outline-primary" href="{{ path('app_expense_document_download', {id: document.id}) }}" title="Télécharger le justificatif" aria-label="Télécharger le justificatif">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                            {% endif %}
+                            {% if is_granted('EXPENSE_SUBMIT', expense) %}
+                                <button class="btn btn-outline-primary" title="Soumettre" aria-label="Soumettre" data-confirm-url="{{ path('app_expense_submit', {id: expense.id}) }}" data-token="{{ csrf_token('submit_expense_' ~ expense.id) }}" data-confirm-message="Soumettre cette dépense pour validation ?">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            {% endif %}
+                            {% if is_granted('EXPENSE_VALIDATE', expense) %}
+                                <button class="btn btn-outline-success" title="Valider" aria-label="Valider" data-confirm-url="{{ path('app_expense_validate', {id: expense.id}) }}" data-token="{{ csrf_token('validate_expense_' ~ expense.id) }}" data-confirm-message="Valider cette dépense ?">
+                                    <i class="bi bi-check2"></i>
+                                </button>
+                            {% endif %}
+                            {% if is_granted('EXPENSE_MARK_AS_PAID', expense) %}
+                                <button class="btn btn-outline-success" title="Marquer payée" aria-label="Marquer payée" data-confirm-url="{{ path('app_expense_mark_paid', {id: expense.id}) }}" data-token="{{ csrf_token('pay_expense_' ~ expense.id) }}" data-confirm-message="Marquer cette dépense comme payée ?">
+                                    <i class="bi bi-cash-stack"></i>
+                                </button>
+                            {% endif %}
+                            {% if is_granted('EXPENSE_REFUSE', expense) %}
+                                <button class="btn btn-outline-danger" title="Refuser" aria-label="Refuser" data-remote-modal="{{ path('app_expense_refuse_form', {id: expense.id}) }}">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            {% if is_granted('EXPENSE_CANCEL', expense) %}
+                                <button class="btn btn-outline-secondary" title="Annuler" aria-label="Annuler" data-confirm-url="{{ path('app_expense_cancel', {id: expense.id}) }}" data-token="{{ csrf_token('cancel_expense_' ~ expense.id) }}" data-confirm-message="Annuler cette dépense ?">
+                                    <i class="bi bi-slash-circle"></i>
+                                </button>
+                            {% endif %}
+                            {% if is_granted('EXPENSE_ARCHIVE', expense) %}
+                                <button class="btn btn-outline-secondary" title="{{ expense.active ? 'Archiver' : 'Désarchiver' }}" aria-label="{{ expense.active ? 'Archiver' : 'Désarchiver' }}" data-confirm-url="{{ path('app_expense_archive', {id: expense.id}) }}" data-token="{{ csrf_token('archive_expense_' ~ expense.id) }}" data-confirm-message="{{ expense.active ? 'Archiver cette dépense ?' : 'Désarchiver cette dépense ?' }}">
+                                    <i class="bi {{ expense.active ? 'bi-archive' : 'bi-arrow-counterclockwise' }}"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endblock %}
+            {% endembed %}
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
+                        <i class="bi bi-cash-coin"></i>
+                    </span>
+                    <h2 class="h5 mt-3">Aucune dépense</h2>
+                    <p class="text-secondary mb-0">Ajoutez une dépense ou ajustez les filtres.</p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% if pagination.pages > 1 %}
+    <div class="d-flex justify-content-center gap-2 mt-4">
+        <button class="btn btn-outline-secondary btn-sm" data-expense-page="{{ pagination.page - 1 }}" {{ pagination.page <= 1 ? 'disabled' : '' }}>
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        <span class="btn btn-light btn-sm disabled">Page {{ pagination.page }} / {{ pagination.pages }}</span>
+        <button class="btn btn-outline-secondary btn-sm" data-expense-page="{{ pagination.page + 1 }}" {{ pagination.page >= pagination.pages ? 'disabled' : '' }}>
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+{% endif %}
