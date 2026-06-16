@@ -118,33 +118,37 @@
                 {% endblock %}
 
                 {% block body %}
-                    <div class="app-card-detail-line mb-2">
-                        <span class="app-card-detail-label"><i class="bi bi-person-badge"></i>Contact</span>
-                        <span class="app-card-detail-value" title="{{ contact.contactPersonName ?: 'Non renseigné' }}">{{ contact.contactPersonName ?: 'Non renseigné' }}</span>
-                    </div>
+                    {% if contact.contactPersonName %}
+                        <div class="app-card-detail-line mb-2">
+                            <span class="app-card-detail-label"><i class="bi bi-person-badge"></i>Contact</span>
+                            <span class="app-card-detail-value" title="{{ contact.contactPersonName }}">{{ contact.contactPersonName }}</span>
+                        </div>
+                    {% endif %}
 
-                    <div class="app-card-detail-line mb-2">
-                        <span class="app-card-detail-label"><i class="bi bi-briefcase"></i>Poste</span>
-                        <span class="app-card-detail-value" title="{{ contact.contactPersonPosition ?: 'Non renseigné' }}">{{ contact.contactPersonPosition ?: 'Non renseigné' }}</span>
-                    </div>
+                    {% if contact.contactPersonPosition %}
+                        <div class="app-card-detail-line mb-2">
+                            <span class="app-card-detail-label"><i class="bi bi-briefcase"></i>Poste</span>
+                            <span class="app-card-detail-value" title="{{ contact.contactPersonPosition }}">{{ contact.contactPersonPosition }}</span>
+                        </div>
+                    {% endif %}
 
-                    <div class="app-card-detail-line mb-2">
-                        <span class="app-card-detail-label"><i class="bi bi-building"></i>Ville</span>
-                        <span class="app-card-detail-value" title="{{ contact.city ?: 'Non renseignée' }}">{{ contact.city ?: 'Non renseignée' }}</span>
-                    </div>
+                    {% if contact.city %}
+                        <div class="app-card-detail-line mb-2">
+                            <span class="app-card-detail-label"><i class="bi bi-building"></i>Ville</span>
+                            <span class="app-card-detail-value" title="{{ contact.city }}">{{ contact.city }}</span>
+                        </div>
+                    {% endif %}
 
-                    <div class="app-card-detail-line mb-2">
-                        <span class="app-card-detail-label"><i class="bi bi-phone"></i>Portable</span>
-                        {% if mobile_numbers %}
+                    {% if mobile_numbers %}
+                        <div class="app-card-detail-line mb-2">
+                            <span class="app-card-detail-label"><i class="bi bi-phone"></i>Portable</span>
                             <span class="app-card-detail-value">
                                 {% for mobile in mobile_numbers %}
                                     <a href="tel:{{ mobile|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) }}" class="text-decoration-none" title="Appeler {{ mobile }}">{{ mobile }}</a>{{ not loop.last ? ' · ' : '' }}
                                 {% endfor %}
                             </span>
-                        {% else %}
-                            <span class="app-card-detail-value text-secondary">Non renseigné</span>
-                        {% endif %}
-                    </div>
+                        </div>
+                    {% endif %}
 
                     <div class="mt-3">
                         <span class="badge app-card-status text-bg-light border" title="{{ contact.type }}">
