@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\SoftDeleteTrait;
 use App\Entity\Trait\TimestampableUserTrait;
 use App\Repository\IntervenantRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -17,6 +18,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_intervenant_updated_by', columns: ['updated_by_id'])]
 class Intervenant
 {
+    use SoftDeleteTrait;
     use TimestampableUserTrait;
 
     public const TYPES = [

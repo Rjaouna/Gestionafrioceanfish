@@ -203,14 +203,14 @@ final readonly class DashboardStatsService
     {
         $expiringContracts = $this->contractRepository->findExpiringSoon(10, 6);
         $openInterventions = $this->interventionRepository->findOpen();
-        $activeContracts = $this->contractRepository->count(['isActive' => true]);
-        $totalContracts = $this->contractRepository->count([]);
-        $intervenants = $this->intervenantRepository->count(['isActive' => true]);
-        $planned = $this->interventionRepository->count(['status' => 'planifiee', 'isActive' => true]);
-        $toPlan = $this->interventionRepository->count(['status' => 'a_planifier', 'isActive' => true]);
-        $running = $this->interventionRepository->count(['status' => 'en_cours', 'isActive' => true]);
-        $completed = $this->interventionRepository->count(['status' => 'terminee', 'isActive' => true]);
-        $cancelled = $this->interventionRepository->count(['status' => 'annulee', 'isActive' => true]);
+        $activeContracts = $this->contractRepository->count(['isActive' => true, 'isDeleted' => false]);
+        $totalContracts = $this->contractRepository->count(['isDeleted' => false]);
+        $intervenants = $this->intervenantRepository->count(['isActive' => true, 'isDeleted' => false]);
+        $planned = $this->interventionRepository->count(['status' => 'planifiee', 'isActive' => true, 'isDeleted' => false]);
+        $toPlan = $this->interventionRepository->count(['status' => 'a_planifier', 'isActive' => true, 'isDeleted' => false]);
+        $running = $this->interventionRepository->count(['status' => 'en_cours', 'isActive' => true, 'isDeleted' => false]);
+        $completed = $this->interventionRepository->count(['status' => 'terminee', 'isActive' => true, 'isDeleted' => false]);
+        $cancelled = $this->interventionRepository->count(['status' => 'annulee', 'isActive' => true, 'isDeleted' => false]);
 
         return [
             'active_contracts' => $activeContracts,
@@ -470,9 +470,9 @@ final readonly class DashboardStatsService
     {
         $expiringContracts = $this->contractRepository->findExpiringSoon(10, 5);
         $upcomingInterventions = $this->interventionRepository->findUpcoming(5);
-        $activeContracts = $this->contractRepository->count(['isActive' => true]);
-        $intervenants = $this->intervenantRepository->count(['isActive' => true]);
-        $inProgress = $this->interventionRepository->count(['status' => 'en_cours', 'isActive' => true]);
+        $activeContracts = $this->contractRepository->count(['isActive' => true, 'isDeleted' => false]);
+        $intervenants = $this->intervenantRepository->count(['isActive' => true, 'isDeleted' => false]);
+        $inProgress = $this->interventionRepository->count(['status' => 'en_cours', 'isActive' => true, 'isDeleted' => false]);
 
         return [
             'slug' => 'maintenance',

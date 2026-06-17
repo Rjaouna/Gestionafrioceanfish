@@ -1,4 +1,6 @@
 {
+    "name": "afriocean-fish/gestion",
+    "description": "Application Symfony de gestion interne Afriocean fish.",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",

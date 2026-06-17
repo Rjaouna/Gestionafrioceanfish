@@ -4,6 +4,7 @@
 {% set priority_classes = {'basse': 'text-bg-light border', 'normale': 'text-bg-primary-subtle text-primary-emphasis', 'haute': 'text-bg-warning', 'urgente': 'text-bg-danger'} %}
 {% set phone_href = intervention.customerPhone ? 'tel:' ~ intervention.customerPhone|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) : null %}
 {% set waze_url = intervention.customerAddress ? 'https://waze.com/ul?q=' ~ intervention.customerAddress|url_encode ~ '&navigate=yes' : null %}
+{% set share_count = maintenance_share_counts[intervention.id]|default(0) %}
 
 <div class="col-12 col-md-4 col-xl-3">
     {% embed 'components/_entity_card.html.twig' with {
@@ -87,6 +88,14 @@
                         </a>
                     {% endif %}
                 </div>
+                {% if is_granted('INTERVENTION_SHARE', intervention) %}
+                    <button class="btn btn-outline-success btn-sm" type="button" data-remote-modal="{{ path('app_maintenance_share_modal', {type: 'intervention', id: intervention.id}) }}">
+                        <i class="bi bi-people me-1"></i>Partager
+                        {% if share_count > 0 %}
+                            <span class="badge text-bg-success ms-1">{{ share_count }}</span>
+                        {% endif %}
+                    </button>
+                {% endif %}
 
                 <div class="btn-group btn-group-sm">
                     {% if is_granted('INTERVENTION_CHANGE_STATUS', intervention) and intervention.status not in ['en_cours', 'terminee', 'annulee'] %}

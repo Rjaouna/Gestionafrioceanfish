@@ -18,6 +18,7 @@ class IntervenantRepository extends ServiceEntityRepository
     public function search(string $query = ''): array
     {
         $builder = $this->createQueryBuilder('i')
+            ->andWhere('i.isDeleted = false')
             ->orderBy('i.isActive', 'DESC')
             ->addOrderBy('i.lastname', 'ASC')
             ->addOrderBy('i.firstname', 'ASC');
@@ -35,6 +36,12 @@ class IntervenantRepository extends ServiceEntityRepository
     /** @return list<Intervenant> */
     public function findActive(): array
     {
-        return $this->findBy(['isActive' => true], ['lastname' => 'ASC', 'firstname' => 'ASC']);
+        return $this->createQueryBuilder('i')
+            ->andWhere('i.isActive = true')
+            ->andWhere('i.isDeleted = false')
+            ->orderBy('i.lastname', 'ASC')
+            ->addOrderBy('i.firstname', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 }

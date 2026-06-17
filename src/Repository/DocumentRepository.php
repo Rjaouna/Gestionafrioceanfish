@@ -106,6 +106,7 @@ public function distinctAccessibleValues(User $user, bool $admin, string $field)
             ->leftJoin('d.shares', 's')
             ->leftJoin('d.createdBy', 'creator')
             ->addSelect('s', 'creator')
+            ->andWhere('d.isDeleted = false')
             ->orderBy('d.isActive', 'DESC')
             ->addOrderBy('d.createdAt', 'DESC');
 

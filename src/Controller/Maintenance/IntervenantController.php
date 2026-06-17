@@ -9,6 +9,7 @@ use App\Security\Voter\IntervenantVoter;
 use App\Security\Voter\ModuleAccessVoter;
 use App\Service\JsonResponder;
 use App\Service\Maintenance\IntervenantService;
+use App\Service\Maintenance\MaintenanceShareService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,6 +23,7 @@ final class IntervenantController extends AbstractController
 {
     public function __construct(
         private readonly IntervenantService $intervenantService,
+        private readonly MaintenanceShareService $shareService,
         private readonly JsonResponder $jsonResponder,
     ) {
     }
@@ -31,8 +33,11 @@ final class IntervenantController extends AbstractController
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'maintenance');
 
+        $intervenants = $this->intervenantService->search((string) $request->query->get('q', ''), $this->currentUser());
+
         return $this->render('maintenance/intervenant/index.html.twig', [
-            'intervenants' => $this->intervenantService->search((string) $request->query->get('q', ''), $this->currentUser()),
+            'intervenants' => $intervenants,
+            'maintenance_share_counts' => $this->shareService->countActiveShares(MaintenanceShareService::TYPE_INTERVENANT, $intervenants),
             'create_form' => $this->buildForm(new Intervenant(), 'app_maintenance_intervenant_create'),
         ]);
     }
@@ -46,6 +51,7 @@ final class IntervenantController extends AbstractController
         return $this->jsonResponder->success('Recherche mise à jour.', [
             'html' => $this->renderView('maintenance/intervenant/_grid.html.twig', [
                 'intervenants' => $intervenants,
+                'maintenance_share_counts' => $this->shareService->countActiveShares(MaintenanceShareService::TYPE_INTERVENANT, $intervenants),
             ]),
             'count' => count($intervenants),
         ]);
@@ -116,7 +122,10 @@ final class IntervenantController extends AbstractController
         $this->denyAccessUnlessGranted(IntervenantVoter::DELETE, $intervenant);
         $payload = $request->toArray();
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'delete_maintenance_intervenant_'.$intervenant->getId());
-        $this->intervenantService->delete($intervenant, $this->currentUser());
+        $movedToTrash = $this->intervenantService->delete($intervenant, $this->currentUser());
+        if ($movedToTrash) {
+            return $this->jsonResponder->success('L intervenant a ete deplace dans la corbeille.', ['reload' => true]);
+        }
 
         return $this->jsonResponder->success('L’intervenant a été supprimé.', ['reload' => true]);
     }

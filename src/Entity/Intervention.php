@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\SoftDeleteTrait;
 use App\Entity\Trait\TimestampableUserTrait;
 use App\Repository\InterventionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,6 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_intervention_updated_by', columns: ['updated_by_id'])]
 class Intervention
 {
+    use SoftDeleteTrait;
     use TimestampableUserTrait;
 
     public const PRIORITIES = [

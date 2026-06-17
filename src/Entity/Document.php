@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\SoftDeleteTrait;
 use App\Entity\Trait\TimestampableUserTrait;
 use App\Repository\DocumentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,6 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity(fields: ['internalReference'], message: 'Cette référence interne est déjà utilisée.')]
 class Document
 {
+    use SoftDeleteTrait;
     use TimestampableUserTrait;
 
     public const STATUS_ACTIVE = 'actif';

@@ -102,8 +102,17 @@ final class DeletionPolicyTest extends TestCase
         self::assertTrue($expenseAccess->canDelete($admin, $expense));
         self::assertTrue($expenseAccess->canShare($admin, $expense));
         self::assertTrue($expenseAccess->canDeleteDocument($admin, $expenseDocument));
-        self::assertTrue($maintenanceAccess->canDelete($admin));
+        self::assertFalse($maintenanceAccess->canDelete($admin));
         self::assertTrue($security->canDeletePasswords($admin));
+    }
+
+    public function testOnlySuperAdminsCanDeleteMaintenanceObjects(): void
+    {
+        $superAdmin = $this->userWithId(3, ['ROLE_SUPER_ADMIN']);
+        $security = $this->securityWithModuleAccess();
+        $maintenanceAccess = new MaintenanceAccessService($security);
+
+        self::assertTrue($maintenanceAccess->canDelete($superAdmin));
     }
 
     public function testSharedExpenseRecipientCanViewButCannotDelete(): void

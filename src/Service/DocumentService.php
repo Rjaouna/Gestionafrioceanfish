@@ -6,6 +6,7 @@ use App\Entity\Document;
 use App\Entity\DocumentShare;
 use App\Entity\User;
 use App\Repository\DocumentRepository;
+use App\Service\Trash\TrashService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -18,6 +19,7 @@ final readonly class DocumentService
         private DocumentStorageService $storage,
         private DocumentPermissionService $permission,
         private SecurityAccessService $access,
+        private TrashService $trashService,
     ) {
     }
 
@@ -146,15 +148,23 @@ final readonly class DocumentService
         return $document->isActive();
     }
 
-    public function delete(Document $document, User $actor): void
+    public function delete(Document $document, User $actor): bool
     {
         if (!$this->permission->canDelete($actor, $document)) {
             throw new AccessDeniedException();
         }
 
+        if (!$this->access->isSuperAdmin($actor)) {
+            $this->trashService->moveToTrash($document, $actor);
+
+            return true;
+        }
+
         $this->storage->delete($document);
         $this->entityManager->remove($document);
         $this->entityManager->flush();
+
+        return false;
     }
 
     private function prepareForSave(Document $document): void

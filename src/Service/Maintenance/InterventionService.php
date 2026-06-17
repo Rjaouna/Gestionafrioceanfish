@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Repository\IntervenantRepository;
 use App\Repository\InterventionIntervenantRepository;
 use App\Repository\InterventionRepository;
+use App\Service\Trash\TrashService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -21,6 +22,8 @@ final readonly class InterventionService
         private EntityManagerInterface $entityManager,
         private MaintenanceAccessService $access,
         private InterventionHistoryService $history,
+        private TrashService $trashService,
+        private MaintenanceShareService $shareService,
     ) {
     }
 
@@ -29,7 +32,7 @@ final readonly class InterventionService
     {
         $this->assertAccess($actor);
 
-        return $this->repository->search($query, $status);
+        return $this->shareService->filterVisible($actor, MaintenanceShareService::TYPE_INTERVENTION, $this->repository->search($query, $status));
     }
 
     public function nextReference(): string
@@ -52,7 +55,9 @@ final readonly class InterventionService
             throw new AccessDeniedException();
         }
 
+        $this->assertRelatedItemsVisible($intervention, $actor);
         $this->prepareIntervention($intervention);
+        $this->assertRelatedItemsVisible($intervention, $actor);
         $intervention
             ->setCreatedBy($actor)
             ->setIsActive(true);
@@ -60,6 +65,9 @@ final readonly class InterventionService
         $this->ensurePrimaryAssignment($intervention, $actor);
         $this->history->add($intervention, 'Création de l’intervention', $actor, null, $intervention->getStatus());
         $this->entityManager->flush();
+        if ($intervention->getId() !== null) {
+            $this->shareService->ensureCreatorShare(MaintenanceShareService::TYPE_INTERVENTION, $intervention->getId(), $actor);
+        }
 
         return $intervention;
     }
@@ -69,8 +77,16 @@ final readonly class InterventionService
         if (!$this->access->canEdit($actor)) {
             throw new AccessDeniedException();
         }
+        if ($intervention->isDeleted()) {
+            throw new AccessDeniedException();
+        }
+        if (!$this->shareService->canViewObject($actor, $intervention)) {
+            throw new AccessDeniedException();
+        }
 
+        $this->assertRelatedItemsVisible($intervention, $actor);
         $this->prepareIntervention($intervention);
+        $this->assertRelatedItemsVisible($intervention, $actor);
         $this->ensurePrimaryAssignment($intervention, $actor);
         $this->entityManager->flush();
 
@@ -80,6 +96,12 @@ final readonly class InterventionService
     public function start(Intervention $intervention, User $actor): void
     {
         if (!$this->access->canChangeStatus($actor)) {
+            throw new AccessDeniedException();
+        }
+        if ($intervention->isDeleted()) {
+            throw new AccessDeniedException();
+        }
+        if (!$this->shareService->canViewObject($actor, $intervention)) {
             throw new AccessDeniedException();
         }
 
@@ -100,6 +122,12 @@ final readonly class InterventionService
     public function changeStatus(Intervention $intervention, string $status, User $actor, ?string $comment = null): void
     {
         if (!$this->access->canChangeStatus($actor)) {
+            throw new AccessDeniedException();
+        }
+        if ($intervention->isDeleted()) {
+            throw new AccessDeniedException();
+        }
+        if (!$this->shareService->canViewObject($actor, $intervention)) {
             throw new AccessDeniedException();
         }
 
@@ -125,6 +153,12 @@ final readonly class InterventionService
         if (!$this->access->canChangeStatus($actor)) {
             throw new AccessDeniedException();
         }
+        if ($intervention->isDeleted()) {
+            throw new AccessDeniedException();
+        }
+        if (!$this->shareService->canViewObject($actor, $intervention)) {
+            throw new AccessDeniedException();
+        }
 
         if (!in_array($resultStatus, Intervention::RESULT_STATUSES, true)) {
             throw new \DomainException('Sélectionnez le résultat de l’intervention.');
@@ -147,10 +181,20 @@ final readonly class InterventionService
         if (!$this->access->canAssignIntervenant($actor)) {
             throw new AccessDeniedException();
         }
+        if ($intervention->isDeleted()) {
+            throw new AccessDeniedException();
+        }
+        if (!$this->shareService->canViewObject($actor, $intervention)) {
+            throw new AccessDeniedException();
+        }
 
         $intervenant = $this->intervenantRepository->find($intervenantId);
-        if (!$intervenant instanceof Intervenant || !$intervenant->isActive()) {
+        if (!$intervenant instanceof Intervenant || !$intervenant->isActive() || $intervenant->isDeleted()) {
             throw new \DomainException('Cet intervenant n’est pas disponible.');
+        }
+
+        if (!$this->shareService->canViewObject($actor, $intervenant)) {
+            throw new AccessDeniedException();
         }
 
         $assignment = $this->assignmentRepository->findFor($intervention, $intervenant) ?? (new InterventionIntervenant())
@@ -173,6 +217,10 @@ final readonly class InterventionService
         }
 
         $intervention = $assignment->getIntervention();
+        if ($intervention instanceof Intervention && $intervention->isDeleted()) {
+            throw new AccessDeniedException();
+        }
+
         $name = $assignment->getIntervenant()?->getDisplayName();
         $this->entityManager->remove($assignment);
         if ($intervention instanceof Intervention) {
@@ -186,6 +234,12 @@ final readonly class InterventionService
         if (!$this->access->canArchive($actor)) {
             throw new AccessDeniedException();
         }
+        if ($intervention->isDeleted()) {
+            throw new AccessDeniedException();
+        }
+        if (!$this->shareService->canViewObject($actor, $intervention)) {
+            throw new AccessDeniedException();
+        }
 
         $intervention->setIsActive(!$intervention->isActive());
         $this->entityManager->flush();
@@ -193,14 +247,27 @@ final readonly class InterventionService
         return $intervention->isActive();
     }
 
-    public function delete(Intervention $intervention, User $actor): void
+    public function delete(Intervention $intervention, User $actor): bool
     {
+        if ($intervention->isDeleted()) {
+            throw new AccessDeniedException();
+        }
+
         if (!$this->access->canDelete($actor)) {
             throw new AccessDeniedException();
         }
 
+        if (!$this->access->isSuperAdmin($actor)) {
+            $this->trashService->moveToTrash($intervention, $actor);
+
+            return true;
+        }
+
+        $this->shareService->removeSharesFor($intervention);
         $this->entityManager->remove($intervention);
         $this->entityManager->flush();
+
+        return false;
     }
 
     private function assertAccess(User $actor): void
@@ -261,5 +328,18 @@ final readonly class InterventionService
             ->setCreatedBy($actor);
         $intervention->addAssignment($assignment);
         $this->entityManager->persist($assignment);
+    }
+
+    private function assertRelatedItemsVisible(Intervention $intervention, User $actor): void
+    {
+        $intervenant = $intervention->getIntervenant();
+        if ($intervenant instanceof Intervenant && !$this->shareService->canViewObject($actor, $intervenant)) {
+            throw new AccessDeniedException();
+        }
+
+        $contract = $intervention->getContract();
+        if ($contract !== null && !$this->shareService->canViewObject($actor, $contract)) {
+            throw new AccessDeniedException();
+        }
     }
 }

@@ -13,6 +13,8 @@ use App\Service\JsonResponder;
 use App\Service\Maintenance\IntervenantService;
 use App\Service\Maintenance\InterventionHistoryService;
 use App\Service\Maintenance\InterventionService;
+use App\Service\Maintenance\MaintenanceContractService;
+use App\Service\Maintenance\MaintenanceShareService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,8 +29,10 @@ final class InterventionController extends AbstractController
     public function __construct(
         private readonly InterventionService $interventionService,
         private readonly IntervenantService $intervenantService,
+        private readonly MaintenanceContractService $contractService,
         private readonly InterventionHistoryService $historyService,
         private readonly InterventionIntervenantRepository $assignmentRepository,
+        private readonly MaintenanceShareService $shareService,
         private readonly JsonResponder $jsonResponder,
     ) {
     }
@@ -38,8 +42,11 @@ final class InterventionController extends AbstractController
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'maintenance');
 
+        $interventions = $this->interventionService->search((string) $request->query->get('q', ''), $request->query->get('status') ?: null, $this->currentUser());
+
         return $this->render('maintenance/intervention/index.html.twig', [
-            'interventions' => $this->interventionService->search((string) $request->query->get('q', ''), $request->query->get('status') ?: null, $this->currentUser()),
+            'interventions' => $interventions,
+            'maintenance_share_counts' => $this->shareService->countActiveShares(MaintenanceShareService::TYPE_INTERVENTION, $interventions),
             'create_form' => $this->buildForm(
                 (new Intervention())->setReference($this->interventionService->nextReference()),
                 'app_maintenance_intervention_create',
@@ -58,6 +65,7 @@ final class InterventionController extends AbstractController
         return $this->jsonResponder->success('Recherche mise à jour.', [
             'html' => $this->renderView('maintenance/intervention/_grid.html.twig', [
                 'interventions' => $interventions,
+                'maintenance_share_counts' => $this->shareService->countActiveShares(MaintenanceShareService::TYPE_INTERVENTION, $interventions),
             ]),
             'count' => count($interventions),
         ]);
@@ -260,7 +268,10 @@ final class InterventionController extends AbstractController
         $this->denyAccessUnlessGranted(InterventionVoter::DELETE, $intervention);
         $payload = $request->toArray();
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'delete_maintenance_intervention_'.$intervention->getId());
-        $this->interventionService->delete($intervention, $this->currentUser());
+        $movedToTrash = $this->interventionService->delete($intervention, $this->currentUser());
+        if ($movedToTrash) {
+            return $this->jsonResponder->success('L intervention a ete deplacee dans la corbeille.', ['reload' => true]);
+        }
 
         return $this->jsonResponder->success('L’intervention a été supprimée.', ['reload' => true]);
     }
@@ -268,8 +279,19 @@ final class InterventionController extends AbstractController
     /** @param array<string, int|string|null> $parameters */
     private function buildForm(Intervention $intervention, string $route, array $parameters = []): \Symfony\Component\Form\FormInterface
     {
+        $visibleIntervenantIds = array_values(array_filter(array_map(
+            static fn ($intervenant): ?int => $intervenant->getId(),
+            $this->intervenantService->available($this->currentUser()),
+        )));
+        $visibleContractIds = array_values(array_filter(array_map(
+            static fn ($contract): ?int => $contract->getId(),
+            $this->contractService->activeContracts($this->currentUser()),
+        )));
+
         return $this->createForm(InterventionType::class, $intervention, [
             'action' => $this->generateUrl($route, $parameters),
+            'visible_intervenant_ids' => $visibleIntervenantIds,
+            'visible_contract_ids' => $visibleContractIds,
         ]);
     }
 

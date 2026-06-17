@@ -59,6 +59,7 @@ final class ExpenseDocumentController extends AbstractController
     #[Route('/justificatifs/{id}', name: 'app_expense_document_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
     public function delete(ExpenseDocument $document, Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted(ExpenseVoter::DELETE_DOCUMENT, $document);
         $payload = $request->toArray();
         if (!$this->isCsrfTokenValid('delete_expense_document_'.$document->getId(), (string) ($payload['token'] ?? ''))) {
             throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');

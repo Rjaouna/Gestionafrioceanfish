@@ -6,6 +6,7 @@ use App\Entity\PasswordEntry;
 use App\Entity\PasswordShare;
 use App\Entity\User;
 use App\Repository\PasswordEntryRepository;
+use App\Service\Trash\TrashService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -16,6 +17,7 @@ final readonly class PasswordEntryService
         private EntityManagerInterface $entityManager,
         private PasswordCipher $cipher,
         private SecurityAccessService $access,
+        private TrashService $trashService,
     ) {
     }
 
@@ -59,7 +61,7 @@ final readonly class PasswordEntryService
 
     public function update(PasswordEntry $entry, ?string $plainPassword, User $actor): PasswordEntry
     {
-        if (!$this->access->canEditPasswordEntry($actor)) {
+        if ($entry->isDeleted() || !$this->access->canEditPasswordEntry($actor)) {
             throw new AccessDeniedException();
         }
 
@@ -116,14 +118,26 @@ final readonly class PasswordEntryService
         return $entry->isActive();
     }
 
-    public function delete(PasswordEntry $entry, User $actor): void
+    public function delete(PasswordEntry $entry, User $actor): bool
     {
+        if ($entry->isDeleted()) {
+            throw new AccessDeniedException();
+        }
+
         if (!$this->access->canDeletePasswords($actor)) {
             throw new AccessDeniedException();
         }
 
+        if (!$this->access->isSuperAdmin($actor)) {
+            $this->trashService->moveToTrash($entry, $actor);
+
+            return true;
+        }
+
         $this->entityManager->remove($entry);
         $this->entityManager->flush();
+
+        return false;
     }
 
     private function assertPassword(string $plainPassword): void

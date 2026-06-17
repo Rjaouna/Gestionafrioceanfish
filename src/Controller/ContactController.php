@@ -101,7 +101,10 @@ final class ContactController extends AbstractController
             throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
 
-        $this->contactService->delete($contact, $this->currentUser());
+        $movedToTrash = $this->contactService->delete($contact, $this->currentUser());
+        if ($movedToTrash) {
+            return $this->jsonResponder->success('Le contact a ete deplace dans la corbeille.', ['reload' => true]);
+        }
 
         return $this->jsonResponder->success('Le contact a été supprimé.', ['reload' => true]);
     }

@@ -21,6 +21,7 @@ class MaintenanceContractRepository extends ServiceEntityRepository
         $builder = $this->createQueryBuilder('c')
             ->leftJoin('c.intervenant', 'i')
             ->addSelect('i')
+            ->andWhere('c.isDeleted = false')
             ->orderBy('c.isActive', 'DESC')
             ->addOrderBy('c.renewalDate', 'ASC')
             ->addOrderBy('c.customerName', 'ASC');
@@ -44,7 +45,12 @@ class MaintenanceContractRepository extends ServiceEntityRepository
     /** @return list<MaintenanceContract> */
     public function findActiveContracts(): array
     {
-        return $this->findBy(['isActive' => true], ['reference' => 'ASC']);
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.isActive = true')
+            ->andWhere('c.isDeleted = false')
+            ->orderBy('c.reference', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     /** @return list<MaintenanceContract> */
@@ -52,6 +58,7 @@ class MaintenanceContractRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('c')
             ->andWhere('c.isActive = true')
+            ->andWhere('c.isDeleted = false')
             ->andWhere('c.intervenant = :intervenant')
             ->setParameter('intervenant', $intervenant)
             ->orderBy('c.reference', 'ASC')
@@ -64,6 +71,7 @@ class MaintenanceContractRepository extends ServiceEntityRepository
     {
         $rows = $this->createQueryBuilder('c')
             ->select('DISTINCT c.contractType AS contractType')
+            ->andWhere('c.isDeleted = false')
             ->andWhere('c.contractType IS NOT NULL')
             ->andWhere('c.contractType <> :empty')
             ->setParameter('empty', '')
@@ -86,6 +94,7 @@ class MaintenanceContractRepository extends ServiceEntityRepository
             ->leftJoin('c.intervenant', 'i')
             ->addSelect('i')
             ->andWhere('c.isActive = true')
+            ->andWhere('c.isDeleted = false')
             ->andWhere('c.endDate IS NOT NULL')
             ->andWhere('c.endDate BETWEEN :today AND :limitDate')
             ->setParameter('today', $today)

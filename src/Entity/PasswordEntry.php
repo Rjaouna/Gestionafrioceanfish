@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\SoftDeleteTrait;
 use App\Entity\Trait\TimestampableUserTrait;
 use App\Repository\PasswordEntryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -12,6 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: PasswordEntryRepository::class)]
 class PasswordEntry
 {
+    use SoftDeleteTrait;
     use TimestampableUserTrait;
 
     #[ORM\Id]

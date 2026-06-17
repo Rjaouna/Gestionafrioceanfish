@@ -1,5 +1,6 @@
 {% set type_labels = {'interne': 'Interne', 'externe': 'Externe', 'prestataire': 'Prestataire'} %}
 {% set phone_href = intervenant.phone ? 'tel:' ~ intervenant.phone|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) : null %}
+{% set share_count = maintenance_share_counts[intervenant.id]|default(0) %}
 
 <div class="col-12 col-md-4 col-xl-3">
     {% embed 'components/_entity_card.html.twig' with {
@@ -70,6 +71,14 @@
                         </a>
                     {% endif %}
                 </div>
+                {% if is_granted('INTERVENANT_SHARE', intervenant) %}
+                    <button class="btn btn-outline-success btn-sm" type="button" data-remote-modal="{{ path('app_maintenance_share_modal', {type: 'intervenant', id: intervenant.id}) }}">
+                        <i class="bi bi-people me-1"></i>Partager
+                        {% if share_count > 0 %}
+                            <span class="badge text-bg-success ms-1">{{ share_count }}</span>
+                        {% endif %}
+                    </button>
+                {% endif %}
                 {% if is_granted('INTERVENANT_ARCHIVE', intervenant) %}
                     <button class="btn btn-outline-secondary btn-sm" data-confirm-url="{{ path('app_maintenance_intervenant_toggle', {id: intervenant.id}) }}" data-token="{{ csrf_token('toggle_maintenance_intervenant_' ~ intervenant.id) }}" data-confirm-message="{{ intervenant.active ? 'Désactiver cet intervenant ?' : 'Réactiver cet intervenant ?' }}">
                         <i class="bi {{ intervenant.active ? 'bi-pause-circle' : 'bi-check-circle' }} me-1"></i>{{ intervenant.active ? 'Désactiver' : 'Réactiver' }}

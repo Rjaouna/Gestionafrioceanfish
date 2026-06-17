@@ -111,6 +111,13 @@ final readonly class ExpenseDocumentService
         $this->entityManager->flush();
     }
 
+    public function deleteFilesForExpense(Expense $expense): void
+    {
+        foreach ($expense->getDocuments() as $document) {
+            $this->deletePhysical($document);
+        }
+    }
+
     private function store(Expense $expense, UploadedFile $file, string $documentType, User $actor): ExpenseDocument
     {
         $this->validate($file);

@@ -6,6 +6,7 @@ use App\Entity\Intervention;
 use App\Entity\Intervenant;
 use App\Entity\MaintenanceContract;
 use App\Repository\IntervenantRepository;
+use App\Repository\MaintenanceContractRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormEvent;
@@ -44,12 +45,20 @@ final class InterventionType extends AbstractType
                 ],
                 'query_builder' => static fn (IntervenantRepository $repository) => $repository->createQueryBuilder('i')
                     ->andWhere('i.isActive = true')
+                    ->andWhere('i.isDeleted = false')
                     ->orderBy('i.lastname', 'ASC')
                     ->addOrderBy('i.firstname', 'ASC'),
                 'label' => 'Intervenant',
                 'required' => true,
                 'placeholder' => 'Sélectionner un intervenant',
                 'attr' => ['data-maintenance-intervenant-select' => 'true'],
+                'choice_filter' => static function (?Intervenant $intervenant) use ($options): bool {
+                    if (!is_array($options['visible_intervenant_ids'])) {
+                        return true;
+                    }
+
+                    return $intervenant instanceof Intervenant && in_array($intervenant->getId(), $options['visible_intervenant_ids'], true);
+                },
             ])
             ->add('contract', EntityType::class, [
                 'class' => MaintenanceContract::class,
@@ -57,10 +66,21 @@ final class InterventionType extends AbstractType
                 'choice_attr' => static fn (MaintenanceContract $contract): array => [
                     'data-intervenant-id' => (string) ($contract->getIntervenant()?->getId() ?? ''),
                 ],
+                'query_builder' => static fn (MaintenanceContractRepository $repository) => $repository->createQueryBuilder('c')
+                    ->andWhere('c.isActive = true')
+                    ->andWhere('c.isDeleted = false')
+                    ->orderBy('c.reference', 'ASC'),
                 'label' => 'Contrat lié',
                 'required' => false,
                 'placeholder' => 'Sélectionner d’abord un intervenant',
                 'attr' => ['data-maintenance-contract-select' => 'true'],
+                'choice_filter' => static function (?MaintenanceContract $contract) use ($options): bool {
+                    if (!is_array($options['visible_contract_ids'])) {
+                        return true;
+                    }
+
+                    return $contract instanceof MaintenanceContract && in_array($contract->getId(), $options['visible_contract_ids'], true);
+                },
             ])
             ->add('customerName', TextType::class, [
                 'label' => 'Nom de l’intervenant',
@@ -135,6 +155,12 @@ final class InterventionType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => Intervention::class]);
+        $resolver->setDefaults([
+            'data_class' => Intervention::class,
+            'visible_intervenant_ids' => null,
+            'visible_contract_ids' => null,
+        ]);
+        $resolver->setAllowedTypes('visible_intervenant_ids', ['null', 'array']);
+        $resolver->setAllowedTypes('visible_contract_ids', ['null', 'array']);
     }
 }

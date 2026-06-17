@@ -1,0 +1,52 @@
+<tr
+    data-search-item
+    data-search-value="{{ (item.title ~ ' ' ~ item.typeLabel ~ ' ' ~ item.module ~ ' ' ~ (item.deletedBy ? item.deletedBy.displayName : '') ~ ' ' ~ (item.reason ?? ''))|lower }}"
+>
+    <td>
+        <div class="d-flex align-items-center gap-3 min-w-0">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-danger-subtle text-danger trash-row-icon">
+                <i class="bi {{ item.icon }}"></i>
+            </span>
+            <div class="min-w-0">
+                <div class="fw-semibold text-truncate">{{ item.title }}</div>
+                <span class="badge rounded-pill text-bg-light border">{{ item.typeLabel }}</span>
+            </div>
+        </div>
+    </td>
+    <td>
+        <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis">{{ item.module }}</span>
+    </td>
+    <td class="text-secondary small">
+        {{ item.deletedAt ? item.deletedAt|date('d/m/Y H:i') : 'Non renseigne' }}
+    </td>
+    <td class="small">
+        {{ item.deletedBy ? item.deletedBy.displayName : 'Utilisateur inconnu' }}
+    </td>
+    <td class="small text-secondary">
+        {{ item.reason ?: 'Aucun motif' }}
+    </td>
+    <td class="text-end">
+        <div class="btn-group btn-group-sm">
+            <button
+                class="btn btn-outline-success"
+                type="button"
+                data-confirm-url="{{ path('app_trash_restore', {type: item.type, id: item.id}) }}"
+                data-confirm-method="POST"
+                data-token="{{ csrf_token('restore_trash_' ~ item.type ~ '_' ~ item.id) }}"
+                data-confirm-message="Restaurer cet element ?"
+            >
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Restaurer
+            </button>
+            <button
+                class="btn btn-outline-danger"
+                type="button"
+                data-confirm-url="{{ path('app_trash_delete_permanently', {type: item.type, id: item.id}) }}"
+                data-confirm-method="DELETE"
+                data-token="{{ csrf_token('delete_trash_' ~ item.type ~ '_' ~ item.id) }}"
+                data-confirm-message="Supprimer definitivement cet element ? Cette action est irreversible."
+            >
+                <i class="bi bi-trash3 me-1"></i>Supprimer
+            </button>
+        </div>
+    </td>
+</tr>

@@ -34,6 +34,10 @@ final readonly class SecurityAccessService
 
     public function canViewPassword(User $user, PasswordEntry $entry): bool
     {
+        if ($entry->isDeleted()) {
+            return false;
+        }
+
         if ($this->isAdmin($user)) {
             return true;
         }
@@ -52,11 +56,19 @@ final readonly class SecurityAccessService
 
     public function canSharePassword(User $user, ?PasswordEntry $entry = null): bool
     {
+        if ($entry instanceof PasswordEntry && $entry->isDeleted()) {
+            return false;
+        }
+
         return $this->isAdmin($user);
     }
 
     public function canEditPasswordValue(User $user, PasswordEntry $entry): bool
     {
+        if ($entry->isDeleted()) {
+            return false;
+        }
+
         if ($this->isAdmin($user)) {
             return true;
         }
@@ -70,11 +82,15 @@ final readonly class SecurityAccessService
 
     public function canValidatePassword(User $user, PasswordEntry $entry): bool
     {
-        return $this->isAdmin($user) && !$entry->isValidated() && $entry->isActive();
+        return $this->isAdmin($user) && !$entry->isDeleted() && !$entry->isValidated() && $entry->isActive();
     }
 
     public function canTogglePasswordStatus(User $user, PasswordEntry $entry): bool
     {
+        if ($entry->isDeleted()) {
+            return false;
+        }
+
         if ($this->isAdmin($user)) {
             return true;
         }

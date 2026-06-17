@@ -137,6 +137,7 @@ final class ExpenseController extends AbstractController
     #[Route('/{id}/soumettre', name: 'app_expense_submit', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function submit(Expense $expense, Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted(ExpenseVoter::SUBMIT, $expense);
         $this->assertCsrfFromJson($request, 'submit_expense_'.$expense->getId());
         $this->workflow->submit($expense, $this->currentUser());
 
@@ -146,6 +147,7 @@ final class ExpenseController extends AbstractController
     #[Route('/{id}/valider', name: 'app_expense_validate', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function validateExpense(Expense $expense, Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted(ExpenseVoter::VALIDATE, $expense);
         $this->assertCsrfFromJson($request, 'validate_expense_'.$expense->getId());
         $this->workflow->validate($expense, $this->currentUser());
 
@@ -185,6 +187,7 @@ final class ExpenseController extends AbstractController
     #[Route('/{id}/payer', name: 'app_expense_mark_paid', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function markPaid(Expense $expense, Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted(ExpenseVoter::MARK_AS_PAID, $expense);
         $this->assertCsrfFromJson($request, 'pay_expense_'.$expense->getId());
         $this->workflow->markAsPaid($expense, $this->currentUser());
 
@@ -194,6 +197,7 @@ final class ExpenseController extends AbstractController
     #[Route('/{id}/annuler', name: 'app_expense_cancel', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function cancel(Expense $expense, Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted(ExpenseVoter::CANCEL, $expense);
         $this->assertCsrfFromJson($request, 'cancel_expense_'.$expense->getId());
         $this->workflow->cancel($expense, $this->currentUser());
 
@@ -203,6 +207,7 @@ final class ExpenseController extends AbstractController
     #[Route('/{id}/reactiver', name: 'app_expense_reactivate', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function reactivate(Expense $expense, Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted(ExpenseVoter::REACTIVATE, $expense);
         $this->assertCsrfFromJson($request, 'reactivate_expense_'.$expense->getId());
         $this->workflow->reactivate($expense, $this->currentUser());
 
@@ -212,6 +217,7 @@ final class ExpenseController extends AbstractController
     #[Route('/{id}/archive', name: 'app_expense_archive', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function archive(Expense $expense, Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted(ExpenseVoter::ARCHIVE, $expense);
         $this->assertCsrfFromJson($request, 'archive_expense_'.$expense->getId());
         $active = $this->expenseService->toggleArchive($expense, $this->currentUser());
 
@@ -224,8 +230,12 @@ final class ExpenseController extends AbstractController
     #[Route('/{id}', name: 'app_expense_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
     public function delete(Expense $expense, Request $request): JsonResponse
     {
+        $this->denyAccessUnlessGranted(ExpenseVoter::DELETE, $expense);
         $this->assertCsrfFromJson($request, 'delete_expense_'.$expense->getId());
-        $this->expenseService->delete($expense, $this->currentUser());
+        $movedToTrash = $this->expenseService->delete($expense, $this->currentUser());
+        if ($movedToTrash) {
+            return $this->jsonResponder->success('La depense a ete deplacee dans la corbeille.', ['reload' => true]);
+        }
 
         return $this->jsonResponder->success('La dépense a été supprimée.', ['reload' => true]);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\SoftDeleteTrait;
 use App\Entity\Trait\TimestampableUserTrait;
 use App\Repository\ContactRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -17,6 +18,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_contact_city', columns: ['city'])]
 class Contact
 {
+    use SoftDeleteTrait;
     use TimestampableUserTrait;
 
     #[ORM\Id]

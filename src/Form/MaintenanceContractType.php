@@ -41,12 +41,20 @@ final class MaintenanceContractType extends AbstractType
                 ],
                 'query_builder' => static fn (IntervenantRepository $repository) => $repository->createQueryBuilder('i')
                     ->andWhere('i.isActive = true')
+                    ->andWhere('i.isDeleted = false')
                     ->orderBy('i.lastname', 'ASC')
                     ->addOrderBy('i.firstname', 'ASC'),
                 'label' => 'Intervenant',
                 'required' => true,
                 'placeholder' => 'Sélectionner un intervenant',
                 'attr' => ['data-maintenance-intervenant-select' => 'true'],
+                'choice_filter' => static function (?Intervenant $intervenant) use ($options): bool {
+                    if (!is_array($options['visible_intervenant_ids'])) {
+                        return true;
+                    }
+
+                    return $intervenant instanceof Intervenant && in_array($intervenant->getId(), $options['visible_intervenant_ids'], true);
+                },
             ])
             ->add('customerName', TextType::class, [
                 'label' => 'Nom de l’intervenant',
@@ -148,6 +156,10 @@ final class MaintenanceContractType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => MaintenanceContract::class]);
+        $resolver->setDefaults([
+            'data_class' => MaintenanceContract::class,
+            'visible_intervenant_ids' => null,
+        ]);
+        $resolver->setAllowedTypes('visible_intervenant_ids', ['null', 'array']);
     }
 }

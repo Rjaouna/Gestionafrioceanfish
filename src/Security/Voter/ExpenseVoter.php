@@ -24,6 +24,7 @@ final class ExpenseVoter extends Voter
     public const REACTIVATE = 'EXPENSE_REACTIVATE';
     public const SUBMIT = 'EXPENSE_SUBMIT';
     public const DOWNLOAD_DOCUMENT = 'EXPENSE_DOWNLOAD_DOCUMENT';
+    public const DELETE_DOCUMENT = 'EXPENSE_DELETE_DOCUMENT';
     public const MANAGE_CATEGORIES = 'EXPENSE_MANAGE_CATEGORIES';
 
     public function __construct(private readonly ExpenseAccessService $access)
@@ -46,6 +47,7 @@ final class ExpenseVoter extends Voter
             self::REACTIVATE,
             self::SUBMIT,
             self::DOWNLOAD_DOCUMENT,
+            self::DELETE_DOCUMENT,
             self::MANAGE_CATEGORIES,
         ], true) && ($subject === null || $subject instanceof Expense || $subject instanceof ExpenseDocument);
     }
@@ -72,6 +74,7 @@ final class ExpenseVoter extends Voter
             self::REACTIVATE => $subject instanceof Expense && $this->access->canReactivate($user, $subject),
             self::SUBMIT => $subject instanceof Expense && $this->access->canSubmit($user, $subject),
             self::DOWNLOAD_DOCUMENT => $subject instanceof ExpenseDocument && $this->access->canDownloadDocument($user, $subject),
+            self::DELETE_DOCUMENT => $subject instanceof ExpenseDocument && $this->access->canDeleteDocument($user, $subject),
             default => false,
         };
     }

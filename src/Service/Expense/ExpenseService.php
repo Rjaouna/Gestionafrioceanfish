@@ -6,6 +6,7 @@ use App\Entity\Expense;
 use App\Entity\ExpenseShare;
 use App\Entity\User;
 use App\Repository\ExpenseRepository;
+use App\Service\Trash\TrashService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -16,6 +17,8 @@ final readonly class ExpenseService
         private EntityManagerInterface $entityManager,
         private ExpenseAccessService $access,
         private ExpenseCalculatorService $calculator,
+        private ExpenseDocumentService $documentService,
+        private TrashService $trashService,
     ) {
     }
 
@@ -98,14 +101,23 @@ final readonly class ExpenseService
         return $expense->isActive();
     }
 
-    public function delete(Expense $expense, User $actor): void
+    public function delete(Expense $expense, User $actor): bool
     {
         if (!$this->access->canDelete($actor, $expense)) {
             throw new AccessDeniedException();
         }
 
+        if (!$this->access->isSuperAdmin($actor)) {
+            $this->trashService->moveToTrash($expense, $actor);
+
+            return true;
+        }
+
+        $this->documentService->deleteFilesForExpense($expense);
         $this->entityManager->remove($expense);
         $this->entityManager->flush();
+
+        return false;
     }
 
     /** @return array<string, mixed> */

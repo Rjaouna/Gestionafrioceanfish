@@ -22,7 +22,7 @@ final readonly class ContactPermissionService
 
     public function canView(User $user, Contact $contact): bool
     {
-        if (!$user->isActive() || !$contact->isActive()) {
+        if (!$user->isActive() || !$contact->isActive() || $contact->isDeleted()) {
             return false;
         }
 
@@ -37,6 +37,7 @@ final readonly class ContactPermissionService
     {
         return $this->canCreate($user)
             && $contact->isActive()
+            && !$contact->isDeleted()
             && ($this->access->isAdmin($user) || ($this->isCreator($user, $contact) && $this->shareAllows($contact, $user)));
     }
 
@@ -44,6 +45,7 @@ final readonly class ContactPermissionService
     {
         return $this->canCreate($user)
             && $contact->isActive()
+            && !$contact->isDeleted()
             && $this->access->isAdmin($user);
     }
 
@@ -51,6 +53,7 @@ final readonly class ContactPermissionService
     {
         return $this->canCreate($user)
             && $contact->isActive()
+            && !$contact->isDeleted()
             && $this->access->isAdmin($user);
     }
 

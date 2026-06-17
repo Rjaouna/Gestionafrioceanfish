@@ -164,7 +164,10 @@ final class DocumentController extends AbstractController
         $this->denyAccessUnlessGranted(DocumentVoter::DELETE, $document);
         $payload = $request->toArray();
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'delete_document_'.$document->getId());
-        $this->documentService->delete($document, $this->currentUser());
+        $movedToTrash = $this->documentService->delete($document, $this->currentUser());
+        if ($movedToTrash) {
+            return $this->jsonResponder->success('Le document a ete deplace dans la corbeille.', ['reload' => true]);
+        }
 
         return $this->jsonResponder->success('Le document a été supprimé.', ['reload' => true]);
     }

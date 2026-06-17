@@ -8,6 +8,7 @@
 {% set security_active = current_route starts with 'app_password' %}
 {% set users_active = current_route starts with 'app_user' %}
 {% set configuration_active = current_route starts with 'app_module' %}
+{% set trash_active = current_route starts with 'app_trash' %}
 {% set business_active = false %}
 
 {% for module in business_modules %}
@@ -159,6 +160,23 @@
     </div>
 
     <div class="sidebar-bottom-zone">
+        {% if is_granted('ROLE_SUPER_ADMIN') %}
+            <div class="sidebar-configuration">
+                <section class="sidebar-open-section {{ trash_active ? 'active' : '' }}">
+                    <div class="sidebar-open-heading">
+                        <span class="sidebar-section-icon"><i class="bi bi-trash3"></i></span>
+                        <strong>Corbeille</strong>
+                    </div>
+                    <div class="sidebar-open-body">
+                        <a class="sidebar-sub-link {{ trash_active ? 'active' : '' }}" href="{{ path('app_trash_index') }}">
+                            <i class="bi bi-trash3"></i>
+                            <span>Elements supprimes</span>
+                        </a>
+                    </div>
+                </section>
+            </div>
+        {% endif %}
+
         {% if can_manage_modules %}
             <div class="sidebar-configuration">
                 <section class="sidebar-open-section {{ configuration_active ? 'active' : '' }}">

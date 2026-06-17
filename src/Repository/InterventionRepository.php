@@ -23,6 +23,7 @@ class InterventionRepository extends ServiceEntityRepository
             ->leftJoin('i.assignments', 'a')
             ->leftJoin('a.intervenant', 'intervenant')
             ->addSelect('c', 'primaryIntervenant', 'a', 'intervenant')
+            ->andWhere('i.isDeleted = false')
             ->orderBy('i.isActive', 'DESC')
             ->addOrderBy('i.plannedAt', 'ASC')
             ->addOrderBy('i.createdAt', 'DESC');
@@ -51,6 +52,7 @@ class InterventionRepository extends ServiceEntityRepository
             ->leftJoin('i.intervenant', 'intervenant')
             ->addSelect('c', 'intervenant')
             ->andWhere('i.isActive = true')
+            ->andWhere('i.isDeleted = false')
             ->andWhere('i.status IN (:statuses)')
             ->andWhere('i.plannedAt IS NOT NULL')
             ->andWhere('i.plannedAt >= :now')
@@ -72,6 +74,7 @@ class InterventionRepository extends ServiceEntityRepository
             ->addSelect("CASE WHEN i.status = 'en_cours' THEN 0 WHEN i.status = 'planifiee' THEN 1 ELSE 2 END AS HIDDEN statusRank")
             ->addSelect('CASE WHEN i.plannedAt IS NULL THEN 1 ELSE 0 END AS HIDDEN plannedMissing')
             ->andWhere('i.isActive = true')
+            ->andWhere('i.isDeleted = false')
             ->andWhere('i.status NOT IN (:closedStatuses)')
             ->setParameter('closedStatuses', ['terminee', 'annulee'])
             ->orderBy('statusRank', 'ASC')

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\SoftDeleteTrait;
 use App\Entity\Trait\TimestampableUserTrait;
 use App\Repository\ExpenseRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -21,6 +22,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_expense_updated_by', columns: ['updated_by_id'])]
 class Expense
 {
+    use SoftDeleteTrait;
     use TimestampableUserTrait;
 
     public const STATUS_DRAFT = 'draft';

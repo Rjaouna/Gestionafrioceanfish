@@ -152,7 +152,10 @@ final class PasswordEntryController extends AbstractController
         $this->denyAccessUnlessGranted(PasswordEntryVoter::DELETE, $entry);
         $payload = $request->toArray();
         $this->assertCsrfValue((string) ($payload['token'] ?? ''), 'delete_password_'.$entry->getId());
-        $this->passwordService->delete($entry, $this->currentUser());
+        $movedToTrash = $this->passwordService->delete($entry, $this->currentUser());
+        if ($movedToTrash) {
+            return $this->jsonResponder->success('Le mot de passe a ete deplace dans la corbeille.', ['reload' => true]);
+        }
 
         return $this->jsonResponder->success('Le mot de passe a été supprimé.', ['reload' => true]);
     }

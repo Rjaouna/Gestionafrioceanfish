@@ -10,6 +10,7 @@ use App\Security\Voter\ModuleAccessVoter;
 use App\Service\JsonResponder;
 use App\Service\Maintenance\IntervenantService;
 use App\Service\Maintenance\MaintenanceContractService;
+use App\Service\Maintenance\MaintenanceShareService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,6 +25,7 @@ final class MaintenanceContractController extends AbstractController
     public function __construct(
         private readonly MaintenanceContractService $contractService,
         private readonly IntervenantService $intervenantService,
+        private readonly MaintenanceShareService $shareService,
         private readonly JsonResponder $jsonResponder,
     ) {
     }
@@ -33,8 +35,11 @@ final class MaintenanceContractController extends AbstractController
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'maintenance');
 
+        $contracts = $this->contractService->search((string) $request->query->get('q', ''), $request->query->get('status') ?: null, $this->currentUser());
+
         return $this->render('maintenance/contract/index.html.twig', [
-            'contracts' => $this->contractService->search((string) $request->query->get('q', ''), $request->query->get('status') ?: null, $this->currentUser()),
+            'contracts' => $contracts,
+            'maintenance_share_counts' => $this->shareService->countActiveShares(MaintenanceShareService::TYPE_CONTRACT, $contracts),
             'create_form' => $this->buildForm(
                 (new MaintenanceContract())->setReference($this->contractService->nextReference()),
                 'app_maintenance_contract_create',
@@ -54,6 +59,7 @@ final class MaintenanceContractController extends AbstractController
         return $this->jsonResponder->success('Recherche mise à jour.', [
             'html' => $this->renderView('maintenance/contract/_grid.html.twig', [
                 'contracts' => $contracts,
+                'maintenance_share_counts' => $this->shareService->countActiveShares(MaintenanceShareService::TYPE_CONTRACT, $contracts),
             ]),
             'count' => count($contracts),
         ]);
@@ -146,7 +152,10 @@ final class MaintenanceContractController extends AbstractController
         $this->denyAccessUnlessGranted(MaintenanceContractVoter::DELETE, $contract);
         $payload = $request->toArray();
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'delete_maintenance_contract_'.$contract->getId());
-        $this->contractService->delete($contract, $this->currentUser());
+        $movedToTrash = $this->contractService->delete($contract, $this->currentUser());
+        if ($movedToTrash) {
+            return $this->jsonResponder->success('Le contrat a ete deplace dans la corbeille.', ['reload' => true]);
+        }
 
         return $this->jsonResponder->success('Le contrat a été supprimé.', ['reload' => true]);
     }
@@ -154,8 +163,14 @@ final class MaintenanceContractController extends AbstractController
     /** @param array<string, int|string|null> $parameters */
     private function buildForm(MaintenanceContract $contract, string $route, array $parameters = []): \Symfony\Component\Form\FormInterface
     {
+        $visibleIntervenantIds = array_values(array_filter(array_map(
+            static fn ($intervenant): ?int => $intervenant->getId(),
+            $this->intervenantService->available($this->currentUser()),
+        )));
+
         return $this->createForm(MaintenanceContractType::class, $contract, [
             'action' => $this->generateUrl($route, $parameters),
+            'visible_intervenant_ids' => $visibleIntervenantIds,
         ]);
     }
 

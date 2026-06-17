@@ -41,7 +41,7 @@ final readonly class ExpenseAccessService
 
     public function canView(User $user, Expense $expense): bool
     {
-        if (!$this->canAccess($user)) {
+        if (!$this->canAccess($user) || $expense->isDeleted()) {
             return false;
         }
 

@@ -3,6 +3,7 @@
 {% set frequency_labels = {'mensuelle': 'Mensuelle', 'trimestrielle': 'Trimestrielle', 'semestrielle': 'Semestrielle', 'annuelle': 'Annuelle', 'personnalisee': 'Personnalisée'} %}
 {% set phone_href = contract.customerPhone ? 'tel:' ~ contract.customerPhone|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) : null %}
 {% set waze_url = contract.customerAddress ? 'https://waze.com/ul?q=' ~ contract.customerAddress|url_encode ~ '&navigate=yes' : null %}
+{% set share_count = maintenance_share_counts[contract.id]|default(0) %}
 
 <div class="col-12 col-md-4 col-xl-3">
     {% embed 'components/_entity_card.html.twig' with {
@@ -85,6 +86,14 @@
                         </a>
                     {% endif %}
                 </div>
+                {% if is_granted('MAINTENANCE_CONTRACT_SHARE', contract) %}
+                    <button class="btn btn-outline-success btn-sm" type="button" data-remote-modal="{{ path('app_maintenance_share_modal', {type: 'contract', id: contract.id}) }}">
+                        <i class="bi bi-people me-1"></i>Partager
+                        {% if share_count > 0 %}
+                            <span class="badge text-bg-success ms-1">{{ share_count }}</span>
+                        {% endif %}
+                    </button>
+                {% endif %}
                 {% if is_granted('MAINTENANCE_CONTRACT_ARCHIVE', contract) %}
                     <button class="btn btn-outline-secondary btn-sm" data-confirm-url="{{ path('app_maintenance_contract_archive', {id: contract.id}) }}" data-token="{{ csrf_token('archive_maintenance_contract_' ~ contract.id) }}" data-confirm-message="{{ contract.active ? 'Archiver ce contrat ?' : 'Désarchiver ce contrat ?' }}">
                         <i class="bi {{ contract.active ? 'bi-archive' : 'bi-arrow-counterclockwise' }} me-1"></i>{{ contract.active ? 'Archiver' : 'Désarchiver' }}

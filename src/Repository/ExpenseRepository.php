@@ -118,6 +118,7 @@ class ExpenseRepository extends ServiceEntityRepository
             ->leftJoin('e.documents', 'documents')
             ->leftJoin('e.shares', 'shares')
             ->addSelect('c', 'creator', 'documents', 'shares')
+            ->andWhere('e.isDeleted = false')
             ->orderBy('e.expenseDate', 'DESC')
             ->addOrderBy('e.createdAt', 'DESC');
 

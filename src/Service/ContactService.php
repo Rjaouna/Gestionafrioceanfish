@@ -6,6 +6,7 @@ use App\Entity\Contact;
 use App\Entity\ContactShare;
 use App\Entity\User;
 use App\Repository\ContactRepository;
+use App\Service\Trash\TrashService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -16,6 +17,7 @@ final readonly class ContactService
         private EntityManagerInterface $entityManager,
         private SecurityAccessService $access,
         private ContactPermissionService $permission,
+        private TrashService $trashService,
     ) {
     }
 
@@ -78,13 +80,21 @@ final readonly class ContactService
         return $contact;
     }
 
-    public function delete(Contact $contact, User $actor): void
+    public function delete(Contact $contact, User $actor): bool
     {
         if (!$this->permission->canDelete($actor, $contact)) {
             throw new AccessDeniedException();
         }
 
+        if (!$this->access->isSuperAdmin($actor)) {
+            $this->trashService->moveToTrash($contact, $actor);
+
+            return true;
+        }
+
         $this->entityManager->remove($contact);
         $this->entityManager->flush();
+
+        return false;
     }
 }

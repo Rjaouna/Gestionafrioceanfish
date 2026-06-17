@@ -26,6 +26,7 @@ class PasswordEntryRepository extends ServiceEntityRepository
             ->addSelect('s')
             ->addSelect('su')
             ->addSelect('cb')
+            ->andWhere('p.isDeleted = false')
             ->andWhere('s.user = :user')
             ->andWhere('s.canView = true')
             ->andWhere('p.isActive = true')
@@ -45,6 +46,7 @@ class PasswordEntryRepository extends ServiceEntityRepository
             ->addSelect('s')
             ->addSelect('su')
             ->addSelect('cb')
+            ->andWhere('p.isDeleted = false')
             ->orderBy('p.isValidated', 'ASC')
             ->addOrderBy('p.isActive', 'DESC')
             ->addOrderBy('p.name', 'ASC')
@@ -63,6 +65,7 @@ class PasswordEntryRepository extends ServiceEntityRepository
             ->addSelect('s')
             ->addSelect('su')
             ->addSelect('cb')
+            ->andWhere('p.isDeleted = false')
             ->andWhere('p.isValidated = true')
             ->andWhere('p.isActive = true')
             ->orderBy('p.name', 'ASC');
@@ -81,6 +84,7 @@ class PasswordEntryRepository extends ServiceEntityRepository
     {
         $builder = $this->createQueryBuilder('p')
             ->select('COUNT(p.id)')
+            ->andWhere('p.isDeleted = false')
             ->andWhere('p.isValidated = false')
             ->andWhere('p.isActive = true');
 

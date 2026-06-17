@@ -27,6 +27,7 @@ class ContactRepository extends ServiceEntityRepository
             ->leftJoin('c.shares', 's')
             ->leftJoin('c.createdBy', 'creator')
             ->addSelect('s', 'creator')
+            ->andWhere('c.isDeleted = false')
             ->orderBy('c.fullName', 'ASC')
             ->addOrderBy('c.type', 'ASC');
 
@@ -61,6 +62,7 @@ class ContactRepository extends ServiceEntityRepository
     {
         $rows = $this->createQueryBuilder('c')
             ->select('DISTINCT c.type AS type')
+            ->andWhere('c.isDeleted = false')
             ->andWhere('c.type IS NOT NULL')
             ->orderBy('c.type', 'ASC')
             ->getQuery()
@@ -77,6 +79,7 @@ class ContactRepository extends ServiceEntityRepository
     {
         $rows = $this->createQueryBuilder('c')
             ->select('DISTINCT c.city AS city')
+            ->andWhere('c.isDeleted = false')
             ->andWhere('c.city IS NOT NULL')
             ->andWhere('c.city != :empty')
             ->setParameter('empty', '')

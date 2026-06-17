@@ -44,8 +44,8 @@ final class PasswordEntryVoter extends Voter
 
         return match ($attribute) {
             self::VIEW => $this->access->canViewPassword($user, $subject),
-            self::EDIT => $this->access->canEditPasswordEntry($user),
-            self::DELETE => $this->access->canDeletePasswords($user),
+            self::EDIT => !$subject->isDeleted() && $this->access->canEditPasswordEntry($user),
+            self::DELETE => !$subject->isDeleted() && $this->access->canDeletePasswords($user),
             self::SHARE => $this->access->canSharePassword($user, $subject),
             self::EDIT_PASSWORD => $this->access->canEditPasswordValue($user, $subject),
             self::VALIDATE => $this->access->canValidatePassword($user, $subject),

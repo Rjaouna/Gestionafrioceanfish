@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Trait\SoftDeleteTrait;
 use App\Entity\Trait\TimestampableUserTrait;
 use App\Repository\MaintenanceContractRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -19,6 +20,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_maintenance_contract_updated_by', columns: ['updated_by_id'])]
 class MaintenanceContract
 {
+    use SoftDeleteTrait;
     use TimestampableUserTrait;
 
     public const FREQUENCIES = [
