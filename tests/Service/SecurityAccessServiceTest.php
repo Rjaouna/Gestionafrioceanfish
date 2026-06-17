@@ -35,13 +35,15 @@ final class SecurityAccessServiceTest extends TestCase
 
     public function testCreatorKeepsAccessToOwnPendingPassword(): void
     {
+        $creator = $this->userWithId(10, ['ROLE_USER']);
+        $share = (new PasswordShare())->setUser($creator)->setCanView(true)->setCanEditPassword(true);
         $shareRepository = $this->createStub(PasswordShareRepository::class);
+        $shareRepository->method('findFor')->willReturn($share);
         $service = new SecurityAccessService(
             $shareRepository,
             $this->createStub(AppModuleRepository::class),
             $this->createStub(UserModuleAccessRepository::class),
         );
-        $creator = $this->userWithId(10, ['ROLE_USER']);
         $entry = (new PasswordEntry())
             ->setName('Accès test')
             ->setLogin('creator@example.com')
@@ -52,6 +54,29 @@ final class SecurityAccessServiceTest extends TestCase
         self::assertTrue($service->canViewPassword($creator, $entry));
         self::assertTrue($service->canEditPasswordValue($creator, $entry));
         self::assertTrue($service->canTogglePasswordStatus($creator, $entry));
+    }
+
+    public function testCreatorLosesAccessWhenAdminRemovesShare(): void
+    {
+        $shareRepository = $this->createStub(PasswordShareRepository::class);
+        $shareRepository->method('findFor')->willReturn(null);
+        $service = new SecurityAccessService(
+            $shareRepository,
+            $this->createStub(AppModuleRepository::class),
+            $this->createStub(UserModuleAccessRepository::class),
+        );
+        $creator = $this->userWithId(10, ['ROLE_USER']);
+        $entry = (new PasswordEntry())
+            ->setName('Acces coupe')
+            ->setLogin('creator@example.com')
+            ->setEncryptedPassword('secret')
+            ->setCreatedBy($creator)
+            ->setIsValidated(true)
+            ->setIsActive(true);
+
+        self::assertFalse($service->canViewPassword($creator, $entry));
+        self::assertFalse($service->canEditPasswordValue($creator, $entry));
+        self::assertFalse($service->canTogglePasswordStatus($creator, $entry));
     }
 
     public function testOnlyAdminsCanSharePasswords(): void
@@ -98,7 +123,7 @@ final class SecurityAccessServiceTest extends TestCase
         self::assertTrue($service->canViewPassword($user, $entry));
 
         $entry->setIsValidated(false);
-        self::assertFalse($service->canViewPassword($user, $entry));
+        self::assertTrue($service->canViewPassword($user, $entry));
 
         $entry->setIsValidated(true)->setIsActive(false);
         self::assertFalse($service->canViewPassword($user, $entry));

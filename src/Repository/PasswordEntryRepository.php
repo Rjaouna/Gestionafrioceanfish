@@ -26,7 +26,9 @@ class PasswordEntryRepository extends ServiceEntityRepository
             ->addSelect('s')
             ->addSelect('su')
             ->addSelect('cb')
-            ->andWhere('(s.user = :user AND s.canView = true AND p.isValidated = true AND p.isActive = true) OR p.createdBy = :user')
+            ->andWhere('s.user = :user')
+            ->andWhere('s.canView = true')
+            ->andWhere('p.isActive = true')
             ->setParameter('user', $user)
             ->orderBy('p.name', 'ASC')
             ->getQuery()
@@ -67,7 +69,8 @@ class PasswordEntryRepository extends ServiceEntityRepository
 
         if (!$includeAllEntries) {
             $builder
-                ->andWhere('(s.user = :user AND s.canView = true) OR p.createdBy = :user')
+                ->andWhere('s.user = :user')
+                ->andWhere('s.canView = true')
                 ->setParameter('user', $user);
         }
 
@@ -83,7 +86,9 @@ class PasswordEntryRepository extends ServiceEntityRepository
 
         if ($user instanceof User) {
             $builder
-                ->andWhere('p.createdBy = :user')
+                ->leftJoin('p.shares', 's')
+                ->andWhere('s.user = :user')
+                ->andWhere('s.canView = true')
                 ->setParameter('user', $user);
         }
 

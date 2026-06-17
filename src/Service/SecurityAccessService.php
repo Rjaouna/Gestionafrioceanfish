@@ -38,11 +38,7 @@ final readonly class SecurityAccessService
             return true;
         }
 
-        if ($this->isCreator($user, $entry)) {
-            return true;
-        }
-
-        if (!$entry->isValidated() || !$entry->isActive()) {
+        if (!$entry->isActive()) {
             return false;
         }
 
@@ -65,11 +61,7 @@ final readonly class SecurityAccessService
             return true;
         }
 
-        if ($this->isCreator($user, $entry)) {
-            return true;
-        }
-
-        if (!$entry->isValidated() || !$entry->isActive()) {
+        if (!$entry->isActive()) {
             return false;
         }
 
@@ -83,7 +75,13 @@ final readonly class SecurityAccessService
 
     public function canTogglePasswordStatus(User $user, PasswordEntry $entry): bool
     {
-        return $this->isAdmin($user) || $this->isCreator($user, $entry);
+        if ($this->isAdmin($user)) {
+            return true;
+        }
+
+        $share = $this->shareRepository->findFor($entry, $user);
+
+        return $this->isCreator($user, $entry) && ($share?->canView() ?? false);
     }
 
     private function isCreator(User $user, PasswordEntry $entry): bool
