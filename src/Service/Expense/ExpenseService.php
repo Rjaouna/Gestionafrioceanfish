@@ -3,6 +3,7 @@
 namespace App\Service\Expense;
 
 use App\Entity\Expense;
+use App\Entity\ExpenseShare;
 use App\Entity\User;
 use App\Repository\ExpenseRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -56,6 +57,16 @@ final readonly class ExpenseService
             ->setStatus(Expense::STATUS_DRAFT)
             ->setIsActive(true)
             ->setCreatedBy($actor);
+
+        if (!$this->access->isAdmin($actor)) {
+            $expense->addShare(
+                (new ExpenseShare())
+                    ->setUser($actor)
+                    ->setCanView(true)
+                    ->setIsActive(true)
+                    ->setCreatedBy($actor),
+            );
+        }
 
         $this->entityManager->persist($expense);
         $this->entityManager->flush();

@@ -26,25 +26,25 @@ final readonly class ContactPermissionService
             return false;
         }
 
-        if ($this->access->isAdmin($user) || $this->isCreator($user, $contact)) {
+        if ($this->access->isAdmin($user)) {
             return true;
         }
 
-        $share = $this->shareRepository->findFor($contact, $user);
-
-        return $share instanceof ContactShare && $share->isActive() && $share->canView();
+        return $this->shareAllows($contact, $user);
     }
 
     public function canEdit(User $user, Contact $contact): bool
     {
         return $this->canCreate($user)
             && $contact->isActive()
-            && ($this->access->isAdmin($user) || $this->isCreator($user, $contact));
+            && ($this->access->isAdmin($user) || ($this->isCreator($user, $contact) && $this->shareAllows($contact, $user)));
     }
 
     public function canShare(User $user, Contact $contact): bool
     {
-        return $this->canEdit($user, $contact);
+        return $this->canCreate($user)
+            && $contact->isActive()
+            && $this->access->isAdmin($user);
     }
 
     public function canDelete(User $user, Contact $contact): bool
@@ -58,5 +58,12 @@ final readonly class ContactPermissionService
     {
         return $user->getId() !== null
             && $contact->getCreatedBy()?->getId() === $user->getId();
+    }
+
+    private function shareAllows(Contact $contact, User $user): bool
+    {
+        $share = $this->shareRepository->findFor($contact, $user);
+
+        return $share instanceof ContactShare && $share->isActive() && $share->canView();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Contact;
+use App\Entity\ContactShare;
 use App\Entity\User;
 use App\Repository\ContactRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -49,6 +50,16 @@ final readonly class ContactService
         $contact
             ->setIsActive(true)
             ->setCreatedBy($actor);
+
+        if (!$this->access->isAdmin($actor)) {
+            $contact->addShare(
+                (new ContactShare())
+                    ->setUser($actor)
+                    ->setCanView(true)
+                    ->setIsActive(true)
+                    ->setCreatedBy($actor),
+            );
+        }
 
         $this->entityManager->persist($contact);
         $this->entityManager->flush();

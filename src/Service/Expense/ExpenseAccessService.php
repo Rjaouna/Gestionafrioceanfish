@@ -45,7 +45,7 @@ final readonly class ExpenseAccessService
             return false;
         }
 
-        if ($this->isAdmin($user) || $this->isCreator($user, $expense)) {
+        if ($this->isAdmin($user)) {
             return true;
         }
 

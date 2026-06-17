@@ -123,7 +123,10 @@ class ExpenseRepository extends ServiceEntityRepository
 
         if (!$admin) {
             $builder
-                ->andWhere('e.createdBy = :visibleUser OR (e.isActive = true AND shares.user = :visibleUser AND shares.isActive = true AND shares.canView = true)')
+                ->andWhere('e.isActive = true')
+                ->andWhere('shares.user = :visibleUser')
+                ->andWhere('shares.isActive = true')
+                ->andWhere('shares.canView = true')
                 ->setParameter('visibleUser', $user);
         }
 

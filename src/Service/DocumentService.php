@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Document;
+use App\Entity\DocumentShare;
 use App\Entity\User;
 use App\Repository\DocumentRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -98,6 +99,17 @@ final readonly class DocumentService
             ->setCreatedBy($actor);
 
         $this->prepareForSave($document);
+
+        if (!$this->access->isAdmin($actor)) {
+            $document->addShare(
+                (new DocumentShare())
+                    ->setUser($actor)
+                    ->setCanView(true)
+                    ->setCanDownload(true)
+                    ->setIsActive(true)
+                    ->setCreatedBy($actor),
+            );
+        }
 
         $this->entityManager->persist($document);
         $this->entityManager->flush();

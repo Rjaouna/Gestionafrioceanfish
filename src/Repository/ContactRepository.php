@@ -32,7 +32,10 @@ class ContactRepository extends ServiceEntityRepository
 
         if (!$admin) {
             $builder
-                ->andWhere('c.createdBy = :user OR (c.isActive = true AND s.user = :user AND s.isActive = true AND s.canView = true)')
+                ->andWhere('c.isActive = true')
+                ->andWhere('s.user = :user')
+                ->andWhere('s.isActive = true')
+                ->andWhere('s.canView = true')
                 ->setParameter('user', $user);
         }
 

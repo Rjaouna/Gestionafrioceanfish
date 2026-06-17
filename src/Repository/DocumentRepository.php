@@ -111,7 +111,11 @@ public function distinctAccessibleValues(User $user, bool $admin, string $field)
 
         if (!$admin) {
             $builder
-                ->andWhere('d.createdBy = :user OR (d.isActive = true AND s.user = :user AND s.isActive = true AND s.canView = true AND (s.expiresAt IS NULL OR s.expiresAt > :now))')
+                ->andWhere('d.isActive = true')
+                ->andWhere('s.user = :user')
+                ->andWhere('s.isActive = true')
+                ->andWhere('s.canView = true')
+                ->andWhere('s.expiresAt IS NULL OR s.expiresAt > :now')
                 ->setParameter('user', $user)
                 ->setParameter('now', new \DateTimeImmutable());
         }

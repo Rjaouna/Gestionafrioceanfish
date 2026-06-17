@@ -26,7 +26,7 @@ final readonly class DocumentPermissionService
             return false;
         }
 
-        if ($this->access->isAdmin($user) || $this->isCreator($user, $document)) {
+        if ($this->access->isAdmin($user)) {
             return true;
         }
 
@@ -39,7 +39,7 @@ final readonly class DocumentPermissionService
             return false;
         }
 
-        if ($this->access->isAdmin($user) || $this->isCreator($user, $document)) {
+        if ($this->access->isAdmin($user)) {
             return true;
         }
 
@@ -55,18 +55,20 @@ final readonly class DocumentPermissionService
     {
         return $this->canCreate($user)
             && $document->isActive()
-            && ($this->access->isAdmin($user) || $this->isCreator($user, $document));
+            && ($this->access->isAdmin($user) || ($this->isCreator($user, $document) && $this->shareAllows($document, $user, false)));
     }
 
     public function canShare(User $user, Document $document): bool
     {
-        return $this->canEdit($user, $document);
+        return $this->canCreate($user)
+            && $document->isActive()
+            && $this->access->isAdmin($user);
     }
 
     public function canArchive(User $user, Document $document): bool
     {
         return $this->canCreate($user)
-            && ($this->access->isAdmin($user) || $this->isCreator($user, $document));
+            && ($this->access->isAdmin($user) || ($this->isCreator($user, $document) && $this->shareAllows($document, $user, false)));
     }
 
     public function canDelete(User $user, Document $document): bool
