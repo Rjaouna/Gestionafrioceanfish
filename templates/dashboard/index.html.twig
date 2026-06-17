@@ -125,23 +125,15 @@
                         </div>
                     </div>
 
-                    <div class="dashboard-health-grid">
-                        {% for card in dashboard.health_cards %}
-                            <div class="dashboard-health-card dashboard-health-card-{{ card.tone }}">
-                                <span><i class="bi {{ card.icon }}"></i></span>
-                                <strong>{{ card.value }}</strong>
-                                <div>
-                                    <b>{{ card.label }}</b>
-                                    <small>{{ card.caption }}</small>
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="dashboard-empty">
-                                <i class="bi bi-check2-circle"></i>
-                                <span>Aucun point bloquant.</span>
-                            </div>
-                        {% endfor %}
-                    </div>
+                    {% include 'components/_dashboard_chart.html.twig' with {
+                        title: 'Points de contrôle',
+                        subtitle: 'Alertes par domaine',
+                        chart: dashboard.health_chart,
+                        chart_type: 'bars',
+                        tone: 'warning',
+                        progress: dashboard.alert_count,
+                        progress_label: 'Alertes'
+                    } only %}
                 </div>
             </section>
         </div>

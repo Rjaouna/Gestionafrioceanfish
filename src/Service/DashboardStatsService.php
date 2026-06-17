@@ -126,6 +126,7 @@ final readonly class DashboardStatsService
         ];
         $trash = $this->trashOverview($user);
 
+        $healthCards = $this->healthCards($agenda, $maintenance, $expenses, $passwords, $users, $hasModule);
         $alertCount = count($maintenance['expiring_contracts']) + $passwords['pending'] + $users['inactive'] + $expenses['pending_count'] + $agenda['pending'] + $agenda['high_priority'];
         $kpis = [];
 
@@ -231,7 +232,8 @@ final readonly class DashboardStatsService
             'kpis' => $kpis,
             'executive_kpis' => $this->executiveKpis($agenda, $maintenance, $expenses, $passwords, $documents, $contacts, $users, $hasModule),
             'hero_metrics' => $this->heroMetrics($agenda, $maintenance, $expenses, $alertCount, count($modules)),
-            'health_cards' => $this->healthCards($agenda, $maintenance, $expenses, $passwords, $users, $hasModule),
+            'health_cards' => $healthCards,
+            'health_chart' => $this->healthChart($healthCards),
             'operational_chart' => $this->operationalChart($agenda, $maintenance, $expenses, $passwords),
             'schedule' => $this->scheduleItems($agenda['upcoming'], $maintenance['open_interventions']),
             'recent_activity' => $this->recentActivity($user, $hasModule),
@@ -432,6 +434,17 @@ final readonly class DashboardStatsService
         }
 
         return $cards;
+    }
+
+    /** @param list<array<string, mixed>> $cards */
+    private function healthChart(array $cards): array
+    {
+        return $this->withPercentages(array_map(static fn (array $card): array => [
+            'label' => (string) $card['label'],
+            'short_label' => mb_substr((string) $card['label'], 0, 10),
+            'value' => (int) $card['value'],
+            'tone' => (string) $card['tone'],
+        ], $cards));
     }
 
     /** @return list<array<string, mixed>> */
