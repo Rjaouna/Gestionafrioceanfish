@@ -9,10 +9,11 @@
                 icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-4 module-mark',
                 status_label: expense.statusLabel,
                 status_class: expense.statusBadgeClass,
-                status_icon: expense.status == 'paid' ? 'bi-check-circle' : 'bi-circle',
+                status_icon: expense.status == 'paid' ? 'bi-check-circle' : (expense.status == 'cancelled' ? 'bi-x-octagon-fill' : 'bi-circle'),
                 created_at: expense.createdAt,
                 updated_at: expense.updatedAt,
                 compact: false,
+                extra_classes: expense.status == 'cancelled' ? 'app-card-accent-danger' : '',
                 muted: not expense.active
             } %}
                 {% block top_actions %}
@@ -95,6 +96,11 @@
                             {% if is_granted('EXPENSE_CANCEL', expense) %}
                                 <button class="btn btn-outline-secondary" title="Annuler" aria-label="Annuler" data-confirm-url="{{ path('app_expense_cancel', {id: expense.id}) }}" data-token="{{ csrf_token('cancel_expense_' ~ expense.id) }}" data-confirm-message="Annuler cette dépense ?">
                                     <i class="bi bi-slash-circle"></i>
+                                </button>
+                            {% endif %}
+                            {% if is_granted('EXPENSE_REACTIVATE', expense) %}
+                                <button class="btn btn-outline-success" title="RÃ©activer" aria-label="RÃ©activer" data-confirm-url="{{ path('app_expense_reactivate', {id: expense.id}) }}" data-token="{{ csrf_token('reactivate_expense_' ~ expense.id) }}" data-confirm-message="RÃ©activer cette dÃ©pense en brouillon ?">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
                                 </button>
                             {% endif %}
                             {% if is_granted('EXPENSE_ARCHIVE', expense) %}

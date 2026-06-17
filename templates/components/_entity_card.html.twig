@@ -48,14 +48,6 @@
                     </h2>
 
                     <div class="app-card-head-actions">
-                        {% if status_label|default(null) %}
-                            <span class="badge app-card-status {{ status_class|default('text-bg-light border') }}">
-                                {% if status_icon|default(null) %}
-                                    <i class="bi {{ status_icon }} me-1"></i>
-                                {% endif %}
-                                {{ status_label }}
-                            </span>
-                        {% endif %}
                         {% if top_action_content|trim is not empty %}
                             <div class="app-card-top-actions">
                                 {{ top_action_content|raw }}
@@ -77,6 +69,17 @@
         {% if not compact and body_content|trim is not empty %}
             <div class="app-card-content">
                 {{ body_content|raw }}
+            </div>
+        {% endif %}
+
+        {% if status_label|default(null) %}
+            <div class="app-card-status-zone">
+                <span class="badge app-card-status {{ status_class|default('text-bg-light border') }}">
+                    {% if status_icon|default(null) %}
+                        <i class="bi {{ status_icon }} me-1"></i>
+                    {% endif %}
+                    {{ status_label }}
+                </span>
             </div>
         {% endif %}
 

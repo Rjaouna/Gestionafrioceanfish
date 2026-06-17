@@ -99,7 +99,16 @@ final readonly class ExpenseAccessService
     {
         return $this->canView($user, $expense)
             && ($this->isAdmin($user) || $this->isCreator($user, $expense))
-            && $expense->getStatus() !== Expense::STATUS_PAID;
+            && $expense->isActive()
+            && !in_array($expense->getStatus(), [Expense::STATUS_PAID, Expense::STATUS_CANCELLED], true);
+    }
+
+    public function canReactivate(User $user, Expense $expense): bool
+    {
+        return $this->canView($user, $expense)
+            && ($this->isAdmin($user) || $this->isCreator($user, $expense))
+            && $expense->isActive()
+            && $expense->getStatus() === Expense::STATUS_CANCELLED;
     }
 
     public function canSubmit(User $user, Expense $expense): bool

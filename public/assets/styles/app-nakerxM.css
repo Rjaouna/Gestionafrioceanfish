@@ -1420,7 +1420,6 @@
     display: block;
     overflow: hidden;
     color: inherit;
-    font-weight: 400;
     text-decoration-line: underline;
     text-decoration-color: color-mix(in srgb, var(--app-card-accent) 42%, transparent);
     text-decoration-thickness: 1px;
@@ -1536,14 +1535,6 @@
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.42);
     flex: 0 0 auto;
     gap: 0.1rem;
-}
-
-.app-card-status-zone {
-    margin-top: 0.5rem;
-}
-
-.app-card-content + .app-card-status-zone {
-    margin-top: 0.45rem;
 }
 
 .app-card-status.text-bg-success {

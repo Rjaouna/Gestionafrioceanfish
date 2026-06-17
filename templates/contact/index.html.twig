@@ -90,6 +90,9 @@
                 title_remote_url: is_granted('CONTACT_EDIT', contact) ? path('app_contact_form', {id: contact.id}) : null,
                 icon: 'bi-person-lines-fill',
                 icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-4 module-mark',
+                status_label: contact.type,
+                status_class: 'text-bg-light border',
+                status_icon: 'bi-tag',
                 compact: false,
                 created_at: contact.createdAt,
                 updated_at: contact.updatedAt
@@ -150,11 +153,6 @@
                         </div>
                     {% endif %}
 
-                    <div class="mt-3">
-                        <span class="badge app-card-status text-bg-light border" title="{{ contact.type }}">
-                            <i class="bi bi-tag me-1"></i>{{ contact.type }}
-                        </span>
-                    </div>
                 {% endblock %}
 
                 {% block actions %}

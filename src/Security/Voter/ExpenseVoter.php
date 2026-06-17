@@ -20,6 +20,7 @@ final class ExpenseVoter extends Voter
     public const REFUSE = 'EXPENSE_REFUSE';
     public const MARK_AS_PAID = 'EXPENSE_MARK_AS_PAID';
     public const CANCEL = 'EXPENSE_CANCEL';
+    public const REACTIVATE = 'EXPENSE_REACTIVATE';
     public const SUBMIT = 'EXPENSE_SUBMIT';
     public const DOWNLOAD_DOCUMENT = 'EXPENSE_DOWNLOAD_DOCUMENT';
     public const MANAGE_CATEGORIES = 'EXPENSE_MANAGE_CATEGORIES';
@@ -40,6 +41,7 @@ final class ExpenseVoter extends Voter
             self::REFUSE,
             self::MARK_AS_PAID,
             self::CANCEL,
+            self::REACTIVATE,
             self::SUBMIT,
             self::DOWNLOAD_DOCUMENT,
             self::MANAGE_CATEGORIES,
@@ -64,6 +66,7 @@ final class ExpenseVoter extends Voter
             self::REFUSE => $subject instanceof Expense && $this->access->canRefuse($user, $subject),
             self::MARK_AS_PAID => $subject instanceof Expense && $this->access->canMarkAsPaid($user, $subject),
             self::CANCEL => $subject instanceof Expense && $this->access->canCancel($user, $subject),
+            self::REACTIVATE => $subject instanceof Expense && $this->access->canReactivate($user, $subject),
             self::SUBMIT => $subject instanceof Expense && $this->access->canSubmit($user, $subject),
             self::DOWNLOAD_DOCUMENT => $subject instanceof ExpenseDocument && $this->access->canDownloadDocument($user, $subject),
             default => false,

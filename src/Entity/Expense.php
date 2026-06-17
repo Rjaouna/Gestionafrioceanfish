@@ -45,7 +45,7 @@ class Expense
         self::STATUS_VALIDATED => 'text-bg-primary',
         self::STATUS_REFUSED => 'text-bg-danger',
         self::STATUS_PAID => 'text-bg-success',
-        self::STATUS_CANCELLED => 'text-bg-dark',
+        self::STATUS_CANCELLED => 'text-bg-danger',
     ];
 
     public const PAYMENT_METHODS = [

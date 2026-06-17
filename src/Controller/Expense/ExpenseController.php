@@ -200,6 +200,15 @@ final class ExpenseController extends AbstractController
         return $this->jsonResponder->success('La dépense a été annulée.', ['reload' => true]);
     }
 
+    #[Route('/{id}/reactiver', name: 'app_expense_reactivate', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function reactivate(Expense $expense, Request $request): JsonResponse
+    {
+        $this->assertCsrfFromJson($request, 'reactivate_expense_'.$expense->getId());
+        $this->workflow->reactivate($expense, $this->currentUser());
+
+        return $this->jsonResponder->success('La dÃ©pense a Ã©tÃ© rÃ©activÃ©e en brouillon.', ['reload' => true]);
+    }
+
     #[Route('/{id}/archive', name: 'app_expense_archive', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function archive(Expense $expense, Request $request): JsonResponse
     {

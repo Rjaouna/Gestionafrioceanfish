@@ -83,4 +83,21 @@ final readonly class ExpenseWorkflowService
         $expense->setStatus(Expense::STATUS_CANCELLED);
         $this->entityManager->flush();
     }
+
+    public function reactivate(Expense $expense, User $actor): void
+    {
+        if (!$this->access->canReactivate($actor, $expense)) {
+            throw new AccessDeniedException();
+        }
+
+        $expense
+            ->setStatus(Expense::STATUS_DRAFT)
+            ->setPaidAt(null)
+            ->setPaidBy(null)
+            ->setValidatedAt(null)
+            ->setValidatedBy(null)
+            ->setRefusedReason(null)
+            ->setRefusedBy(null);
+        $this->entityManager->flush();
+    }
 }
