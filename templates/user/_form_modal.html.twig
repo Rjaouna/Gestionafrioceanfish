@@ -21,23 +21,54 @@
                 </div>
                 {{ form_errors(form.plainPassword) }}
                 <button type="button" class="btn btn-link btn-sm text-secondary text-decoration-none px-0 pt-2" data-secret-generate>
-                    <i class="bi bi-stars me-1"></i>Générer un mot de passe sécurisé
+                    <i class="bi bi-stars me-1"></i>Generer un mot de passe securise
                 </button>
             </div>
+
             {% if form.roles is defined %}
                 <div class="col-lg-6">
-                    <div class="card h-100">
-                        <div class="card-header fw-semibold">Rôle</div>
-                        <div class="card-body">{{ form_widget(form.roles) }}{{ form_errors(form.roles) }}</div>
+                    <div class="choice-tags-field h-100" data-choice-tags data-choice-tags-single="true">
+                        {{ form_label(form.roles, null, {'label_attr': {'class': 'form-label fw-semibold mb-2'}}) }}
+                        <button class="choice-tags-control" type="button" data-choice-tags-toggle aria-expanded="false">
+                            <span class="choice-tags-selected" data-choice-tags-selected></span>
+                            <span class="choice-tags-placeholder" data-choice-tags-placeholder>Cliquer pour choisir un role</span>
+                            <i class="bi bi-chevron-down ms-auto"></i>
+                        </button>
+                        <div class="choice-tags-menu d-none" data-choice-tags-menu>
+                            {% for choice in form.roles %}
+                                <label class="choice-tags-option" data-choice-tags-option>
+                                    {{ form_widget(choice, {attr: {'class': 'choice-tags-native', 'data-choice-tags-input': 'true'}}) }}
+                                    <span>{{ choice.vars.label }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        {{ form_errors(form.roles) }}
+                        {% do form.roles.setRendered() %}
                     </div>
                 </div>
             {% endif %}
+
             <div class="{{ form.roles is defined ? 'col-lg-6' : 'col-12' }}">
-                <div class="card h-100">
-                    <div class="card-header fw-semibold">Modules accessibles</div>
-                    <div class="card-body">{{ form_widget(form.modules) }}{{ form_errors(form.modules) }}</div>
+                <div class="choice-tags-field h-100" data-choice-tags>
+                    {{ form_label(form.modules, 'Droits / modules accessibles', {'label_attr': {'class': 'form-label fw-semibold mb-2'}}) }}
+                    <button class="choice-tags-control" type="button" data-choice-tags-toggle aria-expanded="false">
+                        <span class="choice-tags-selected" data-choice-tags-selected></span>
+                        <span class="choice-tags-placeholder" data-choice-tags-placeholder>Cliquer pour ajouter des droits</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </button>
+                    <div class="choice-tags-menu d-none" data-choice-tags-menu>
+                        {% for choice in form.modules %}
+                            <label class="choice-tags-option" data-choice-tags-option>
+                                {{ form_widget(choice, {attr: {'class': 'choice-tags-native', 'data-choice-tags-input': 'true'}}) }}
+                                <span>{{ choice.vars.label }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    {{ form_errors(form.modules) }}
+                    {% do form.modules.setRendered() %}
                 </div>
             </div>
+
             <div class="col-12">{{ form_row(form.isActive) }}</div>
         </div>
     </div>

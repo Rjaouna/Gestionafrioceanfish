@@ -51,13 +51,17 @@ final class UserManagementController extends AbstractController
             return $this->jsonResponder->invalidForm($form);
         }
 
-        $this->userService->create(
-            $user,
-            (string) $form->get('plainPassword')->getData(),
-            $this->moduleIds($form->get('modules')->getData()),
-            $this->currentUser(),
-            $form->has('roles') ? (string) $form->get('roles')->getData() : null,
-        );
+        try {
+            $this->userService->create(
+                $user,
+                (string) $form->get('plainPassword')->getData(),
+                $this->moduleIds($form->get('modules')->getData()),
+                $this->currentUser(),
+                $form->has('roles') ? (string) $form->get('roles')->getData() : null,
+            );
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
 
         return $this->jsonResponder->success('L’utilisateur a été créé.', ['reload' => true], 201);
     }
@@ -87,13 +91,17 @@ final class UserManagementController extends AbstractController
             return $this->jsonResponder->invalidForm($form);
         }
 
-        $this->userService->update(
-            $user,
-            $form->get('plainPassword')->getData(),
-            $this->moduleIds($form->get('modules')->getData()),
-            $this->currentUser(),
-            $form->has('roles') ? (string) $form->get('roles')->getData() : null,
-        );
+        try {
+            $this->userService->update(
+                $user,
+                $form->get('plainPassword')->getData(),
+                $this->moduleIds($form->get('modules')->getData()),
+                $this->currentUser(),
+                $form->has('roles') ? (string) $form->get('roles')->getData() : null,
+            );
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
 
         return $this->jsonResponder->success('L’utilisateur a été modifié.', ['reload' => true]);
     }
@@ -160,7 +168,28 @@ final class UserManagementController extends AbstractController
             'selected_modules' => $selectedModules,
             'can_manage_roles' => $this->isGranted('ROLE_SUPER_ADMIN'),
             'selected_role' => $this->primaryRole($user),
+            'role_choices' => $this->roleChoicesFor($user),
         ]);
+    }
+
+    /** @return array<string, string> */
+    private function roleChoicesFor(User $user): array
+    {
+        $currentUser = $this->currentUser();
+        $allChoices = [
+            'Utilisateur' => 'ROLE_USER',
+            'Administrateur' => 'ROLE_ADMIN',
+            'Super administrateur' => 'ROLE_SUPER_ADMIN',
+        ];
+
+        if ($user->getId() !== null && $currentUser->getId() === $user->getId()) {
+            return array_filter(
+                $allChoices,
+                fn (string $role): bool => $role === $this->primaryRole($user),
+            );
+        }
+
+        return $allChoices;
     }
 
     private function primaryRole(User $user): string

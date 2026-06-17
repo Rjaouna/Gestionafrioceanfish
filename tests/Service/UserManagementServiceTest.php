@@ -47,6 +47,22 @@ final class UserManagementServiceTest extends TestCase
         self::assertSame(['ROLE_ADMIN', 'ROLE_USER'], $user->getRoles());
     }
 
+    public function testSuperAdminCannotChangeOwnRole(): void
+    {
+        $superAdmin = (new User())->setRoles(['ROLE_SUPER_ADMIN']);
+
+        $this->expectException(\DomainException::class);
+        $this->service()->update($superAdmin, null, [], $superAdmin, 'ROLE_ADMIN');
+    }
+
+    public function testAdminCannotChangeOwnRoleThroughForcedRequest(): void
+    {
+        $admin = (new User())->setRoles(['ROLE_ADMIN']);
+
+        $this->expectException(\DomainException::class);
+        $this->service()->update($admin, null, [], $admin, 'ROLE_USER');
+    }
+
     private function service(): UserManagementService
     {
         $module = (new AppModule())

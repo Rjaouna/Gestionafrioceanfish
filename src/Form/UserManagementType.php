@@ -19,6 +19,12 @@ final class UserManagementType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $roleChoices = $options['role_choices'] ?? [
+            'Utilisateur' => 'ROLE_USER',
+            'Administrateur' => 'ROLE_ADMIN',
+            'Super administrateur' => 'ROLE_SUPER_ADMIN',
+        ];
+
         $builder
             ->add('email', EmailType::class, [
                 'attr' => ['placeholder' => 'Ex. prenom.nom@afrioceanfish.com'],
@@ -52,11 +58,7 @@ final class UserManagementType extends AbstractType
             $builder->add('roles', ChoiceType::class, [
                 'label' => 'Rôle',
                 'mapped' => false,
-                'choices' => [
-                    'Utilisateur' => 'ROLE_USER',
-                    'Administrateur' => 'ROLE_ADMIN',
-                    'Super administrateur' => 'ROLE_SUPER_ADMIN',
-                ],
+                'choices' => $roleChoices,
                 'multiple' => false,
                 'expanded' => true,
                 'data' => $options['selected_role'],
@@ -89,10 +91,16 @@ final class UserManagementType extends AbstractType
             'selected_modules' => [],
             'can_manage_roles' => false,
             'selected_role' => 'ROLE_USER',
+            'role_choices' => [
+                'Utilisateur' => 'ROLE_USER',
+                'Administrateur' => 'ROLE_ADMIN',
+                'Super administrateur' => 'ROLE_SUPER_ADMIN',
+            ],
         ]);
         $resolver->setAllowedTypes('password_required', 'bool');
         $resolver->setAllowedTypes('selected_modules', 'array');
         $resolver->setAllowedTypes('can_manage_roles', 'bool');
         $resolver->setAllowedTypes('selected_role', 'string');
+        $resolver->setAllowedTypes('role_choices', 'array');
     }
 }

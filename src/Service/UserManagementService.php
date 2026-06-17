@@ -108,6 +108,10 @@ final readonly class UserManagementService
     private function applyRole(User $user, ?string $role, User $actor, bool $creating): void
     {
         if (!$this->access->isSuperAdmin($actor)) {
+            if (!$creating && $this->isSameUser($user, $actor) && $role !== null && $role !== '' && $role !== $this->primaryRole($user)) {
+                throw new \DomainException('Vous ne pouvez pas modifier votre propre role.');
+            }
+
             if ($creating) {
                 $user->setRoles(['ROLE_USER']);
             }
@@ -119,7 +123,28 @@ final readonly class UserManagementService
             throw new \DomainException('Le rôle sélectionné est invalide.');
         }
 
+        if (!$creating && $this->isSameUser($user, $actor) && $role !== $this->primaryRole($user)) {
+            throw new \DomainException('Vous devez conserver votre role actuel.');
+        }
+
         $user->setRoles([$role]);
+    }
+
+    private function isSameUser(User $user, User $actor): bool
+    {
+        return $user === $actor
+            || ($user->getId() !== null && $actor->getId() !== null && $user->getId() === $actor->getId());
+    }
+
+    private function primaryRole(User $user): string
+    {
+        foreach (['ROLE_SUPER_ADMIN', 'ROLE_ADMIN'] as $role) {
+            if (in_array($role, $user->getRoles(), true)) {
+                return $role;
+            }
+        }
+
+        return 'ROLE_USER';
     }
 
     private function assertPassword(string $plainPassword): void
