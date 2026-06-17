@@ -4,16 +4,20 @@ namespace App\Service;
 
 use App\Entity\AppModule;
 use App\Entity\Appointment;
+use App\Entity\Expense;
 use App\Entity\Intervention;
 use App\Entity\User;
 use App\Repository\AppModuleRepository;
 use App\Repository\AppointmentRepository;
+use App\Repository\ExpenseRepository;
 use App\Repository\IntervenantRepository;
 use App\Repository\InterventionRepository;
 use App\Repository\MaintenanceContractRepository;
 use App\Repository\UserRepository;
 use App\Service\Appointment\AppointmentAccessService;
+use App\Service\Expense\ExpenseAccessService;
 use App\Service\Expense\ExpenseService;
+use App\Service\Trash\TrashService;
 
 final readonly class DashboardStatsService
 {
@@ -22,6 +26,8 @@ final readonly class DashboardStatsService
         private DocumentService $documentService,
         private ContactService $contactService,
         private ExpenseService $expenseService,
+        private ExpenseRepository $expenseRepository,
+        private ExpenseAccessService $expenseAccess,
         private MaintenanceContractRepository $contractRepository,
         private InterventionRepository $interventionRepository,
         private IntervenantRepository $intervenantRepository,
@@ -29,6 +35,7 @@ final readonly class DashboardStatsService
         private AppModuleRepository $moduleRepository,
         private AppointmentRepository $appointmentRepository,
         private AppointmentAccessService $appointmentAccess,
+        private TrashService $trashService,
     ) {
     }
 
@@ -68,11 +75,12 @@ final readonly class DashboardStatsService
      *
      * @return array<string, mixed>
      */
-    public function buildDashboard(User $user, array $modules): array
+    public function buildDashboard(User $user, array $modules, array $filters = []): array
     {
         $sections = $this->build($user, $modules);
         $slugs = array_map(static fn (AppModule $module): ?string => $module->getSlug(), $modules);
         $hasModule = static fn (string $slug): bool => in_array($slug, $slugs, true);
+        $period = $this->dashboardPeriod($filters);
 
         $maintenance = $hasModule('maintenance') ? $this->maintenanceOverview() : [
             'active_contracts' => 0,
@@ -89,11 +97,24 @@ final readonly class DashboardStatsService
         $passwords = $hasModule('passwords') ? $this->passwordOverview($user) : ['total' => 0, 'active' => 0, 'pending' => 0];
         $documents = $hasModule('documents') ? $this->documentOverview($user) : ['total' => 0, 'active' => 0, 'archived' => 0, 'shared' => 0];
         $contacts = $hasModule('contacts') ? $this->contactOverview($user) : ['total' => 0, 'active' => 0, 'types' => 0];
-        $expenses = $hasModule('expenses') ? $this->expenseOverview($user) : ['month_total' => 0.0, 'pending_count' => 0, 'paid_total' => 0.0, 'refused_count' => 0, 'validated_count' => 0, 'categories' => [], 'category_chart' => []];
+        $expenses = $hasModule('expenses') ? $this->expenseOverview($user, $period) : [
+            'month_total' => 0.0,
+            'period_total' => 0.0,
+            'period_count' => 0,
+            'period_pending_count' => 0,
+            'pending_count' => 0,
+            'paid_total' => 0.0,
+            'refused_count' => 0,
+            'validated_count' => 0,
+            'categories' => [],
+            'category_chart' => [],
+            'status_chart' => [],
+            'recent' => [],
+        ];
         $users = $hasModule('users') ? $this->usersOverview() : ['total' => 0, 'active' => 0, 'inactive' => 0];
-        $modulesOverview = $hasModule('modules') ? $this->modulesOverview() : ['total' => count($modules), 'active' => count($modules)];
-        $agenda = $hasModule('agenda') ? $this->appointmentOverview($user) : [
+        $agenda = $hasModule('agenda') ? $this->appointmentOverview($user, $period) : [
             'total' => 0,
+            'period_count' => 0,
             'today' => 0,
             'next_7_days' => 0,
             'pending' => 0,
@@ -101,7 +122,9 @@ final readonly class DashboardStatsService
             'upcoming' => [],
             'status_chart' => [],
             'type_chart' => [],
+            'priority_chart' => [],
         ];
+        $trash = $this->trashOverview($user);
 
         $alertCount = count($maintenance['expiring_contracts']) + $passwords['pending'] + $users['inactive'] + $expenses['pending_count'] + $agenda['pending'] + $agenda['high_priority'];
         $kpis = [];
@@ -161,12 +184,12 @@ final readonly class DashboardStatsService
         if ($hasModule('expenses')) {
             $kpis[] = [
                 'label' => 'Dépenses',
-                'value' => (int) round($expenses['month_total']),
-                'value_display' => number_format($expenses['month_total'], 0, ',', ' ').' dh',
+                'value' => (int) round($expenses['period_total']),
+                'value_display' => number_format($expenses['period_total'], 0, ',', ' ').' dh',
                 'icon' => 'bi-cash-coin',
                 'tone' => 'warning',
                 'route' => 'app_expense_index',
-                'hint' => sprintf('%d en attente', $expenses['pending_count']),
+                'hint' => sprintf('%d sur la période, %d en attente', $expenses['period_count'], $expenses['pending_count']),
             ];
         }
 
@@ -204,15 +227,18 @@ final readonly class DashboardStatsService
         }
 
         return [
+            'period' => $period,
             'kpis' => $kpis,
-            'executive_kpis' => $this->executiveKpis($agenda, $maintenance, $expenses, $passwords, $documents, $contacts, $users, $modulesOverview, $hasModule),
+            'executive_kpis' => $this->executiveKpis($agenda, $maintenance, $expenses, $passwords, $documents, $contacts, $users, $hasModule),
             'hero_metrics' => $this->heroMetrics($agenda, $maintenance, $expenses, $alertCount, count($modules)),
             'health_cards' => $this->healthCards($agenda, $maintenance, $expenses, $passwords, $users, $hasModule),
             'operational_chart' => $this->operationalChart($agenda, $maintenance, $expenses, $passwords),
             'schedule' => $this->scheduleItems($agenda['upcoming'], $maintenance['open_interventions']),
-            'quick_actions' => $this->quickActions($hasModule),
+            'recent_activity' => $this->recentActivity($user, $hasModule),
+            'quick_actions' => $this->quickActions($hasModule, $trash),
             'agenda_overview' => $agenda,
             'finance_overview' => $expenses,
+            'trash_overview' => $trash,
             'available' => [
                 'agenda' => $hasModule('agenda'),
                 'expenses' => $hasModule('expenses'),
@@ -222,13 +248,16 @@ final readonly class DashboardStatsService
                 'passwords' => $hasModule('passwords'),
                 'users' => $hasModule('users'),
                 'modules' => $hasModule('modules'),
+                'trash' => $trash['available'],
             ],
             'charts' => [
                 'agenda' => $agenda['status_chart'],
                 'agenda_types' => $agenda['type_chart'],
+                'agenda_priorities' => $agenda['priority_chart'],
                 'interventions' => $maintenance['status_chart'],
                 'contracts_health' => $maintenance['health_chart'],
                 'expense_types' => $expenses['category_chart'],
+                'expense_status' => $expenses['status_chart'],
             ],
             'expense_type_chart' => $expenses['category_chart'],
             'alert_count' => $alertCount,
@@ -241,7 +270,6 @@ final readonly class DashboardStatsService
                 ['label' => 'Contacts actifs', 'value' => $contacts['active'], 'icon' => 'bi-person-lines-fill', 'tone' => 'success'],
                 ['label' => 'Dépenses à valider', 'value' => $expenses['pending_count'], 'icon' => 'bi-cash-coin', 'tone' => 'warning'],
                 ['label' => 'Accès à valider', 'value' => $passwords['pending'], 'icon' => 'bi-hourglass-split', 'tone' => 'danger'],
-                ['label' => 'Modules actifs', 'value' => $modulesOverview['active'], 'icon' => 'bi-grid', 'tone' => 'secondary'],
             ],
         ];
     }
@@ -251,7 +279,7 @@ final readonly class DashboardStatsService
      *
      * @return list<array<string, mixed>>
      */
-    private function executiveKpis(array $agenda, array $maintenance, array $expenses, array $passwords, array $documents, array $contacts, array $users, array $modulesOverview, callable $hasModule): array
+    private function executiveKpis(array $agenda, array $maintenance, array $expenses, array $passwords, array $documents, array $contacts, array $users, callable $hasModule): array
     {
         $items = [];
 
@@ -268,10 +296,10 @@ final readonly class DashboardStatsService
 
         if ($hasModule('expenses')) {
             $items[] = [
-                'label' => 'Dépenses du mois',
-                'value' => (int) round($expenses['month_total']),
-                'value_display' => number_format($expenses['month_total'], 0, ',', ' ').' dh',
-                'hint' => sprintf('%d à valider, %s dh payés', $expenses['pending_count'], number_format($expenses['paid_total'], 0, ',', ' ')),
+                'label' => 'Dépenses période',
+                'value' => (int) round($expenses['period_total']),
+                'value_display' => number_format($expenses['period_total'], 0, ',', ' ').' dh',
+                'hint' => sprintf('%d dépense%s, %d à valider', $expenses['period_count'], $expenses['period_count'] > 1 ? 's' : '', $expenses['period_pending_count']),
                 'icon' => 'bi-cash-coin',
                 'tone' => 'warning',
                 'route' => 'app_expense_index',
@@ -333,17 +361,6 @@ final readonly class DashboardStatsService
             ];
         }
 
-        if ($hasModule('modules')) {
-            $items[] = [
-                'label' => 'Modules actifs',
-                'value' => $modulesOverview['active'],
-                'hint' => sprintf('%d modules configurés', $modulesOverview['total']),
-                'icon' => 'bi-grid',
-                'tone' => 'secondary',
-                'route' => 'app_module_index',
-            ];
-        }
-
         return array_slice($items, 0, 8);
     }
 
@@ -354,7 +371,7 @@ final readonly class DashboardStatsService
             ['label' => 'Alertes', 'value' => $alertCount, 'icon' => 'bi-bell', 'tone' => $alertCount > 0 ? 'warning' : 'success'],
             ['label' => 'RDV 7 jours', 'value' => $agenda['next_7_days'], 'icon' => 'bi-calendar-week', 'tone' => 'primary'],
             ['label' => 'Interventions ouvertes', 'value' => $maintenance['planned_interventions'] + $maintenance['running_interventions'], 'icon' => 'bi-activity', 'tone' => 'success'],
-            ['label' => 'Dépenses mois', 'value' => number_format($expenses['month_total'], 0, ',', ' ').' dh', 'icon' => 'bi-receipt', 'tone' => 'warning'],
+            ['label' => 'Dépenses période', 'value' => number_format($expenses['period_total'], 0, ',', ' ').' dh', 'icon' => 'bi-receipt', 'tone' => 'warning'],
             ['label' => 'Modules accessibles', 'value' => $moduleCount, 'icon' => 'bi-grid-3x3-gap', 'tone' => 'secondary'],
         ];
     }
@@ -461,7 +478,7 @@ final readonly class DashboardStatsService
     }
 
     /** @param callable(string): bool $hasModule */
-    private function quickActions(callable $hasModule): array
+    private function quickActions(callable $hasModule, array $trash): array
     {
         $actions = [];
 
@@ -485,7 +502,174 @@ final readonly class DashboardStatsService
             $actions[] = ['label' => 'Carnet de contacts', 'text' => 'Retrouver clients et partenaires', 'route' => 'app_contact_index', 'icon' => 'bi-person-lines-fill', 'tone' => 'success'];
         }
 
+        if ($trash['available']) {
+            $actions[] = ['label' => 'Corbeille', 'text' => sprintf('%d élément%s supprimé%s', $trash['deleted'], $trash['deleted'] > 1 ? 's' : '', $trash['deleted'] > 1 ? 's' : ''), 'route' => 'app_trash_index', 'icon' => 'bi-trash3', 'tone' => 'danger'];
+        }
+
         return $actions;
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     *
+     * @return array{key: string, label: string, start: \DateTimeImmutable, end: \DateTimeImmutable, from_value: string, to_value: string}
+     */
+    private function dashboardPeriod(array $filters): array
+    {
+        $key = (string) ($filters['period'] ?? 'month');
+        if (!in_array($key, ['today', 'week', 'month', 'year', 'custom'], true)) {
+            $key = 'month';
+        }
+
+        $today = new \DateTimeImmutable('today');
+
+        if ($key === 'custom') {
+            $start = $this->parseDashboardDate($filters['from'] ?? null) ?? $today;
+            $endDate = $this->parseDashboardDate($filters['to'] ?? null) ?? $start;
+
+            if ($endDate < $start) {
+                [$start, $endDate] = [$endDate, $start];
+            }
+
+            $start = $start->setTime(0, 0, 0);
+            $end = $endDate->setTime(23, 59, 59);
+
+            return [
+                'key' => 'custom',
+                'label' => $start->format('d/m/Y').' - '.$end->format('d/m/Y'),
+                'start' => $start,
+                'end' => $end,
+                'from_value' => $start->format('Y-m-d'),
+                'to_value' => $end->format('Y-m-d'),
+            ];
+        }
+
+        [$start, $end, $label] = match ($key) {
+            'today' => [$today, $today->setTime(23, 59, 59), 'Aujourd’hui'],
+            'week' => [$today->modify('monday this week'), $today->modify('sunday this week')->setTime(23, 59, 59), 'Cette semaine'],
+            'year' => [$today->setDate((int) $today->format('Y'), 1, 1), $today->setDate((int) $today->format('Y'), 12, 31)->setTime(23, 59, 59), 'Cette année'],
+            default => [$today->modify('first day of this month'), $today->modify('last day of this month')->setTime(23, 59, 59), 'Ce mois-ci'],
+        };
+
+        $start = $start->setTime(0, 0, 0);
+
+        return [
+            'key' => $key,
+            'label' => $label,
+            'start' => $start,
+            'end' => $end,
+            'from_value' => $start->format('Y-m-d'),
+            'to_value' => $end->format('Y-m-d'),
+        ];
+    }
+
+    private function parseDashboardDate(mixed $value): ?\DateTimeImmutable
+    {
+        $value = trim((string) $value);
+        if ($value === '' || preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+            return null;
+        }
+
+        try {
+            return new \DateTimeImmutable($value);
+        } catch (\Exception) {
+            return null;
+        }
+    }
+
+    /** @param callable(string): bool $hasModule */
+    private function recentActivity(User $user, callable $hasModule): array
+    {
+        $items = [];
+
+        if ($hasModule('expenses') && $this->expenseAccess->canAccess($user)) {
+            foreach ($this->expenseService->search($user, ['active' => 'active'], 1, 4)['items'] as $expense) {
+                $date = $expense->getCreatedAt() ?? $expense->getExpenseDate();
+                $items[] = [
+                    'title' => (string) $expense->getTitle(),
+                    'meta' => sprintf('%s · %s dh', $expense->getStatusLabel(), number_format((float) $expense->getAmountTtc(), 0, ',', ' ')),
+                    'date' => $date,
+                    'date_label' => $this->activityDateLabel($date),
+                    'icon' => 'bi-receipt',
+                    'tone' => 'warning',
+                    'route' => 'app_expense_index',
+                    'kind' => 'Dépense',
+                ];
+            }
+        }
+
+        if ($hasModule('documents')) {
+            foreach ($this->documentService->search($user, '', 1, 4)['items'] as $document) {
+                $date = $document->getCreatedAt();
+                $items[] = [
+                    'title' => (string) $document->getName(),
+                    'meta' => (string) ($document->getCategory() ?: $document->getStatus()),
+                    'date' => $date,
+                    'date_label' => $this->activityDateLabel($date),
+                    'icon' => 'bi-file-earmark-text',
+                    'tone' => 'info',
+                    'route' => 'app_document_index',
+                    'kind' => 'Document',
+                ];
+            }
+        }
+
+        if ($hasModule('contacts')) {
+            $contacts = $this->contactService->getVisibleContacts($user);
+            usort($contacts, static fn ($first, $second): int => ($second->getCreatedAt()?->getTimestamp() ?? 0) <=> ($first->getCreatedAt()?->getTimestamp() ?? 0));
+            foreach (array_slice($contacts, 0, 4) as $contact) {
+                $date = $contact->getCreatedAt();
+                $items[] = [
+                    'title' => (string) $contact->getFullName(),
+                    'meta' => (string) ($contact->getType() ?: $contact->getCity() ?: 'Contact'),
+                    'date' => $date,
+                    'date_label' => $this->activityDateLabel($date),
+                    'icon' => 'bi-person-lines-fill',
+                    'tone' => 'success',
+                    'route' => 'app_contact_index',
+                    'kind' => 'Contact',
+                ];
+            }
+        }
+
+        if ($hasModule('agenda') && $this->appointmentAccess->canAccess($user)) {
+            $viewAll = $this->appointmentAccess->canViewAll($user);
+            foreach ($this->appointmentRepository->searchVisible($user, $viewAll, ['active' => 'active'], 1, 4)['items'] as $appointment) {
+                $date = $appointment->getCreatedAt() ?? $appointment->getStartAt();
+                $items[] = [
+                    'title' => (string) $appointment->getTitle(),
+                    'meta' => sprintf('%s · %s', $appointment->getStatusLabel(), $appointment->getStartAt()?->format('d/m/Y H:i') ?? 'Non planifié'),
+                    'date' => $date,
+                    'date_label' => $this->activityDateLabel($date),
+                    'icon' => 'bi-calendar2-week',
+                    'tone' => 'primary',
+                    'route' => 'app_appointment_calendar',
+                    'kind' => 'RDV',
+                ];
+            }
+        }
+
+        usort($items, static fn (array $first, array $second): int => ($second['date']?->getTimestamp() ?? 0) <=> ($first['date']?->getTimestamp() ?? 0));
+
+        return array_slice($items, 0, 7);
+    }
+
+    private function activityDateLabel(?\DateTimeImmutable $date): string
+    {
+        return $date instanceof \DateTimeImmutable ? $date->format('d/m/Y H:i') : 'Date non renseignée';
+    }
+
+    /** @return array{available: bool, deleted: int} */
+    private function trashOverview(User $user): array
+    {
+        if (!in_array('ROLE_SUPER_ADMIN', $user->getRoles(), true)) {
+            return ['available' => false, 'deleted' => 0];
+        }
+
+        return [
+            'available' => true,
+            'deleted' => $this->trashService->countDeletedItems(),
+        ];
     }
 
     /** @return array<string, mixed> */
@@ -559,11 +743,12 @@ final readonly class DashboardStatsService
     }
 
     /** @return array<string, mixed> */
-    private function appointmentOverview(User $user): array
+    private function appointmentOverview(User $user, array $period): array
     {
         if (!$this->appointmentAccess->canAccess($user)) {
             return [
                 'total' => 0,
+                'period_count' => 0,
                 'today' => 0,
                 'next_7_days' => 0,
                 'pending' => 0,
@@ -571,6 +756,7 @@ final readonly class DashboardStatsService
                 'upcoming' => [],
                 'status_chart' => [],
                 'type_chart' => [],
+                'priority_chart' => [],
             ];
         }
 
@@ -580,6 +766,12 @@ final readonly class DashboardStatsService
         $nextWeek = $today->modify('+7 days 23:59:59');
 
         $total = $this->appointmentRepository->countVisible($user, $viewAll, ['active' => 'active']);
+        $periodFilters = [
+            'dateFrom' => $period['start']->format('Y-m-d H:i:s'),
+            'dateTo' => $period['end']->format('Y-m-d H:i:s'),
+            'active' => 'active',
+        ];
+        $periodCount = $this->appointmentRepository->countVisible($user, $viewAll, $periodFilters);
         $todayCount = $this->appointmentRepository->countVisible($user, $viewAll, [
             'dateFrom' => $today->format('Y-m-d H:i:s'),
             'dateTo' => $tomorrow->modify('-1 second')->format('Y-m-d H:i:s'),
@@ -596,13 +788,15 @@ final readonly class DashboardStatsService
 
         return [
             'total' => $total,
+            'period_count' => $periodCount,
             'today' => $todayCount,
             'next_7_days' => $nextSevenDays,
             'pending' => $pending,
             'high_priority' => $highPriority,
             'upcoming' => $this->appointmentAgendaItems($this->appointmentRepository->upcoming($user, $viewAll, [], 6)),
-            'status_chart' => $this->appointmentStatusChart($user, $viewAll),
-            'type_chart' => $this->appointmentTypeChart($user, $viewAll),
+            'status_chart' => $this->appointmentStatusChart($user, $viewAll, $periodFilters),
+            'type_chart' => $this->appointmentTypeChart($user, $viewAll, $periodFilters),
+            'priority_chart' => $this->appointmentPriorityChart($user, $viewAll, $periodFilters),
         ];
     }
 
@@ -631,7 +825,7 @@ final readonly class DashboardStatsService
     }
 
     /** @return list<array<string, mixed>> */
-    private function appointmentStatusChart(User $user, bool $viewAll): array
+    private function appointmentStatusChart(User $user, bool $viewAll, array $filters = []): array
     {
         $items = [];
         $tones = [
@@ -646,7 +840,7 @@ final readonly class DashboardStatsService
         foreach (Appointment::STATUS_LABELS as $status => $label) {
             $items[] = [
                 'label' => $label,
-                'value' => $this->appointmentRepository->countVisible($user, $viewAll, ['status' => $status, 'active' => 'active']),
+                'value' => $this->appointmentRepository->countVisible($user, $viewAll, $filters + ['status' => $status, 'active' => 'active']),
                 'tone' => $tones[$status] ?? 'secondary',
             ];
         }
@@ -655,7 +849,7 @@ final readonly class DashboardStatsService
     }
 
     /** @return list<array<string, mixed>> */
-    private function appointmentTypeChart(User $user, bool $viewAll): array
+    private function appointmentTypeChart(User $user, bool $viewAll, array $filters = []): array
     {
         $items = [];
         $tones = ['primary', 'success', 'warning', 'info', 'secondary', 'danger'];
@@ -663,8 +857,30 @@ final readonly class DashboardStatsService
         foreach (Appointment::TYPE_LABELS as $type => $label) {
             $items[] = [
                 'label' => $label,
-                'value' => $this->appointmentRepository->countVisible($user, $viewAll, ['appointmentType' => $type, 'active' => 'active']),
+                'value' => $this->appointmentRepository->countVisible($user, $viewAll, $filters + ['appointmentType' => $type, 'active' => 'active']),
                 'tone' => $tones[count($items) % count($tones)],
+            ];
+        }
+
+        return $this->withPercentages($items);
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function appointmentPriorityChart(User $user, bool $viewAll, array $filters = []): array
+    {
+        $items = [];
+        $tones = [
+            'low' => 'secondary',
+            'normal' => 'primary',
+            'high' => 'warning',
+            'urgent' => 'danger',
+        ];
+
+        foreach (Appointment::PRIORITY_LABELS as $priority => $label) {
+            $items[] = [
+                'label' => $label,
+                'value' => $this->appointmentRepository->countVisible($user, $viewAll, $filters + ['priority' => $priority, 'active' => 'active']),
+                'tone' => $tones[$priority] ?? 'secondary',
             ];
         }
 
@@ -702,14 +918,53 @@ final readonly class DashboardStatsService
         ];
     }
 
-    /** @return array{month_total: float, pending_count: int, paid_total: float, refused_count: int, validated_count: int, categories: list<array{label: string, total: string}>, category_chart: list<array<string, mixed>>} */
-    private function expenseOverview(User $user): array
+    /** @return array{month_total: float, period_total: float, period_count: int, period_pending_count: int, pending_count: int, paid_total: float, refused_count: int, validated_count: int, categories: list<array{label: string, total: string}>, category_chart: list<array<string, mixed>>, status_chart: list<array<string, mixed>>, recent: list<Expense>} */
+    private function expenseOverview(User $user, array $period): array
     {
         /** @var array{month_total: float, pending_count: int, paid_total: float, refused_count: int, validated_count: int, categories: list<array{label: string, total: string}>} $stats */
         $stats = $this->expenseService->stats($user);
+        $admin = $this->expenseAccess->isAdmin($user);
+        $periodFilters = [
+            'active' => 'active',
+            'dateFrom' => $period['start']->format('Y-m-d H:i:s'),
+            'dateTo' => $period['end']->format('Y-m-d H:i:s'),
+        ];
+        $periodCategories = $this->expenseRepository->totalsByCategory($user, $admin, $periodFilters);
+
+        $stats['period_total'] = $this->expenseRepository->sumVisible($user, $admin, $periodFilters);
+        $stats['period_count'] = $this->expenseRepository->countVisible($user, $admin, $periodFilters);
+        $stats['period_pending_count'] = $this->expenseRepository->countVisible($user, $admin, $periodFilters + ['status' => Expense::STATUS_PENDING]);
+        $stats['categories'] = $periodCategories;
         $stats['category_chart'] = $this->expenseCategoryChart($stats['categories']);
+        $stats['status_chart'] = $this->expenseStatusChart($user, $admin, $periodFilters);
+        $stats['recent'] = $this->expenseRepository->searchVisible($user, $admin, ['active' => 'active'], 1, 5);
 
         return $stats;
+    }
+
+    /** @param array<string, mixed> $filters */
+    private function expenseStatusChart(User $user, bool $admin, array $filters = []): array
+    {
+        $tones = [
+            Expense::STATUS_DRAFT => 'secondary',
+            Expense::STATUS_PENDING => 'warning',
+            Expense::STATUS_VALIDATED => 'primary',
+            Expense::STATUS_REFUSED => 'danger',
+            Expense::STATUS_PAID => 'success',
+            Expense::STATUS_CANCELLED => 'dark',
+        ];
+        $items = [];
+
+        foreach (Expense::STATUS_LABELS as $status => $label) {
+            $items[] = [
+                'label' => $label,
+                'short_label' => mb_substr($label, 0, 12),
+                'value' => $this->expenseRepository->countVisible($user, $admin, $filters + ['status' => $status, 'active' => 'active']),
+                'tone' => $tones[$status] ?? 'secondary',
+            ];
+        }
+
+        return $this->withPercentages($items);
     }
 
     /** @return array{total: int, active: int, inactive: int} */
@@ -719,15 +974,6 @@ final readonly class DashboardStatsService
         $active = $this->userRepository->count(['isActive' => true]);
 
         return ['total' => $total, 'active' => $active, 'inactive' => max(0, $total - $active)];
-    }
-
-    /** @return array{total: int, active: int} */
-    private function modulesOverview(): array
-    {
-        return [
-            'total' => $this->moduleRepository->count([]),
-            'active' => $this->moduleRepository->count(['isActive' => true]),
-        ];
     }
 
     /**
@@ -1014,7 +1260,7 @@ final readonly class DashboardStatsService
     /** @return array<string, mixed> */
     private function expenseSection(AppModule $module, User $user): array
     {
-        $stats = $this->expenseOverview($user);
+        $stats = $this->expenseOverview($user, $this->dashboardPeriod([]));
         $categoryItems = array_map(static fn (array $item): array => [
             'title' => $item['label'],
             'text' => number_format((float) $item['total'], 2, ',', ' ').' dh TTC',
@@ -1050,7 +1296,7 @@ final readonly class DashboardStatsService
     /** @return array<string, mixed> */
     private function agendaSection(AppModule $module, User $user): array
     {
-        $agenda = $this->appointmentOverview($user);
+        $agenda = $this->appointmentOverview($user, $this->dashboardPeriod([]));
 
         return [
             'slug' => 'agenda',
@@ -1137,7 +1383,7 @@ final readonly class DashboardStatsService
                 ['title' => 'Catalogue', 'text' => 'Activez uniquement les modules utiles à vos équipes.'],
             ],
             'progress' => $total > 0 ? (int) round(($active / $total) * 100) : 0,
-            'progress_label' => 'Modules actifs',
+            'progress_label' => 'Configuration',
         ];
     }
 }

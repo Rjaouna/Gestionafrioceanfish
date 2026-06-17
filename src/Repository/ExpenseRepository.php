@@ -75,12 +75,26 @@ class ExpenseRepository extends ServiceEntityRepository
         return (float) $builder->getQuery()->getSingleScalarResult();
     }
 
+    /** @param array<string, mixed> $filters */
+    public function sumVisible(User $user, bool $admin, array $filters = []): float
+    {
+        $builder = $this->buildVisibleQuery($user, $admin, $filters + ['active' => 'active'])
+            ->select('COALESCE(SUM(e.amountTtc), 0)')
+            ->andWhere('e.status != :cancelledStatus')
+            ->setParameter('cancelledStatus', Expense::STATUS_CANCELLED)
+            ->resetDQLPart('orderBy');
+
+        return (float) $builder->getQuery()->getSingleScalarResult();
+    }
+
     /**
+     * @param array<string, mixed> $filters
+     *
      * @return list<array{label: string, total: string}>
      */
-    public function totalsByCategory(User $user, bool $admin): array
+    public function totalsByCategory(User $user, bool $admin, array $filters = []): array
     {
-        $rows = $this->buildVisibleQuery($user, $admin, ['active' => 'active'])
+        $rows = $this->buildVisibleQuery($user, $admin, $filters + ['active' => 'active'])
             ->select('COALESCE(c.name, :uncategorized) AS label, COALESCE(SUM(e.amountTtc), 0) AS total')
             ->setParameter('uncategorized', 'Sans catégorie')
             ->andWhere('e.status != :cancelledStatus')

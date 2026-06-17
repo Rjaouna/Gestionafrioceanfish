@@ -34,6 +34,43 @@
         </div>
     </section>
 
+    <form class="dashboard-filter-bar mb-4" method="get" action="{{ path('app_dashboard') }}">
+        <div class="dashboard-filter-title">
+            <span class="dashboard-kicker">Période analysée</span>
+            <strong>{{ dashboard.period.label }}</strong>
+        </div>
+
+        <div class="dashboard-filter-fields">
+            <label class="form-label" for="dashboardPeriod">Période</label>
+            <select id="dashboardPeriod" name="period" class="form-select">
+                <option value="today" {{ dashboard.period.key == 'today' ? 'selected' : '' }}>Aujourd’hui</option>
+                <option value="week" {{ dashboard.period.key == 'week' ? 'selected' : '' }}>Cette semaine</option>
+                <option value="month" {{ dashboard.period.key == 'month' ? 'selected' : '' }}>Ce mois-ci</option>
+                <option value="year" {{ dashboard.period.key == 'year' ? 'selected' : '' }}>Cette année</option>
+                <option value="custom" {{ dashboard.period.key == 'custom' ? 'selected' : '' }}>Personnalisée</option>
+            </select>
+        </div>
+
+        <div class="dashboard-filter-fields">
+            <label class="form-label" for="dashboardFrom">Du</label>
+            <input id="dashboardFrom" class="form-control" type="date" name="from" value="{{ dashboard.period.from_value }}">
+        </div>
+
+        <div class="dashboard-filter-fields">
+            <label class="form-label" for="dashboardTo">Au</label>
+            <input id="dashboardTo" class="form-control" type="date" name="to" value="{{ dashboard.period.to_value }}">
+        </div>
+
+        <div class="dashboard-filter-actions">
+            <button class="btn btn-primary" type="submit">
+                <i class="bi bi-funnel me-1"></i>Filtrer
+            </button>
+            <a class="btn btn-outline-secondary" href="{{ path('app_dashboard') }}">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Réinitialiser
+            </a>
+        </div>
+    </form>
+
     {% if dashboard.executive_kpis is empty %}
         <div class="alert alert-info">
             <i class="bi bi-info-circle me-2"></i>Aucun module ne vous a encore été attribué.
@@ -195,6 +232,40 @@
         </div>
     </div>
 
+    <section class="dashboard-panel card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pb-0">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <h2 class="h5 mb-1">Actions récentes</h2>
+                    <p class="text-secondary small mb-0">Derniers éléments créés ou mis en visibilité dans vos modules.</p>
+                </div>
+                <span class="badge bg-light text-secondary">{{ dashboard.recent_activity|length }} mouvement{{ dashboard.recent_activity|length > 1 ? 's' : '' }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="dashboard-recent-grid">
+                {% for item in dashboard.recent_activity %}
+                    <a class="dashboard-recent-item" href="{{ path(item.route) }}">
+                        <span class="dashboard-alert-icon bg-{{ item.tone }}-subtle text-{{ item.tone }}-emphasis"><i class="bi {{ item.icon }}"></i></span>
+                        <div class="min-w-0">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <strong class="text-truncate">{{ item.title }}</strong>
+                                <span class="badge text-bg-light text-secondary">{{ item.kind }}</span>
+                            </div>
+                            <small class="text-secondary">{{ item.meta }}</small>
+                        </div>
+                        <time class="dashboard-recent-date">{{ item.date_label }}</time>
+                    </a>
+                {% else %}
+                    <div class="dashboard-empty">
+                        <i class="bi bi-clock-history"></i>
+                        <span>Aucune activité récente disponible.</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
     {% if dashboard.available.agenda or dashboard.available.expenses %}
     <div class="row g-4 mb-4">
         {% if dashboard.available.agenda %}
@@ -209,15 +280,30 @@
                         <a class="btn btn-sm btn-outline-primary" href="{{ path('app_appointment_calendar') }}">Ouvrir</a>
                     </div>
 
-                    {% include 'components/_dashboard_chart.html.twig' with {
-                        title: 'Statuts',
-                        subtitle: 'Rendez-vous visibles',
-                        chart: dashboard.charts.agenda,
-                        chart_type: 'bars',
-                        tone: 'primary',
-                        progress: dashboard.agenda_overview.total,
-                        progress_label: 'RDV'
-                    } only %}
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            {% include 'components/_dashboard_chart.html.twig' with {
+                                title: 'Statuts',
+                                subtitle: dashboard.period.label,
+                                chart: dashboard.charts.agenda,
+                                chart_type: 'bars',
+                                tone: 'primary',
+                                progress: dashboard.agenda_overview.period_count,
+                                progress_label: 'RDV'
+                            } only %}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            {% include 'components/_dashboard_chart.html.twig' with {
+                                title: 'Priorités',
+                                subtitle: dashboard.period.label,
+                                chart: dashboard.charts.agenda_priorities,
+                                chart_type: 'bars',
+                                tone: 'warning',
+                                progress: dashboard.agenda_overview.high_priority,
+                                progress_label: 'Haute'
+                            } only %}
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
@@ -235,15 +321,30 @@
                         <a class="btn btn-sm btn-outline-warning" href="{{ path('app_expense_index') }}">Ouvrir</a>
                     </div>
 
-                    {% include 'components/_dashboard_chart.html.twig' with {
-                        title: 'Montants TTC',
-                        subtitle: 'Catégories visibles',
-                        chart: dashboard.expense_type_chart,
-                        chart_type: 'bars',
-                        tone: 'warning',
-                        progress: dashboard.finance_overview.pending_count,
-                        progress_label: 'À valider'
-                    } only %}
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            {% include 'components/_dashboard_chart.html.twig' with {
+                                title: 'Montants TTC',
+                                subtitle: dashboard.period.label,
+                                chart: dashboard.expense_type_chart,
+                                chart_type: 'bars',
+                                tone: 'warning',
+                                progress: dashboard.finance_overview.period_count,
+                                progress_label: 'Dépenses'
+                            } only %}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            {% include 'components/_dashboard_chart.html.twig' with {
+                                title: 'Statuts',
+                                subtitle: dashboard.period.label,
+                                chart: dashboard.charts.expense_status,
+                                chart_type: 'bars',
+                                tone: 'warning',
+                                progress: dashboard.finance_overview.period_pending_count,
+                                progress_label: 'À valider'
+                            } only %}
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
