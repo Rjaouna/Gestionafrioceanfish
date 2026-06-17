@@ -9,6 +9,7 @@
 {% set users_active = current_route starts with 'app_user' %}
 {% set configuration_active = current_route starts with 'app_module' %}
 {% set trash_active = current_route starts with 'app_trash' %}
+{% set deleted_items_count = is_granted('ROLE_SUPER_ADMIN') ? trash_deleted_count(app.user) : 0 %}
 {% set business_active = false %}
 
 {% for module in business_modules %}
@@ -166,6 +167,9 @@
                     <div class="sidebar-open-heading">
                         <span class="sidebar-section-icon"><i class="bi bi-trash3"></i></span>
                         <strong>Corbeille</strong>
+                        {% if deleted_items_count > 0 %}
+                            <span class="sidebar-trash-count ms-auto">{{ deleted_items_count }}</span>
+                        {% endif %}
                     </div>
                     <div class="sidebar-open-body">
                         <a class="sidebar-sub-link {{ trash_active ? 'active' : '' }}" href="{{ path('app_trash_index') }}">

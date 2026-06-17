@@ -236,7 +236,7 @@ final readonly class MaintenanceShareService
     public function titleFor(object $item): string
     {
         return match (true) {
-            $item instanceof Intervenant => $item->getDisplayName(),
+            $item instanceof Intervenant => $item->getDisplayLabel(),
             $item instanceof MaintenanceContract => trim((string) ($item->getReference().' - '.$item->getCustomerName())),
             $item instanceof Intervention => trim((string) ($item->getReference().' - '.$item->getTitle())),
             default => 'Element maintenance',

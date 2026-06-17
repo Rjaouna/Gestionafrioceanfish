@@ -59,8 +59,8 @@
                 {% endif %}
             </div>
             <div class="app-card-detail-line">
-                <span class="app-card-detail-label"><i class="bi bi-currency-euro"></i>Montant</span>
-                <span class="app-card-detail-value">{{ contract.amount ? contract.amount|number_format(2, ',', ' ') ~ ' €' : 'Non renseigné' }}</span>
+                <span class="app-card-detail-label"><i class="bi bi-cash-coin"></i>Montant</span>
+                <span class="app-card-detail-value">{{ contract.amount ? contract.amount|number_format(2, ',', ' ') ~ ' dh' : 'Non renseigné' }}</span>
             </div>
         {% endblock %}
 

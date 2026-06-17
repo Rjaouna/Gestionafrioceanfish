@@ -43,6 +43,10 @@ class Intervenant
     private ?string $lastname = null;
 
     #[ORM\Column(length: 180, nullable: true)]
+    #[Assert\Length(max: 180)]
+    private ?string $companyName = null;
+
+    #[ORM\Column(length: 180, nullable: true)]
     #[Assert\Email]
     #[Assert\Length(max: 180)]
     private ?string $email = null;
@@ -106,6 +110,28 @@ class Intervenant
     public function getDisplayName(): string
     {
         return trim(sprintf('%s %s', $this->firstname ?? '', $this->lastname ?? ''));
+    }
+
+    public function getDisplayLabel(): string
+    {
+        $displayName = $this->getDisplayName();
+
+        return $this->companyName !== null && $this->companyName !== ''
+            ? trim($this->companyName.($displayName !== '' ? ' - '.$displayName : ''))
+            : $displayName;
+    }
+
+    public function getCompanyName(): ?string
+    {
+        return $this->companyName;
+    }
+
+    public function setCompanyName(?string $companyName): static
+    {
+        $companyName = trim((string) $companyName);
+        $this->companyName = $companyName !== '' ? $companyName : null;
+
+        return $this;
     }
 
     public function getEmail(): ?string

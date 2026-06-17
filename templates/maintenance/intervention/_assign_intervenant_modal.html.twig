@@ -18,7 +18,7 @@
                             <select class="form-select" id="assignIntervenant{{ intervention.id }}" name="intervenantId" required>
                                 <option value="">Sélectionner un intervenant</option>
                                 {% for intervenant in intervenants %}
-                                    <option value="{{ intervenant.id }}">{{ intervenant.displayName }} · {{ intervenant.speciality ?: intervenant.type }}</option>
+                                    <option value="{{ intervenant.id }}">{{ intervenant.displayLabel }} · {{ intervenant.speciality ?: intervenant.type }}</option>
                                 {% endfor %}
                             </select>
                         </div>

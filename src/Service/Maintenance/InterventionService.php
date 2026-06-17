@@ -206,7 +206,7 @@ final readonly class InterventionService
             ->setIsMainIntervenant($main);
 
         $this->entityManager->persist($assignment);
-        $this->history->add($intervention, 'Affectation d’un intervenant', $actor, null, null, $intervenant->getDisplayName());
+        $this->history->add($intervention, 'Affectation d’un intervenant', $actor, null, null, $intervenant->getDisplayLabel());
         $this->entityManager->flush();
     }
 
@@ -221,7 +221,7 @@ final readonly class InterventionService
             throw new AccessDeniedException();
         }
 
-        $name = $assignment->getIntervenant()?->getDisplayName();
+        $name = $assignment->getIntervenant()?->getDisplayLabel();
         $this->entityManager->remove($assignment);
         if ($intervention instanceof Intervention) {
             $this->history->add($intervention, 'Retrait d’un intervenant', $actor, null, null, $name);
@@ -295,7 +295,7 @@ final readonly class InterventionService
 
         if ($intervenant instanceof Intervenant) {
             $intervention
-                ->setCustomerName($intervenant->getDisplayName())
+                ->setCustomerName($intervenant->getDisplayLabel())
                 ->setCustomerEmail($intervenant->getEmail())
                 ->setCustomerPhone($intervenant->getPhone());
         }

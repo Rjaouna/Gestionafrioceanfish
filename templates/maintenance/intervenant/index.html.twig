@@ -24,7 +24,7 @@
                     <input
                         type="search"
                         class="form-control border-start-0"
-                        placeholder="Rechercher par nom, type, spécialité, email ou téléphone..."
+                        placeholder="Rechercher par boite, nom, type, spécialité, email ou téléphone..."
                         aria-label="Rechercher un intervenant"
                         data-maintenance-search
                         data-maintenance-search-url="{{ path('app_maintenance_intervenant_search') }}"
@@ -47,7 +47,7 @@
 </div>
 
 <div id="intervenantGrid">
-    {% include 'maintenance/intervenant/_grid.html.twig' with {intervenants: intervenants} %}
+    {% include 'maintenance/intervenant/_grid.html.twig' with {intervenants: intervenants, maintenance_share_counts: maintenance_share_counts} %}
 </div>
 
 <div class="modal fade" id="createIntervenantModal" tabindex="-1" aria-hidden="true">

@@ -35,9 +35,9 @@ final class InterventionType extends AbstractType
             ])
             ->add('intervenant', EntityType::class, [
                 'class' => Intervenant::class,
-                'choice_label' => static fn (Intervenant $intervenant): string => $intervenant->getDisplayName(),
+                'choice_label' => static fn (Intervenant $intervenant): string => $intervenant->getDisplayLabel(),
                 'choice_attr' => static fn (Intervenant $intervenant): array => [
-                    'data-name' => $intervenant->getDisplayName(),
+                    'data-name' => $intervenant->getDisplayLabel(),
                     'data-email' => $intervenant->getEmail() ?? '',
                     'data-phone' => $intervenant->getPhone() ?? '',
                     'data-type' => $intervenant->getType(),
@@ -146,7 +146,7 @@ final class InterventionType extends AbstractType
                 return;
             }
 
-            $data['customerName'] = $intervenant->getDisplayName();
+            $data['customerName'] = $intervenant->getDisplayLabel();
             $data['customerEmail'] = $intervenant->getEmail();
             $data['customerPhone'] = $intervenant->getPhone();
             $event->setData($data);

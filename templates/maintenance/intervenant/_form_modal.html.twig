@@ -5,6 +5,42 @@
     </div>
     <div class="modal-body">
         <div class="row g-3">
+            <div class="col-12">
+                {{ form_row(form.companyName) }}
+                <button class="btn btn-link btn-sm text-secondary text-decoration-none px-0" type="button" data-bs-toggle="collapse" data-bs-target="#intervenantContactImport{{ form.companyName.vars.id }}" aria-expanded="false">
+                    <i class="bi bi-search me-1"></i>Importer les informations depuis un contact
+                </button>
+            </div>
+            <div class="col-12">
+                <div class="collapse" id="intervenantContactImport{{ form.companyName.vars.id }}">
+                    <div class="list-group list-group-flush border rounded-3">
+                        {% for contact in available_contacts|default([]) %}
+                            {% set contact_phone = contact.mobile ?: contact.mobileSecondary ?: contact.mobileTertiary ?: contact.landline %}
+                            <button
+                                type="button"
+                                class="list-group-item list-group-item-action"
+                                data-maintenance-import-contact
+                                data-company="{{ contact.fullName|e('html_attr') }}"
+                                data-contact-name="{{ (contact.contactPersonName ?: contact.fullName)|e('html_attr') }}"
+                                data-email="{{ (contact.email ?: '')|e('html_attr') }}"
+                                data-phone="{{ (contact_phone ?: '')|e('html_attr') }}"
+                            >
+                                <div class="d-flex flex-wrap justify-content-between gap-2">
+                                    <span class="fw-semibold">{{ contact.fullName }}</span>
+                                    <span class="small text-secondary">{{ contact.type }}</span>
+                                </div>
+                                <div class="small text-secondary">
+                                    {{ contact.contactPersonName ?: 'Contact non renseignÃ©' }}
+                                    {% if contact.email %} Â· {{ contact.email }}{% endif %}
+                                    {% if contact_phone %} Â· {{ contact_phone }}{% endif %}
+                                </div>
+                            </button>
+                        {% else %}
+                            <div class="list-group-item text-secondary small">Aucun contact disponible.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
             <div class="col-md-6">{{ form_row(form.firstname) }}</div>
             <div class="col-md-6">{{ form_row(form.lastname) }}</div>
             <div class="col-md-6">{{ form_row(form.email) }}</div>

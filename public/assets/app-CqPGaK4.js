@@ -201,6 +201,27 @@ function openNavigationModal(targetSelector, trigger = null) {
     return true;
 }
 
+function documentFilterFields() {
+    return Array.from(document.querySelectorAll('[data-document-filter]'));
+}
+
+function hasDocumentFilters() {
+    return documentFilterFields().some((field) => normalizeSearch(field.value) !== '');
+}
+
+function appendDocumentFilters(url) {
+    documentFilterFields().forEach((field) => {
+        const key = field.dataset.documentFilter;
+        if (key && field.value) url.searchParams.set(key, field.value);
+    });
+}
+
+function resetDocumentFilters() {
+    documentFilterFields().forEach((field) => {
+        field.value = '';
+    });
+}
+
 function updateDocumentSearchCounters(search, count) {
     const card = search.closest('.card');
     const counter = document.querySelector('[data-document-search-count]');
@@ -208,7 +229,7 @@ function updateDocumentSearchCounters(search, count) {
     const clearButton = card?.querySelector('[data-document-clear-search]');
     if (counter) counter.textContent = String(count);
     if (label) label.textContent = count > 1 ? 'résultats' : 'résultat';
-    clearButton?.classList.toggle('d-none', normalizeSearch(search.value) === '');
+    clearButton?.classList.toggle('d-none', normalizeSearch(search.value) === '' && !hasDocumentFilters());
 }
 
 function updateMaintenanceSearchCounters(search, count) {
@@ -239,6 +260,7 @@ async function loadDocumentGrid(search, page = 1) {
     const url = new URL(search.dataset.documentSearchUrl, window.location.origin);
     url.searchParams.set('q', search.value);
     url.searchParams.set('page', String(page));
+    appendDocumentFilters(url);
     const payload = await readJson(await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}}));
     target.innerHTML = payload.data.html;
     updateDocumentSearchCounters(search, payload.data.count);
@@ -331,6 +353,41 @@ function syncMaintenanceIntervenant(select) {
     filterMaintenanceContractChoices(form, select.value);
 }
 
+function splitContactName(value) {
+    const parts = String(value || '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return {firstName: '', lastName: ''};
+    if (parts.length === 1) return {firstName: parts[0], lastName: ''};
+
+    return {
+        firstName: parts[0],
+        lastName: parts.slice(1).join(' '),
+    };
+}
+
+function importContactToIntervenant(button) {
+    const form = button.closest('form');
+    if (!form) return;
+
+    const name = splitContactName(button.dataset.contactName || '');
+    const mappings = [
+        ['[data-maintenance-company-name]', button.dataset.company || ''],
+        ['[data-maintenance-firstname]', name.firstName],
+        ['[data-maintenance-lastname]', name.lastName],
+        ['[data-maintenance-email]', button.dataset.email || ''],
+        ['[data-maintenance-phone]', button.dataset.phone || ''],
+    ];
+
+    mappings.forEach(([selector, value]) => {
+        const input = form.querySelector(selector);
+        if (input && value !== '') {
+            input.value = value;
+            input.dispatchEvent(new Event('input', {bubbles: true}));
+        }
+    });
+
+    showAlert('Les informations du contact ont ete importees.');
+}
+
 function syncMaintenanceContractType(control) {
     const form = control.closest('form');
     const select = form?.querySelector('[data-maintenance-contract-type-select]');
@@ -402,7 +459,7 @@ function syncExpenseTotals(form) {
     const safeRate = Number.isFinite(vatRate) ? Math.max(0, vatRate) : 0;
     const vat = safeAmount * (safeRate / 100);
     const total = safeAmount + vat;
-    preview.textContent = `${total.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €`;
+    preview.textContent = `${total.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} dh`;
 }
 
 function syncExpenseCategory(select) {
@@ -454,6 +511,29 @@ function initializeContactPhones(root = document) {
     root.querySelectorAll('[data-contact-mobile-group]').forEach((group) => {
         updateContactMobileButton(group);
     });
+}
+
+function syncChoiceTags(field) {
+    const selected = field.querySelector('[data-choice-tags-selected]');
+    const placeholder = field.querySelector('[data-choice-tags-placeholder]');
+    if (!selected || !placeholder) return;
+
+    const checkedOptions = [...field.querySelectorAll('[data-choice-tags-input]:checked')];
+    selected.innerHTML = checkedOptions.map((input) => {
+        const label = input.closest('[data-choice-tags-option]')?.querySelector('span')?.textContent?.trim() || input.value;
+
+        return `<span class="choice-tags-pill">${escapeHtml(label)}</span>`;
+    }).join('');
+    placeholder.classList.toggle('d-none', checkedOptions.length > 0);
+
+    field.querySelectorAll('[data-choice-tags-option]').forEach((option) => {
+        const input = option.querySelector('[data-choice-tags-input]');
+        option.classList.toggle('active', input?.checked ?? false);
+    });
+}
+
+function initializeChoiceTags(root = document) {
+    root.querySelectorAll('[data-choice-tags]').forEach((field) => syncChoiceTags(field));
 }
 
 function revealNextContactMobile(button) {
@@ -522,6 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeMaintenanceSmartForms();
     initializeExpenseForms();
     initializeContactPhones();
+    initializeChoiceTags();
 });
 
 document.addEventListener('submit', async (event) => {
@@ -595,6 +676,51 @@ document.addEventListener('submit', async (event) => {
 });
 
 document.addEventListener('click', async (event) => {
+    const choiceTagsOption = event.target.closest('[data-choice-tags-option]');
+    if (choiceTagsOption) {
+        event.preventDefault();
+        const field = choiceTagsOption.closest('[data-choice-tags]');
+        const input = choiceTagsOption.querySelector('[data-choice-tags-input]');
+        if (!field || !input || input.disabled) return;
+
+        if (field.dataset.choiceTagsSingle === 'true') {
+            input.checked = true;
+            field.querySelector('[data-choice-tags-menu]')?.classList.add('d-none');
+            field.querySelector('[data-choice-tags-toggle]')?.setAttribute('aria-expanded', 'false');
+        } else {
+            input.checked = !input.checked;
+        }
+
+        input.dispatchEvent(new Event('change', {bubbles: true}));
+        return;
+    }
+
+    const choiceTagsToggle = event.target.closest('[data-choice-tags-toggle]');
+    if (choiceTagsToggle) {
+        const field = choiceTagsToggle.closest('[data-choice-tags]');
+        const menu = field?.querySelector('[data-choice-tags-menu]');
+        if (!field || !menu) return;
+
+        document.querySelectorAll('[data-choice-tags-menu]').forEach((otherMenu) => {
+            if (otherMenu !== menu) {
+                otherMenu.classList.add('d-none');
+                otherMenu.closest('[data-choice-tags]')?.querySelector('[data-choice-tags-toggle]')?.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        const willOpen = menu.classList.contains('d-none');
+        menu.classList.toggle('d-none', !willOpen);
+        choiceTagsToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        return;
+    }
+
+    if (!event.target.closest('[data-choice-tags]')) {
+        document.querySelectorAll('[data-choice-tags-menu]').forEach((menu) => {
+            menu.classList.add('d-none');
+            menu.closest('[data-choice-tags]')?.querySelector('[data-choice-tags-toggle]')?.setAttribute('aria-expanded', 'false');
+        });
+    }
+
     const navigationModalLink = event.target.closest('[data-navigation-modal]');
     if (navigationModalLink && openNavigationModal(navigationModalLink.dataset.navigationModal, navigationModalLink)) {
         event.preventDefault();
@@ -630,6 +756,7 @@ document.addEventListener('click', async (event) => {
         const search = documentClearSearch.closest('.card')?.querySelector('[data-document-search]');
         if (search) {
             search.value = '';
+            resetDocumentFilters();
             await loadDocumentGrid(search, 1);
             search.focus();
         }
@@ -787,6 +914,12 @@ document.addEventListener('click', async (event) => {
         return;
     }
 
+    const maintenanceImportContact = event.target.closest('[data-maintenance-import-contact]');
+    if (maintenanceImportContact) {
+        importContactToIntervenant(maintenanceImportContact);
+        return;
+    }
+
     const expensePickSupplier = event.target.closest('[data-expense-pick-supplier]');
     if (expensePickSupplier) {
         const select = document.querySelector(expensePickSupplier.dataset.targetSelect);
@@ -839,6 +972,7 @@ document.addEventListener('click', async (event) => {
             initializeMaintenanceSmartForms(content);
             initializeExpenseForms(content);
             initializeContactPhones(content);
+            initializeChoiceTags(content);
             if (remoteButton.dataset.secretUrl) {
                 const input = content.querySelector('[data-secret-input]');
                 if (input) {
@@ -878,6 +1012,13 @@ document.addEventListener('click', async (event) => {
 });
 
 document.addEventListener('change', (event) => {
+    const choiceTagsInput = event.target.closest('[data-choice-tags-input]');
+    if (choiceTagsInput) {
+        const field = choiceTagsInput.closest('[data-choice-tags]');
+        if (field) syncChoiceTags(field);
+        return;
+    }
+
     const viewCheckbox = event.target.closest('[data-share-view]');
     if (!viewCheckbox) return;
     const editCheckbox = viewCheckbox.closest('[data-share-row]').querySelector('[data-share-edit]');
@@ -975,6 +1116,15 @@ document.addEventListener('input', (event) => {
 });
 
 document.addEventListener('change', (event) => {
+    const documentFilter = event.target.closest('[data-document-filter]');
+    if (documentFilter) {
+        const search = document.querySelector('[data-document-search]');
+        if (search) {
+            loadDocumentGrid(search, 1).catch((error) => showAlert(error.message, 'danger'));
+        }
+        return;
+    }
+
     const expenseFilter = event.target.closest('[data-expense-filter]');
     if (expenseFilter) {
         const search = document.querySelector('[data-expense-search]');

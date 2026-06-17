@@ -135,7 +135,7 @@ final readonly class DashboardStatsService
             $kpis[] = [
                 'label' => 'Dépenses',
                 'value' => (int) round($expenses['month_total']),
-                'value_display' => number_format($expenses['month_total'], 0, ',', ' ').' €',
+                'value_display' => number_format($expenses['month_total'], 0, ',', ' ').' dh',
                 'icon' => 'bi-cash-coin',
                 'tone' => 'warning',
                 'route' => 'app_expense_index',
@@ -401,7 +401,7 @@ final readonly class DashboardStatsService
                 'label' => $label,
                 'short_label' => mb_substr($label, 0, 12),
                 'value' => (int) round($amount),
-                'display' => number_format($amount, 0, ',', ' ').' EUR',
+                'display' => number_format($amount, 0, ',', ' ').' dh',
                 'percent' => $amount > 0 ? max(8, (int) round(($amount / $max) * 100)) : 0,
                 'share' => $share,
                 'offset' => $offset,
@@ -596,7 +596,7 @@ final readonly class DashboardStatsService
         $stats = $this->expenseOverview($user);
         $categoryItems = array_map(static fn (array $item): array => [
             'title' => $item['label'],
-            'text' => number_format((float) $item['total'], 2, ',', ' ').' € TTC',
+            'text' => number_format((float) $item['total'], 2, ',', ' ').' dh TTC',
         ], array_slice($stats['categories'], 0, 3));
 
         return [
@@ -605,7 +605,7 @@ final readonly class DashboardStatsService
             'icon' => 'bi-cash-coin',
             'route' => $module->getRouteName(),
             'tone' => 'warning',
-            'headline' => sprintf('%s € ce mois-ci', number_format($stats['month_total'], 2, ',', ' ')),
+            'headline' => sprintf('%s dh ce mois-ci', number_format($stats['month_total'], 2, ',', ' ')),
             'metrics' => [
                 ['label' => 'Ce mois', 'value' => (int) round($stats['month_total']), 'icon' => 'bi-calendar2-month'],
                 ['label' => 'En attente', 'value' => $stats['pending_count'], 'icon' => 'bi-hourglass-split'],

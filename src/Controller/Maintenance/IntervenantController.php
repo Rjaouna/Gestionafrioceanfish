@@ -8,6 +8,7 @@ use App\Form\IntervenantType;
 use App\Security\Voter\IntervenantVoter;
 use App\Security\Voter\ModuleAccessVoter;
 use App\Service\JsonResponder;
+use App\Service\ContactService;
 use App\Service\Maintenance\IntervenantService;
 use App\Service\Maintenance\MaintenanceShareService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,6 +25,7 @@ final class IntervenantController extends AbstractController
     public function __construct(
         private readonly IntervenantService $intervenantService,
         private readonly MaintenanceShareService $shareService,
+        private readonly ContactService $contactService,
         private readonly JsonResponder $jsonResponder,
     ) {
     }
@@ -39,6 +41,7 @@ final class IntervenantController extends AbstractController
             'intervenants' => $intervenants,
             'maintenance_share_counts' => $this->shareService->countActiveShares(MaintenanceShareService::TYPE_INTERVENANT, $intervenants),
             'create_form' => $this->buildForm(new Intervenant(), 'app_maintenance_intervenant_create'),
+            'available_contacts' => $this->contactService->getVisibleContacts($this->currentUser()),
         ]);
     }
 
@@ -69,7 +72,11 @@ final class IntervenantController extends AbstractController
             return $this->jsonResponder->invalidForm($form);
         }
 
-        $this->intervenantService->create($intervenant, $this->currentUser());
+        try {
+            $this->intervenantService->create($intervenant, $this->currentUser());
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
 
         return $this->jsonResponder->success('L’intervenant a été créé.', ['reload' => true], 201);
     }
@@ -83,6 +90,7 @@ final class IntervenantController extends AbstractController
             'form' => $this->buildForm($intervenant, 'app_maintenance_intervenant_edit', ['id' => $intervenant->getId()]),
             'title' => sprintf('Modifier %s', $intervenant->getDisplayName()),
             'submit_label' => 'Enregistrer',
+            'available_contacts' => $this->contactService->getVisibleContacts($this->currentUser()),
         ]);
     }
 
@@ -97,7 +105,11 @@ final class IntervenantController extends AbstractController
             return $this->jsonResponder->invalidForm($form);
         }
 
-        $this->intervenantService->update($intervenant, $this->currentUser());
+        try {
+            $this->intervenantService->update($intervenant, $this->currentUser());
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
 
         return $this->jsonResponder->success('L’intervenant a été modifié.', ['reload' => true]);
     }

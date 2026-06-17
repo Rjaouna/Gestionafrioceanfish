@@ -39,6 +39,7 @@ final readonly class IntervenantService
     public function create(Intervenant $intervenant, User $actor): Intervenant
     {
         $this->assertCanEdit($actor);
+        $this->assertNoDuplicate($intervenant);
         $intervenant->setCreatedBy($actor);
         $this->entityManager->persist($intervenant);
         $this->entityManager->flush();
@@ -56,6 +57,7 @@ final readonly class IntervenantService
             throw new AccessDeniedException();
         }
 
+        $this->assertNoDuplicate($intervenant);
         $this->entityManager->flush();
 
         return $intervenant;
@@ -109,5 +111,40 @@ final readonly class IntervenantService
         if (!$this->access->canEdit($actor)) {
             throw new AccessDeniedException();
         }
+    }
+
+    private function assertNoDuplicate(Intervenant $intervenant): void
+    {
+        $email = $this->normalizeText($intervenant->getEmail());
+        $companyName = $this->normalizeText($intervenant->getCompanyName());
+        $phone = $this->normalizePhone($intervenant->getPhone());
+
+        if ($email === '' && $companyName === '' && $phone === '') {
+            return;
+        }
+
+        foreach ($this->repository->findDuplicateCandidates($intervenant->getId()) as $candidate) {
+            if ($email !== '' && $email === $this->normalizeText($candidate->getEmail())) {
+                throw new \DomainException('Un intervenant existe dÃ©jÃ  avec cet e-mail.');
+            }
+
+            if ($phone !== '' && $phone === $this->normalizePhone($candidate->getPhone())) {
+                throw new \DomainException('Un intervenant existe dÃ©jÃ  avec ce numÃ©ro de tÃ©lÃ©phone.');
+            }
+
+            if ($companyName !== '' && $companyName === $this->normalizeText($candidate->getCompanyName())) {
+                throw new \DomainException('Un intervenant existe dÃ©jÃ  avec ce nom de boite.');
+            }
+        }
+    }
+
+    private function normalizeText(?string $value): string
+    {
+        return mb_strtolower(trim((string) $value));
+    }
+
+    private function normalizePhone(?string $value): string
+    {
+        return preg_replace('/[^\d+]/', '', (string) $value) ?? '';
     }
 }

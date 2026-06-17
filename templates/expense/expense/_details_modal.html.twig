@@ -14,15 +14,15 @@
                     <div class="row g-3">
                         <div class="col-6 col-lg-3">
                             <div class="text-secondary small">HT</div>
-                            <strong>{{ expense.amountHt|number_format(2, ',', ' ') }} €</strong>
+                            <strong>{{ expense.amountHt|number_format(2, ',', ' ') }} dh</strong>
                         </div>
                         <div class="col-6 col-lg-3">
                             <div class="text-secondary small">TVA {{ expense.vatRate|number_format(2, ',', ' ') }}%</div>
-                            <strong>{{ expense.vatAmount|number_format(2, ',', ' ') }} €</strong>
+                            <strong>{{ expense.vatAmount|number_format(2, ',', ' ') }} dh</strong>
                         </div>
                         <div class="col-6 col-lg-3">
                             <div class="text-secondary small">TTC</div>
-                            <strong>{{ expense.amountTtc|number_format(2, ',', ' ') }} €</strong>
+                            <strong>{{ expense.amountTtc|number_format(2, ',', ' ') }} dh</strong>
                         </div>
                         <div class="col-6 col-lg-3">
                             <div class="text-secondary small">Paiement</div>

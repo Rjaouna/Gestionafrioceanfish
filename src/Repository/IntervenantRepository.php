@@ -26,7 +26,7 @@ class IntervenantRepository extends ServiceEntityRepository
         $query = mb_strtolower(trim($query));
         if ($query !== '') {
             $builder
-                ->andWhere('LOWER(i.firstname) LIKE :query OR LOWER(i.lastname) LIKE :query OR LOWER(COALESCE(i.email, \'\')) LIKE :query OR LOWER(COALESCE(i.phone, \'\')) LIKE :query OR LOWER(i.type) LIKE :query OR LOWER(COALESCE(i.speciality, \'\')) LIKE :query')
+                ->andWhere('LOWER(i.firstname) LIKE :query OR LOWER(i.lastname) LIKE :query OR LOWER(COALESCE(i.companyName, \'\')) LIKE :query OR LOWER(COALESCE(i.email, \'\')) LIKE :query OR LOWER(COALESCE(i.phone, \'\')) LIKE :query OR LOWER(i.type) LIKE :query OR LOWER(COALESCE(i.speciality, \'\')) LIKE :query')
                 ->setParameter('query', '%'.$query.'%');
         }
 
@@ -39,9 +39,27 @@ class IntervenantRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('i')
             ->andWhere('i.isActive = true')
             ->andWhere('i.isDeleted = false')
-            ->orderBy('i.lastname', 'ASC')
+            ->orderBy('i.companyName', 'ASC')
+            ->addOrderBy('i.lastname', 'ASC')
             ->addOrderBy('i.firstname', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    /** @return list<Intervenant> */
+    public function findDuplicateCandidates(?int $excludeId = null): array
+    {
+        $builder = $this->createQueryBuilder('i')
+            ->andWhere('i.isDeleted = false')
+            ->orderBy('i.lastname', 'ASC')
+            ->addOrderBy('i.firstname', 'ASC');
+
+        if ($excludeId !== null) {
+            $builder
+                ->andWhere('i.id <> :excludeId')
+                ->setParameter('excludeId', $excludeId);
+        }
+
+        return $builder->getQuery()->getResult();
     }
 }

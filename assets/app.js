@@ -353,6 +353,41 @@ function syncMaintenanceIntervenant(select) {
     filterMaintenanceContractChoices(form, select.value);
 }
 
+function splitContactName(value) {
+    const parts = String(value || '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return {firstName: '', lastName: ''};
+    if (parts.length === 1) return {firstName: parts[0], lastName: ''};
+
+    return {
+        firstName: parts[0],
+        lastName: parts.slice(1).join(' '),
+    };
+}
+
+function importContactToIntervenant(button) {
+    const form = button.closest('form');
+    if (!form) return;
+
+    const name = splitContactName(button.dataset.contactName || '');
+    const mappings = [
+        ['[data-maintenance-company-name]', button.dataset.company || ''],
+        ['[data-maintenance-firstname]', name.firstName],
+        ['[data-maintenance-lastname]', name.lastName],
+        ['[data-maintenance-email]', button.dataset.email || ''],
+        ['[data-maintenance-phone]', button.dataset.phone || ''],
+    ];
+
+    mappings.forEach(([selector, value]) => {
+        const input = form.querySelector(selector);
+        if (input && value !== '') {
+            input.value = value;
+            input.dispatchEvent(new Event('input', {bubbles: true}));
+        }
+    });
+
+    showAlert('Les informations du contact ont ete importees.');
+}
+
 function syncMaintenanceContractType(control) {
     const form = control.closest('form');
     const select = form?.querySelector('[data-maintenance-contract-type-select]');
@@ -424,7 +459,7 @@ function syncExpenseTotals(form) {
     const safeRate = Number.isFinite(vatRate) ? Math.max(0, vatRate) : 0;
     const vat = safeAmount * (safeRate / 100);
     const total = safeAmount + vat;
-    preview.textContent = `${total.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} €`;
+    preview.textContent = `${total.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} dh`;
 }
 
 function syncExpenseCategory(select) {
@@ -876,6 +911,12 @@ document.addEventListener('click', async (event) => {
             select.value = maintenancePickIntervenant.dataset.intervenantId;
             select.dispatchEvent(new Event('change', {bubbles: true}));
         }
+        return;
+    }
+
+    const maintenanceImportContact = event.target.closest('[data-maintenance-import-contact]');
+    if (maintenanceImportContact) {
+        importContactToIntervenant(maintenanceImportContact);
         return;
     }
 

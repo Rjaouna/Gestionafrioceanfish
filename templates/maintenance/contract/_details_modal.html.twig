@@ -30,7 +30,7 @@
                         <dt class="col-sm-4 text-secondary">Renouvellement</dt>
                         <dd class="col-sm-8">{{ contract.renewalDate ? contract.renewalDate|date('d/m/Y') : 'Non renseigné' }}</dd>
                         <dt class="col-sm-4 text-secondary">Montant</dt>
-                        <dd class="col-sm-8">{{ contract.amount ? contract.amount|number_format(2, ',', ' ') ~ ' €' : 'Non renseigné' }}</dd>
+                        <dd class="col-sm-8">{{ contract.amount ? contract.amount|number_format(2, ',', ' ') ~ ' dh' : 'Non renseigné' }}</dd>
                     </dl>
                     {% if contract.description %}
                         <hr>

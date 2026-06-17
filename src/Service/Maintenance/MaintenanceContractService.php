@@ -164,7 +164,7 @@ final readonly class MaintenanceContractService
         }
 
         $contract
-            ->setCustomerName($intervenant->getDisplayName())
+            ->setCustomerName($intervenant->getDisplayLabel())
             ->setCustomerEmail($intervenant->getEmail())
             ->setCustomerPhone($intervenant->getPhone());
     }

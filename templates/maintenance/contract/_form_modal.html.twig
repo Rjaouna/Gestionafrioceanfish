@@ -48,7 +48,7 @@
                         {% for intervenant in available_intervenants|default([]) %}
                             <button type="button" class="list-group-item list-group-item-action" data-maintenance-pick-intervenant data-target-select="#{{ form.intervenant.vars.id }}" data-intervenant-id="{{ intervenant.id }}">
                                 <div class="d-flex flex-wrap justify-content-between gap-2">
-                                    <span class="fw-semibold">{{ intervenant.displayName }}</span>
+                                    <span class="fw-semibold">{{ intervenant.displayLabel }}</span>
                                     <span class="small text-secondary">{{ intervenant.speciality ?: intervenant.type }}</span>
                                 </div>
                                 <div class="small text-secondary">{{ intervenant.email ?: 'Email non renseigné' }} · {{ intervenant.phone ?: 'Téléphone non renseigné' }}</div>

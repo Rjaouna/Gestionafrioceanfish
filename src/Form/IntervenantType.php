@@ -17,23 +17,43 @@ final class IntervenantType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('companyName', TextType::class, [
+                'label' => 'Nom de la boite',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'Ex. ABC Maintenance',
+                    'data-maintenance-company-name' => 'true',
+                ],
+            ])
             ->add('firstname', TextType::class, [
                 'label' => 'Prénom',
-                'attr' => ['placeholder' => 'Ex. Karim'],
+                'attr' => [
+                    'placeholder' => 'Ex. Karim',
+                    'data-maintenance-firstname' => 'true',
+                ],
             ])
             ->add('lastname', TextType::class, [
                 'label' => 'Nom',
-                'attr' => ['placeholder' => 'Ex. Benali'],
+                'attr' => [
+                    'placeholder' => 'Ex. Benali',
+                    'data-maintenance-lastname' => 'true',
+                ],
             ])
             ->add('email', EmailType::class, [
                 'label' => 'Email',
                 'required' => false,
-                'attr' => ['placeholder' => 'Ex. intervenant@example.com'],
+                'attr' => [
+                    'placeholder' => 'Ex. intervenant@example.com',
+                    'data-maintenance-email' => 'true',
+                ],
             ])
             ->add('phone', TelType::class, [
                 'label' => 'Téléphone',
                 'required' => false,
-                'attr' => ['placeholder' => 'Ex. 06 12 34 56 78'],
+                'attr' => [
+                    'placeholder' => 'Ex. 06 12 34 56 78',
+                    'data-maintenance-phone' => 'true',
+                ],
             ])
             ->add('type', ChoiceType::class, [
                 'label' => 'Type',

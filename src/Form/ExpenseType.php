@@ -102,9 +102,9 @@ final class ExpenseType extends AbstractType
             ])
             ->add('supplierIntervenant', EntityType::class, [
                 'class' => Intervenant::class,
-                'choice_label' => static fn (Intervenant $intervenant): string => $intervenant->getDisplayName(),
+                'choice_label' => static fn (Intervenant $intervenant): string => $intervenant->getDisplayLabel(),
                 'choice_attr' => static fn (Intervenant $intervenant): array => [
-                    'data-name' => $intervenant->getDisplayName(),
+                    'data-name' => $intervenant->getDisplayLabel(),
                     'data-email' => $intervenant->getEmail() ?? '',
                     'data-phone' => $intervenant->getPhone() ?? '',
                     'data-type' => $intervenant->getType(),
@@ -186,7 +186,7 @@ final class ExpenseType extends AbstractType
             if (!empty($data['supplierIntervenant'])) {
                 $intervenant = $this->intervenantRepository->find((int) $data['supplierIntervenant']);
                 if ($intervenant instanceof Intervenant) {
-                    $data['supplierName'] = $intervenant->getDisplayName();
+                    $data['supplierName'] = $intervenant->getDisplayLabel();
                     $data['supplierEmail'] = $intervenant->getEmail();
                     $data['supplierPhone'] = $intervenant->getPhone();
                 }

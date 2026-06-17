@@ -4,7 +4,7 @@
 
 <div class="col-12 col-md-4 col-xl-3">
     {% embed 'components/_entity_card.html.twig' with {
-        title: intervenant.displayName,
+        title: intervenant.companyName ?: intervenant.displayName,
         title_remote_url: is_granted('INTERVENANT_EDIT', intervenant) ? path('app_maintenance_intervenant_form', {id: intervenant.id}) : null,
         icon: 'bi-person-gear',
         icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-4 module-mark',
@@ -29,11 +29,19 @@
         {% endblock %}
 
         {% block subtitle %}
+            {% if intervenant.companyName %}
+                <span class="small text-secondary text-break">
+                    <i class="bi bi-person me-1"></i>{{ intervenant.displayName }}
+                </span>
+                {% if intervenant.email %}
+                    <span class="small text-secondary mx-1">-</span>
+                {% endif %}
+            {% endif %}
             {% if intervenant.email %}
                 <a href="mailto:{{ intervenant.email }}" class="small text-secondary text-decoration-none text-break" title="{{ intervenant.email }}">
                     <i class="bi bi-envelope me-1"></i>{{ intervenant.email }}
                 </a>
-            {% else %}
+            {% elseif not intervenant.companyName %}
                 <span class="small text-secondary">Aucun email renseigné</span>
             {% endif %}
         {% endblock %}
