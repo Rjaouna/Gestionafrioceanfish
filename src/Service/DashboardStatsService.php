@@ -3,13 +3,16 @@
 namespace App\Service;
 
 use App\Entity\AppModule;
+use App\Entity\Appointment;
 use App\Entity\Intervention;
 use App\Entity\User;
 use App\Repository\AppModuleRepository;
+use App\Repository\AppointmentRepository;
 use App\Repository\IntervenantRepository;
 use App\Repository\InterventionRepository;
 use App\Repository\MaintenanceContractRepository;
 use App\Repository\UserRepository;
+use App\Service\Appointment\AppointmentAccessService;
 use App\Service\Expense\ExpenseService;
 
 final readonly class DashboardStatsService
@@ -24,6 +27,8 @@ final readonly class DashboardStatsService
         private IntervenantRepository $intervenantRepository,
         private UserRepository $userRepository,
         private AppModuleRepository $moduleRepository,
+        private AppointmentRepository $appointmentRepository,
+        private AppointmentAccessService $appointmentAccess,
     ) {
     }
 
@@ -42,6 +47,7 @@ final readonly class DashboardStatsService
                 'documents' => $this->documentSection($module, $user),
                 'contacts' => $this->contactSection($module, $user),
                 'expenses' => $this->expenseSection($module, $user),
+                'agenda' => $this->agendaSection($module, $user),
                 'users' => $this->usersSection($module),
                 'modules' => $this->modulesSection($module),
                 default => null,
@@ -86,9 +92,30 @@ final readonly class DashboardStatsService
         $expenses = $hasModule('expenses') ? $this->expenseOverview($user) : ['month_total' => 0.0, 'pending_count' => 0, 'paid_total' => 0.0, 'refused_count' => 0, 'validated_count' => 0, 'categories' => [], 'category_chart' => []];
         $users = $hasModule('users') ? $this->usersOverview() : ['total' => 0, 'active' => 0, 'inactive' => 0];
         $modulesOverview = $hasModule('modules') ? $this->modulesOverview() : ['total' => count($modules), 'active' => count($modules)];
+        $agenda = $hasModule('agenda') ? $this->appointmentOverview($user) : [
+            'total' => 0,
+            'today' => 0,
+            'next_7_days' => 0,
+            'pending' => 0,
+            'high_priority' => 0,
+            'upcoming' => [],
+            'status_chart' => [],
+            'type_chart' => [],
+        ];
 
-        $alertCount = count($maintenance['expiring_contracts']) + $passwords['pending'] + $users['inactive'] + $expenses['pending_count'];
+        $alertCount = count($maintenance['expiring_contracts']) + $passwords['pending'] + $users['inactive'] + $expenses['pending_count'] + $agenda['pending'] + $agenda['high_priority'];
         $kpis = [];
+
+        if ($hasModule('agenda')) {
+            $kpis[] = [
+                'label' => 'Agenda',
+                'value' => $agenda['today'],
+                'icon' => 'bi-calendar2-week',
+                'tone' => 'primary',
+                'route' => 'app_appointment_calendar',
+                'hint' => sprintf('%d RDV dans les 7 jours', $agenda['next_7_days']),
+            ];
+        }
 
         if ($hasModule('maintenance')) {
             $kpis[] = [
@@ -178,17 +205,38 @@ final readonly class DashboardStatsService
 
         return [
             'kpis' => $kpis,
+            'executive_kpis' => $this->executiveKpis($agenda, $maintenance, $expenses, $passwords, $documents, $contacts, $users, $modulesOverview, $hasModule),
+            'hero_metrics' => $this->heroMetrics($agenda, $maintenance, $expenses, $alertCount, count($modules)),
+            'health_cards' => $this->healthCards($agenda, $maintenance, $expenses, $passwords, $users, $hasModule),
+            'operational_chart' => $this->operationalChart($agenda, $maintenance, $expenses, $passwords),
+            'schedule' => $this->scheduleItems($agenda['upcoming'], $maintenance['open_interventions']),
+            'quick_actions' => $this->quickActions($hasModule),
+            'agenda_overview' => $agenda,
+            'finance_overview' => $expenses,
+            'available' => [
+                'agenda' => $hasModule('agenda'),
+                'expenses' => $hasModule('expenses'),
+                'maintenance' => $hasModule('maintenance'),
+                'documents' => $hasModule('documents'),
+                'contacts' => $hasModule('contacts'),
+                'passwords' => $hasModule('passwords'),
+                'users' => $hasModule('users'),
+                'modules' => $hasModule('modules'),
+            ],
             'charts' => [
+                'agenda' => $agenda['status_chart'],
+                'agenda_types' => $agenda['type_chart'],
                 'interventions' => $maintenance['status_chart'],
                 'contracts_health' => $maintenance['health_chart'],
                 'expense_types' => $expenses['category_chart'],
             ],
             'expense_type_chart' => $expenses['category_chart'],
             'alert_count' => $alertCount,
-            'alerts' => $this->dashboardAlerts($maintenance['expiring_contracts'], $passwords['pending'], $users['inactive'], $expenses['pending_count']),
+            'alerts' => $this->dashboardAlerts($maintenance['expiring_contracts'], $passwords['pending'], $users['inactive'], $expenses['pending_count'], $agenda['pending'], $agenda['high_priority']),
             'agenda' => $maintenance['open_interventions'],
             'sections' => $sections,
             'module_tiles' => [
+                ['label' => 'RDV aujourd’hui', 'value' => $agenda['today'], 'icon' => 'bi-calendar2-check', 'tone' => 'primary'],
                 ['label' => 'Intervenants', 'value' => $maintenance['intervenants'], 'icon' => 'bi-person-gear', 'tone' => 'warning'],
                 ['label' => 'Contacts actifs', 'value' => $contacts['active'], 'icon' => 'bi-person-lines-fill', 'tone' => 'success'],
                 ['label' => 'Dépenses à valider', 'value' => $expenses['pending_count'], 'icon' => 'bi-cash-coin', 'tone' => 'warning'],
@@ -196,6 +244,248 @@ final readonly class DashboardStatsService
                 ['label' => 'Modules actifs', 'value' => $modulesOverview['active'], 'icon' => 'bi-grid', 'tone' => 'secondary'],
             ],
         ];
+    }
+
+    /**
+     * @param callable(string): bool $hasModule
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function executiveKpis(array $agenda, array $maintenance, array $expenses, array $passwords, array $documents, array $contacts, array $users, array $modulesOverview, callable $hasModule): array
+    {
+        $items = [];
+
+        if ($hasModule('agenda')) {
+            $items[] = [
+                'label' => 'RDV aujourd’hui',
+                'value' => $agenda['today'],
+                'hint' => sprintf('%d dans les 7 prochains jours', $agenda['next_7_days']),
+                'icon' => 'bi-calendar2-check',
+                'tone' => 'primary',
+                'route' => 'app_appointment_calendar',
+            ];
+        }
+
+        if ($hasModule('expenses')) {
+            $items[] = [
+                'label' => 'Dépenses du mois',
+                'value' => (int) round($expenses['month_total']),
+                'value_display' => number_format($expenses['month_total'], 0, ',', ' ').' dh',
+                'hint' => sprintf('%d à valider, %s dh payés', $expenses['pending_count'], number_format($expenses['paid_total'], 0, ',', ' ')),
+                'icon' => 'bi-cash-coin',
+                'tone' => 'warning',
+                'route' => 'app_expense_index',
+            ];
+        }
+
+        if ($hasModule('maintenance')) {
+            $items[] = [
+                'label' => 'Maintenance ouverte',
+                'value' => $maintenance['planned_interventions'] + $maintenance['running_interventions'],
+                'hint' => sprintf('%d en cours, %d contrats à échéance', $maintenance['running_interventions'], count($maintenance['expiring_contracts'])),
+                'icon' => 'bi-tools',
+                'tone' => 'success',
+                'route' => 'app_maintenance_intervention_index',
+            ];
+        }
+
+        if ($hasModule('documents')) {
+            $items[] = [
+                'label' => 'Documents utiles',
+                'value' => $documents['total'],
+                'hint' => sprintf('%d actifs, %d partagés', $documents['active'], $documents['shared']),
+                'icon' => 'bi-folder2-open',
+                'tone' => 'info',
+                'route' => 'app_document_index',
+            ];
+        }
+
+        if ($hasModule('contacts')) {
+            $items[] = [
+                'label' => 'Contacts actifs',
+                'value' => $contacts['active'],
+                'hint' => sprintf('%d contacts visibles, %d types', $contacts['total'], $contacts['types']),
+                'icon' => 'bi-person-lines-fill',
+                'tone' => 'success',
+                'route' => 'app_contact_index',
+            ];
+        }
+
+        if ($hasModule('passwords')) {
+            $items[] = [
+                'label' => 'Accès à valider',
+                'value' => $passwords['pending'],
+                'hint' => sprintf('%d accès visibles dans le coffre', $passwords['total']),
+                'icon' => 'bi-key',
+                'tone' => 'danger',
+                'route' => 'app_password_index',
+            ];
+        }
+
+        if ($hasModule('users')) {
+            $items[] = [
+                'label' => 'Utilisateurs',
+                'value' => $users['active'],
+                'hint' => sprintf('%d actifs sur %d comptes', $users['active'], $users['total']),
+                'icon' => 'bi-people',
+                'tone' => 'secondary',
+                'route' => 'app_user_index',
+            ];
+        }
+
+        if ($hasModule('modules')) {
+            $items[] = [
+                'label' => 'Modules actifs',
+                'value' => $modulesOverview['active'],
+                'hint' => sprintf('%d modules configurés', $modulesOverview['total']),
+                'icon' => 'bi-grid',
+                'tone' => 'secondary',
+                'route' => 'app_module_index',
+            ];
+        }
+
+        return array_slice($items, 0, 8);
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function heroMetrics(array $agenda, array $maintenance, array $expenses, int $alertCount, int $moduleCount): array
+    {
+        return [
+            ['label' => 'Alertes', 'value' => $alertCount, 'icon' => 'bi-bell', 'tone' => $alertCount > 0 ? 'warning' : 'success'],
+            ['label' => 'RDV 7 jours', 'value' => $agenda['next_7_days'], 'icon' => 'bi-calendar-week', 'tone' => 'primary'],
+            ['label' => 'Interventions ouvertes', 'value' => $maintenance['planned_interventions'] + $maintenance['running_interventions'], 'icon' => 'bi-activity', 'tone' => 'success'],
+            ['label' => 'Dépenses mois', 'value' => number_format($expenses['month_total'], 0, ',', ' ').' dh', 'icon' => 'bi-receipt', 'tone' => 'warning'],
+            ['label' => 'Modules accessibles', 'value' => $moduleCount, 'icon' => 'bi-grid-3x3-gap', 'tone' => 'secondary'],
+        ];
+    }
+
+    /** @param callable(string): bool $hasModule */
+    private function healthCards(array $agenda, array $maintenance, array $expenses, array $passwords, array $users, callable $hasModule): array
+    {
+        $cards = [];
+
+        if ($hasModule('agenda')) {
+            $cards[] = [
+                'label' => 'Agenda',
+                'value' => $agenda['pending'] + $agenda['high_priority'],
+                'caption' => sprintf('%d en attente, %d priorité haute', $agenda['pending'], $agenda['high_priority']),
+                'tone' => ($agenda['pending'] + $agenda['high_priority']) > 0 ? 'warning' : 'success',
+                'icon' => 'bi-calendar2-week',
+            ];
+        }
+
+        if ($hasModule('maintenance')) {
+            $cards[] = [
+                'label' => 'Maintenance',
+                'value' => count($maintenance['expiring_contracts']) + $maintenance['running_interventions'],
+                'caption' => sprintf('%d contrats à échéance, %d en cours', count($maintenance['expiring_contracts']), $maintenance['running_interventions']),
+                'tone' => count($maintenance['expiring_contracts']) > 0 ? 'warning' : 'success',
+                'icon' => 'bi-tools',
+            ];
+        }
+
+        if ($hasModule('expenses')) {
+            $cards[] = [
+                'label' => 'Finances',
+                'value' => $expenses['pending_count'],
+                'caption' => sprintf('%d dépenses à valider, %d refusées', $expenses['pending_count'], $expenses['refused_count']),
+                'tone' => $expenses['pending_count'] > 0 ? 'warning' : 'success',
+                'icon' => 'bi-cash-stack',
+            ];
+        }
+
+        if ($hasModule('passwords')) {
+            $cards[] = [
+                'label' => 'Accès',
+                'value' => $passwords['pending'],
+                'caption' => sprintf('%d accès en attente de validation', $passwords['pending']),
+                'tone' => $passwords['pending'] > 0 ? 'danger' : 'success',
+                'icon' => 'bi-key',
+            ];
+        }
+
+        if ($hasModule('users')) {
+            $cards[] = [
+                'label' => 'Comptes',
+                'value' => $users['inactive'],
+                'caption' => sprintf('%d comptes inactifs à vérifier', $users['inactive']),
+                'tone' => $users['inactive'] > 0 ? 'secondary' : 'success',
+                'icon' => 'bi-person-check',
+            ];
+        }
+
+        return $cards;
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function operationalChart(array $agenda, array $maintenance, array $expenses, array $passwords): array
+    {
+        return $this->withPercentages([
+            ['label' => 'RDV 7 jours', 'short_label' => 'RDV', 'value' => $agenda['next_7_days'], 'tone' => 'primary'],
+            ['label' => 'Interventions ouvertes', 'short_label' => 'Maint.', 'value' => $maintenance['planned_interventions'] + $maintenance['running_interventions'], 'tone' => 'success'],
+            ['label' => 'Contrats échéance', 'short_label' => 'Contrats', 'value' => count($maintenance['expiring_contracts']), 'tone' => 'warning'],
+            ['label' => 'Dépenses à valider', 'short_label' => 'Dép.', 'value' => $expenses['pending_count'], 'tone' => 'warning'],
+            ['label' => 'Accès à valider', 'short_label' => 'Accès', 'value' => $passwords['pending'], 'tone' => 'danger'],
+        ]);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $appointments
+     * @param list<array<string, mixed>> $interventions
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function scheduleItems(array $appointments, array $interventions): array
+    {
+        $items = [];
+
+        foreach (array_slice($appointments, 0, 5) as $appointment) {
+            $items[] = $appointment + [
+                'kind' => 'Rendez-vous',
+                'icon' => 'bi-calendar2-check',
+                'tone' => 'primary',
+                'route' => 'app_appointment_calendar',
+            ];
+        }
+
+        foreach (array_slice($interventions, 0, 4) as $intervention) {
+            $items[] = $intervention + [
+                'kind' => 'Intervention',
+                'icon' => 'bi-tools',
+                'tone' => 'success',
+                'route' => 'app_maintenance_intervention_index',
+            ];
+        }
+
+        return array_slice($items, 0, 7);
+    }
+
+    /** @param callable(string): bool $hasModule */
+    private function quickActions(callable $hasModule): array
+    {
+        $actions = [];
+
+        if ($hasModule('agenda')) {
+            $actions[] = ['label' => 'Ouvrir l’agenda', 'text' => 'Créer ou déplacer un rendez-vous', 'route' => 'app_appointment_calendar', 'icon' => 'bi-calendar-plus', 'tone' => 'primary'];
+        }
+
+        if ($hasModule('expenses')) {
+            $actions[] = ['label' => 'Valider les dépenses', 'text' => 'Contrôler les demandes en attente', 'route' => 'app_expense_index', 'icon' => 'bi-receipt-cutoff', 'tone' => 'warning'];
+        }
+
+        if ($hasModule('maintenance')) {
+            $actions[] = ['label' => 'Suivre la maintenance', 'text' => 'Voir interventions et contrats', 'route' => 'app_maintenance_intervention_index', 'icon' => 'bi-tools', 'tone' => 'success'];
+        }
+
+        if ($hasModule('documents')) {
+            $actions[] = ['label' => 'Consulter les documents', 'text' => 'Accéder aux fichiers partagés', 'route' => 'app_document_index', 'icon' => 'bi-folder2-open', 'tone' => 'info'];
+        }
+
+        if ($hasModule('contacts')) {
+            $actions[] = ['label' => 'Carnet de contacts', 'text' => 'Retrouver clients et partenaires', 'route' => 'app_contact_index', 'icon' => 'bi-person-lines-fill', 'tone' => 'success'];
+        }
+
+        return $actions;
     }
 
     /** @return array<string, mixed> */
@@ -266,6 +556,119 @@ final readonly class DashboardStatsService
                 'status_label' => $statusLabels[$intervention->getStatus()] ?? str_replace('_', ' ', $intervention->getStatus()),
             ];
         }, $interventions);
+    }
+
+    /** @return array<string, mixed> */
+    private function appointmentOverview(User $user): array
+    {
+        if (!$this->appointmentAccess->canAccess($user)) {
+            return [
+                'total' => 0,
+                'today' => 0,
+                'next_7_days' => 0,
+                'pending' => 0,
+                'high_priority' => 0,
+                'upcoming' => [],
+                'status_chart' => [],
+                'type_chart' => [],
+            ];
+        }
+
+        $viewAll = $this->appointmentAccess->canViewAll($user);
+        $today = new \DateTimeImmutable('today');
+        $tomorrow = $today->modify('+1 day');
+        $nextWeek = $today->modify('+7 days 23:59:59');
+
+        $total = $this->appointmentRepository->countVisible($user, $viewAll, ['active' => 'active']);
+        $todayCount = $this->appointmentRepository->countVisible($user, $viewAll, [
+            'dateFrom' => $today->format('Y-m-d H:i:s'),
+            'dateTo' => $tomorrow->modify('-1 second')->format('Y-m-d H:i:s'),
+            'active' => 'active',
+        ]);
+        $nextSevenDays = $this->appointmentRepository->countVisible($user, $viewAll, [
+            'dateFrom' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'dateTo' => $nextWeek->format('Y-m-d H:i:s'),
+            'active' => 'active',
+        ]);
+        $pending = $this->appointmentRepository->countVisible($user, $viewAll, ['status' => 'pending', 'active' => 'active']);
+        $highPriority = $this->appointmentRepository->countVisible($user, $viewAll, ['priority' => 'urgent', 'active' => 'active'])
+            + $this->appointmentRepository->countVisible($user, $viewAll, ['priority' => 'high', 'active' => 'active']);
+
+        return [
+            'total' => $total,
+            'today' => $todayCount,
+            'next_7_days' => $nextSevenDays,
+            'pending' => $pending,
+            'high_priority' => $highPriority,
+            'upcoming' => $this->appointmentAgendaItems($this->appointmentRepository->upcoming($user, $viewAll, [], 6)),
+            'status_chart' => $this->appointmentStatusChart($user, $viewAll),
+            'type_chart' => $this->appointmentTypeChart($user, $viewAll),
+        ];
+    }
+
+    /**
+     * @param list<Appointment> $appointments
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function appointmentAgendaItems(array $appointments): array
+    {
+        return array_map(static function (Appointment $appointment): array {
+            $startAt = $appointment->getStartAt();
+            $endAt = $appointment->getEndAt();
+            $time = $startAt instanceof \DateTimeImmutable ? $startAt->format('d/m H:i') : 'Non planifié';
+            if ($endAt instanceof \DateTimeImmutable) {
+                $time .= ' - '.$endAt->format('H:i');
+            }
+
+            return [
+                'title' => (string) $appointment->getTitle(),
+                'meta' => sprintf('%s · %s', $time, $appointment->getCustomerName() ?: ($appointment->getLocation() ?: $appointment->getAppointmentTypeLabel())),
+                'status' => $appointment->getStatus(),
+                'status_label' => $appointment->getStatusLabel(),
+            ];
+        }, $appointments);
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function appointmentStatusChart(User $user, bool $viewAll): array
+    {
+        $items = [];
+        $tones = [
+            'planned' => 'primary',
+            'confirmed' => 'success',
+            'pending' => 'warning',
+            'completed' => 'info',
+            'cancelled' => 'danger',
+            'postponed' => 'secondary',
+        ];
+
+        foreach (Appointment::STATUS_LABELS as $status => $label) {
+            $items[] = [
+                'label' => $label,
+                'value' => $this->appointmentRepository->countVisible($user, $viewAll, ['status' => $status, 'active' => 'active']),
+                'tone' => $tones[$status] ?? 'secondary',
+            ];
+        }
+
+        return $this->withPercentages($items);
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function appointmentTypeChart(User $user, bool $viewAll): array
+    {
+        $items = [];
+        $tones = ['primary', 'success', 'warning', 'info', 'secondary', 'danger'];
+
+        foreach (Appointment::TYPE_LABELS as $type => $label) {
+            $items[] = [
+                'label' => $label,
+                'value' => $this->appointmentRepository->countVisible($user, $viewAll, ['appointmentType' => $type, 'active' => 'active']),
+                'tone' => $tones[count($items) % count($tones)],
+            ];
+        }
+
+        return $this->withPercentages($items);
     }
 
     /** @return array{total: int, active: int, pending: int} */
@@ -426,7 +829,7 @@ final readonly class DashboardStatsService
      *
      * @return list<array{title: string, text: string, icon: string, tone: string}>
      */
-    private function dashboardAlerts(array $expiringContracts, int $pendingPasswords, int $inactiveUsers, int $pendingExpenses): array
+    private function dashboardAlerts(array $expiringContracts, int $pendingPasswords, int $inactiveUsers, int $pendingExpenses, int $pendingAppointments, int $priorityAppointments): array
     {
         $alerts = array_map(static fn ($contract): array => [
             'title' => (string) $contract->getReference(),
@@ -434,6 +837,24 @@ final readonly class DashboardStatsService
             'icon' => 'bi-calendar-event',
             'tone' => 'warning',
         ], $expiringContracts);
+
+        if ($pendingAppointments > 0) {
+            $alerts[] = [
+                'title' => 'Rendez-vous en attente',
+                'text' => sprintf('%d rendez-vous à confirmer ou traiter.', $pendingAppointments),
+                'icon' => 'bi-calendar2-week',
+                'tone' => 'warning',
+            ];
+        }
+
+        if ($priorityAppointments > 0) {
+            $alerts[] = [
+                'title' => 'Priorité agenda',
+                'text' => sprintf('%d rendez-vous haute priorité ou urgent.', $priorityAppointments),
+                'icon' => 'bi-exclamation-triangle',
+                'tone' => 'danger',
+            ];
+        }
 
         if ($pendingPasswords > 0) {
             $alerts[] = [
@@ -622,6 +1043,41 @@ final readonly class DashboardStatsService
             'progress' => $stats['pending_count'] > 0 ? min(100, $stats['pending_count'] * 20) : 0,
             'progress_label' => 'Par type',
             'chart' => $stats['category_chart'],
+            'chart_type' => 'bars',
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function agendaSection(AppModule $module, User $user): array
+    {
+        $agenda = $this->appointmentOverview($user);
+
+        return [
+            'slug' => 'agenda',
+            'name' => 'Agenda - RDV',
+            'icon' => 'bi-calendar2-week',
+            'route' => $module->getRouteName(),
+            'tone' => 'primary',
+            'headline' => sprintf('%d rendez-vous visibles', $agenda['total']),
+            'metrics' => [
+                ['label' => 'Aujourd’hui', 'value' => $agenda['today'], 'icon' => 'bi-calendar2-check'],
+                ['label' => '7 jours', 'value' => $agenda['next_7_days'], 'icon' => 'bi-calendar-week'],
+                ['label' => 'En attente', 'value' => $agenda['pending'], 'icon' => 'bi-hourglass-split'],
+                ['label' => 'Priorité haute', 'value' => $agenda['high_priority'], 'icon' => 'bi-exclamation-triangle'],
+            ],
+            'alerts' => $agenda['pending'] > 0 ? [[
+                'title' => 'Rendez-vous à confirmer',
+                'text' => sprintf('%d rendez-vous en attente.', $agenda['pending']),
+                'level' => 'warning',
+            ]] : [],
+            'items_title' => 'Prochains rendez-vous',
+            'items' => array_map(static fn (array $item): array => [
+                'title' => $item['title'],
+                'text' => $item['meta'],
+            ], array_slice($agenda['upcoming'], 0, 3)),
+            'progress' => $agenda['total'] > 0 ? min(100, (int) round(($agenda['next_7_days'] / max(1, $agenda['total'])) * 100)) : 0,
+            'progress_label' => 'Charge 7 jours',
+            'chart' => $agenda['status_chart'],
             'chart_type' => 'bars',
         ];
     }

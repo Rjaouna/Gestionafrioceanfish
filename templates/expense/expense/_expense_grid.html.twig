@@ -65,9 +65,9 @@
                 {% block actions %}
                     <div class="app-card-actions-row">
                         <div class="btn-group btn-group-sm">
-                            {% if document and is_granted('EXPENSE_DOWNLOAD_DOCUMENT', document) %}
-                                <a class="btn btn-outline-primary" href="{{ path('app_expense_document_download', {id: document.id}) }}" title="Télécharger le justificatif" aria-label="Télécharger le justificatif">
-                                    <i class="bi bi-download"></i>
+                            {% if document and is_granted('EXPENSE_VIEW_DOCUMENT', document) %}
+                                <a class="btn btn-outline-primary" href="{{ path('app_expense_document_view', {id: document.id}) }}" target="_blank" rel="noopener" title="Voir le justificatif privé" aria-label="Voir le justificatif privé">
+                                    <i class="bi bi-eye"></i>
                                 </a>
                             {% endif %}
                             {% if is_granted('EXPENSE_SHARE', expense) %}
@@ -103,13 +103,8 @@
                                 </button>
                             {% endif %}
                             {% if is_granted('EXPENSE_REACTIVATE', expense) %}
-                                <button class="btn btn-outline-success" title="RÃ©activer" aria-label="RÃ©activer" data-confirm-url="{{ path('app_expense_reactivate', {id: expense.id}) }}" data-token="{{ csrf_token('reactivate_expense_' ~ expense.id) }}" data-confirm-message="RÃ©activer cette dÃ©pense en brouillon ?">
+                                <button class="btn btn-outline-success" title="Réactiver" aria-label="Réactiver" data-confirm-url="{{ path('app_expense_reactivate', {id: expense.id}) }}" data-token="{{ csrf_token('reactivate_expense_' ~ expense.id) }}" data-confirm-message="Réactiver cette dépense en brouillon ?">
                                     <i class="bi bi-arrow-counterclockwise"></i>
-                                </button>
-                            {% endif %}
-                            {% if is_granted('EXPENSE_ARCHIVE', expense) %}
-                                <button class="btn btn-outline-secondary" title="{{ expense.active ? 'Archiver' : 'Désarchiver' }}" aria-label="{{ expense.active ? 'Archiver' : 'Désarchiver' }}" data-confirm-url="{{ path('app_expense_archive', {id: expense.id}) }}" data-token="{{ csrf_token('archive_expense_' ~ expense.id) }}" data-confirm-message="{{ expense.active ? 'Archiver cette dépense ?' : 'Désarchiver cette dépense ?' }}">
-                                    <i class="bi {{ expense.active ? 'bi-archive' : 'bi-arrow-counterclockwise' }}"></i>
                                 </button>
                             {% endif %}
                         </div>

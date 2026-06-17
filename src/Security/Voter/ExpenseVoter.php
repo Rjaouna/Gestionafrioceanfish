@@ -23,6 +23,7 @@ final class ExpenseVoter extends Voter
     public const CANCEL = 'EXPENSE_CANCEL';
     public const REACTIVATE = 'EXPENSE_REACTIVATE';
     public const SUBMIT = 'EXPENSE_SUBMIT';
+    public const VIEW_DOCUMENT = 'EXPENSE_VIEW_DOCUMENT';
     public const DOWNLOAD_DOCUMENT = 'EXPENSE_DOWNLOAD_DOCUMENT';
     public const DELETE_DOCUMENT = 'EXPENSE_DELETE_DOCUMENT';
     public const MANAGE_CATEGORIES = 'EXPENSE_MANAGE_CATEGORIES';
@@ -46,6 +47,7 @@ final class ExpenseVoter extends Voter
             self::CANCEL,
             self::REACTIVATE,
             self::SUBMIT,
+            self::VIEW_DOCUMENT,
             self::DOWNLOAD_DOCUMENT,
             self::DELETE_DOCUMENT,
             self::MANAGE_CATEGORIES,
@@ -73,6 +75,7 @@ final class ExpenseVoter extends Voter
             self::CANCEL => $subject instanceof Expense && $this->access->canCancel($user, $subject),
             self::REACTIVATE => $subject instanceof Expense && $this->access->canReactivate($user, $subject),
             self::SUBMIT => $subject instanceof Expense && $this->access->canSubmit($user, $subject),
+            self::VIEW_DOCUMENT => $subject instanceof ExpenseDocument && $this->access->canViewDocument($user, $subject),
             self::DOWNLOAD_DOCUMENT => $subject instanceof ExpenseDocument && $this->access->canDownloadDocument($user, $subject),
             self::DELETE_DOCUMENT => $subject instanceof ExpenseDocument && $this->access->canDeleteDocument($user, $subject),
             default => false,

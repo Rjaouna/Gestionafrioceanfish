@@ -70,9 +70,9 @@
                                 <div class="fw-semibold text-truncate">{{ document.documentTypeLabel }}</div>
                                 <div class="small text-secondary text-truncate">{{ document.originalFileName }}</div>
                             </div>
-                            {% if is_granted('EXPENSE_DOWNLOAD_DOCUMENT', document) %}
-                                <a class="btn btn-outline-primary btn-sm" href="{{ path('app_expense_document_download', {id: document.id}) }}">
-                                    <i class="bi bi-download"></i>
+                            {% if is_granted('EXPENSE_VIEW_DOCUMENT', document) %}
+                                <a class="btn btn-outline-primary btn-sm" href="{{ path('app_expense_document_view', {id: document.id}) }}" target="_blank" rel="noopener" title="Voir le justificatif privé" aria-label="Voir le justificatif privé">
+                                    <i class="bi bi-eye"></i>
                                 </a>
                             {% endif %}
                         </div>

@@ -22,6 +22,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_appointment_deleted', columns: ['is_deleted'])]
 #[ORM\Index(name: 'idx_appointment_created_by', columns: ['created_by_id'])]
 #[ORM\Index(name: 'idx_appointment_updated_by', columns: ['updated_by_id'])]
+#[ORM\Index(name: 'idx_appointment_deleted_by', columns: ['deleted_by_id'])]
 class Appointment
 {
     use SoftDeleteTrait;

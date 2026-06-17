@@ -3,152 +3,153 @@
 {% block title %}Tableau de bord{% endblock %}
 
 {% block body %}
-<div class="dashboard-shell">
-    <div class="dashboard-hero dashboard-hero-compact mb-3">
-        <div>
-            <div>
-                <span class="dashboard-kicker">Pilotage Afriocean fish</span>
-                <h1 class="h3 fw-bold mb-1">Bonjour {{ app.user.firstName ?? app.user.displayName }}</h1>
-                <p class="text-secondary small mb-0">Vue rapide de vos modules, alertes et indicateurs utiles.</p>
-            </div>
-        </div>
-    </div>
+{% set first_name = app.user.firstName ?? app.user.displayName %}
+{% set section_labels = {
+    agenda: 'Agenda - RDV',
+    maintenance: 'Maintenance',
+    expenses: 'Dépenses',
+    documents: 'Documents',
+    contacts: 'Contacts',
+    passwords: 'Coffre d’accès',
+    users: 'Utilisateurs',
+    modules: 'Configuration'
+} %}
 
-    {% if dashboard.kpis is empty %}
+<div class="dashboard-shell dashboard-home">
+    <section class="dashboard-command-center mb-4">
+        <div class="dashboard-command-copy">
+            <span class="dashboard-kicker">Pilotage opérationnel</span>
+            <h1 class="h3 fw-bold mb-2">Bonjour {{ first_name }}</h1>
+            <p class="text-secondary mb-0">Vue consolidée de l’activité, des risques et des prochaines actions.</p>
+        </div>
+
+        <div class="dashboard-command-metrics">
+            {% for metric in dashboard.hero_metrics %}
+                <div class="dashboard-command-metric">
+                    <span class="text-{{ metric.tone }}"><i class="bi {{ metric.icon }}"></i></span>
+                    <strong>{{ metric.value }}</strong>
+                    <small>{{ metric.label }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    {% if dashboard.executive_kpis is empty %}
         <div class="alert alert-info">
             <i class="bi bi-info-circle me-2"></i>Aucun module ne vous a encore été attribué.
         </div>
     {% else %}
-        <div class="dashboard-kpi-strip mb-4">
-            {% for kpi in dashboard.kpis %}
+        <section class="dashboard-kpi-grid mb-4" aria-label="Indicateurs principaux">
+            {% for kpi in dashboard.executive_kpis %}
                 <a class="dashboard-kpi-card dashboard-kpi-card-{{ kpi.tone|default('primary') }} card border-0 shadow-sm" href="{{ path(kpi.route) }}">
                     <div class="dashboard-kpi-head">
                         <span class="dashboard-kpi-title">{{ kpi.label }}</span>
-                        <span class="dashboard-kpi-icon">
-                            <i class="bi {{ kpi.icon }}"></i>
-                        </span>
+                        <span class="dashboard-kpi-icon"><i class="bi {{ kpi.icon }}"></i></span>
                     </div>
                     <div class="dashboard-kpi-value">{{ kpi.value_display|default(kpi.value) }}</div>
                     <div class="dashboard-kpi-hint">{{ kpi.hint }}</div>
                 </a>
             {% endfor %}
-        </div>
+        </section>
     {% endif %}
 
-    {% if dashboard.expense_type_chart|default([]) is not empty %}
-        <div class="row g-4 mb-4">
-            <div class="col-12 col-xl-7">
-                <section class="dashboard-module-card card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
-                            <div class="d-flex align-items-start gap-3 min-w-0">
-                                <span class="dashboard-module-icon bg-warning-subtle text-warning-emphasis">
-                                    <i class="bi bi-cash-coin"></i>
-                                </span>
-                                <div class="min-w-0">
-                                    <h2 class="h5 mb-1 text-truncate">Dépenses par type</h2>
-                                    <p class="small text-secondary mb-0">Sommes TTC regroupees par categorie.</p>
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-xl-7">
+            <section class="dashboard-module-card card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <span class="dashboard-kicker">Charge active</span>
+                            <h2 class="h5 mb-1">Activité à piloter</h2>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary-emphasis">{{ dashboard.alert_count }} alerte{{ dashboard.alert_count > 1 ? 's' : '' }}</span>
+                    </div>
+
+                    {% include 'components/_dashboard_chart.html.twig' with {
+                        title: 'Volumes',
+                        subtitle: 'Agenda, maintenance, validations',
+                        chart: dashboard.operational_chart,
+                        chart_type: 'bars',
+                        tone: 'primary',
+                        progress: dashboard.alert_count,
+                        progress_label: 'Alertes'
+                    } only %}
+                </div>
+            </section>
+        </div>
+
+        <div class="col-12 col-xl-5">
+            <section class="dashboard-module-card card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <span class="dashboard-kicker">Points de contrôle</span>
+                            <h2 class="h5 mb-1">À surveiller</h2>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-health-grid">
+                        {% for card in dashboard.health_cards %}
+                            <div class="dashboard-health-card dashboard-health-card-{{ card.tone }}">
+                                <span><i class="bi {{ card.icon }}"></i></span>
+                                <strong>{{ card.value }}</strong>
+                                <div>
+                                    <b>{{ card.label }}</b>
+                                    <small>{{ card.caption }}</small>
                                 </div>
                             </div>
-                            <a class="btn btn-sm btn-outline-warning" href="{{ path('app_expense_index') }}">Ouvrir</a>
-                        </div>
-
-                        {% include 'components/_dashboard_chart.html.twig' with {
-                            title: 'Montants',
-                            subtitle: 'Types de depenses',
-                            chart: dashboard.expense_type_chart,
-                            chart_type: 'bars',
-                            tone: 'warning',
-                            progress: 100,
-                            progress_label: 'TTC'
-                        } only %}
+                        {% else %}
+                            <div class="dashboard-empty">
+                                <i class="bi bi-check2-circle"></i>
+                                <span>Aucun point bloquant.</span>
+                            </div>
+                        {% endfor %}
                     </div>
-                </section>
-            </div>
+                </div>
+            </section>
         </div>
-    {% endif %}
-
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-        <div>
-            <h2 class="h4 mb-1">Vue par module</h2>
-            <p class="text-secondary mb-0">Chaque bloc résume un domaine, avec ses indicateurs et son mini-graphe.</p>
-        </div>
-        <span class="badge bg-primary-subtle text-primary-emphasis px-3 py-2">
-            <i class="bi bi-grid-1x2 me-1"></i>Dashboard multi-modules
-        </span>
     </div>
 
     <div class="row g-4 mb-4">
-        {% for section in dashboard.sections %}
-            {% set tone = section.tone == 'dark' ? 'secondary' : section.tone %}
-            <div class="col-12 col-lg-6 col-xxl-4">
-                <section class="dashboard-module-card card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
-                            <div class="d-flex align-items-start gap-3 min-w-0">
-                                <span class="dashboard-module-icon bg-{{ tone }}-subtle text-{{ tone }}-emphasis">
-                                    <i class="bi {{ section.icon }}"></i>
-                                </span>
+        <div class="col-12 col-xl-4">
+            <section class="dashboard-panel card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Prochaines échéances</h2>
+                    <p class="text-secondary small mb-0">RDV et interventions à traiter.</p>
+                </div>
+                <div class="card-body">
+                    <div class="dashboard-timeline">
+                        {% for item in dashboard.schedule %}
+                            <a class="dashboard-timeline-item dashboard-timeline-link" href="{{ path(item.route) }}">
+                                <span class="dashboard-alert-icon bg-{{ item.tone }}-subtle text-{{ item.tone }}-emphasis"><i class="bi {{ item.icon }}"></i></span>
                                 <div class="min-w-0">
-                                    <h3 class="h5 mb-1 text-truncate">{{ section.name }}</h3>
-                                    <p class="small text-secondary mb-0">{{ section.headline }}</p>
+                                    <div class="fw-semibold text-truncate">{{ item.title }}</div>
+                                    <div class="small text-secondary">{{ item.meta }}</div>
                                 </div>
-                            </div>
-                            <a class="btn btn-sm btn-outline-{{ tone }}" href="{{ path(section.route) }}">
-                                Ouvrir
+                                <span class="badge text-bg-light text-secondary">{{ item.kind }}</span>
                             </a>
-                        </div>
-
-                        <div class="dashboard-card-metrics mb-3">
-                            {% for metric in section.metrics|slice(0, 4) %}
-                                <div class="dashboard-card-metric">
-                                    <span class="text-secondary"><i class="bi {{ metric.icon }} me-1"></i>{{ metric.label }}</span>
-                                    <strong>{{ metric.value }}</strong>
-                                </div>
-                            {% endfor %}
-                        </div>
-
-                        {% include 'components/_dashboard_chart.html.twig' with {
-                            title: 'Graphique',
-                            subtitle: section.name,
-                            chart: section.chart,
-                            chart_type: section.chart_type,
-                            tone: tone,
-                            progress: section.progress,
-                            progress_label: section.progress_label,
-                            extra_classes: 'mb-3'
-                        } only %}
-
-                        {% if section.alerts is not empty %}
-                            {% set alert = section.alerts|first %}
-                            <div class="dashboard-module-insight">
-                                <span class="dashboard-stack-dot bg-warning"></span>
-                                <div class="min-w-0">
-                                    <strong class="d-block text-truncate">{{ alert.title }}</strong>
-                                    <span class="small text-secondary">{{ alert.text }}</span>
-                                </div>
+                        {% else %}
+                            <div class="dashboard-empty">
+                                <i class="bi bi-calendar-check"></i>
+                                <span>Aucune échéance ouverte.</span>
                             </div>
-                        {% endif %}
+                        {% endfor %}
                     </div>
-                </section>
-            </div>
-        {% endfor %}
-    </div>
+                </div>
+            </section>
+        </div>
 
-    <div class="row g-4">
         <div class="col-12 col-xl-4">
             <section class="dashboard-panel card border-0 shadow-sm h-100">
                 <div class="card-header bg-white border-0 pb-0">
                     <h2 class="h5 mb-1">Alertes prioritaires</h2>
-                    <p class="text-secondary small mb-0">Contrats, accès et comptes à surveiller.</p>
+                    <p class="text-secondary small mb-0">Éléments qui demandent une action.</p>
                 </div>
                 <div class="card-body">
                     <div class="dashboard-alert-list">
                         {% for alert in dashboard.alerts %}
                             <div class="dashboard-alert-item">
-                                <span class="dashboard-alert-icon bg-{{ alert.tone }}-subtle text-{{ alert.tone }}-emphasis">
-                                    <i class="bi {{ alert.icon }}"></i>
-                                </span>
+                                <span class="dashboard-alert-icon bg-{{ alert.tone }}-subtle text-{{ alert.tone }}-emphasis"><i class="bi {{ alert.icon }}"></i></span>
                                 <div class="min-w-0">
                                     <div class="fw-semibold text-truncate">{{ alert.title }}</div>
                                     <div class="small text-secondary">{{ alert.text }}</div>
@@ -157,7 +158,7 @@
                         {% else %}
                             <div class="dashboard-empty">
                                 <i class="bi bi-check2-circle"></i>
-                                <span>Aucune alerte critique.</span>
+                                <span>Aucune alerte prioritaire.</span>
                             </div>
                         {% endfor %}
                     </div>
@@ -168,61 +169,118 @@
         <div class="col-12 col-xl-4">
             <section class="dashboard-panel card border-0 shadow-sm h-100">
                 <div class="card-header bg-white border-0 pb-0">
-                    <h2 class="h5 mb-1">Actions en cours</h2>
-                    <p class="text-secondary small mb-0">Tout ce qui est actif et pas encore terminé.</p>
+                    <h2 class="h5 mb-1">Accès rapides</h2>
+                    <p class="text-secondary small mb-0">Espaces les plus utiles au quotidien.</p>
                 </div>
                 <div class="card-body">
-                    <div class="dashboard-timeline">
-                        {% for item in dashboard.agenda %}
-                            <div class="dashboard-timeline-item">
-                                <span class="dashboard-timeline-marker"></span>
-                                <div class="min-w-0">
-                                    <div class="fw-semibold text-truncate">{{ item.title }}</div>
-                                    <div class="small text-secondary">{{ item.meta }}</div>
+                    <div class="dashboard-action-list">
+                        {% for action in dashboard.quick_actions %}
+                            <a class="dashboard-action-card" href="{{ path(action.route) }}">
+                                <span class="bg-{{ action.tone }}-subtle text-{{ action.tone }}-emphasis"><i class="bi {{ action.icon }}"></i></span>
+                                <div>
+                                    <strong>{{ action.label }}</strong>
+                                    <small>{{ action.text }}</small>
                                 </div>
-                                <span class="badge text-bg-light text-secondary">{{ item.status_label|default(item.status|replace({'_': ' '})) }}</span>
-                            </div>
+                                <i class="bi bi-arrow-right-short"></i>
+                            </a>
                         {% else %}
                             <div class="dashboard-empty">
-                                <i class="bi bi-calendar-check"></i>
-                                <span>Aucune intervention ouverte.</span>
+                                <i class="bi bi-grid"></i>
+                                <span>Aucun raccourci disponible.</span>
                             </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <div class="col-12 col-xl-4">
-            <section class="dashboard-panel card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 pb-0">
-                    <h2 class="h5 mb-1">Raccourcis utiles</h2>
-                    <p class="text-secondary small mb-0">Ouvrir rapidement les espaces de travail.</p>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3 mb-3">
-                        {% for tile in dashboard.module_tiles %}
-                            <div class="col-6">
-                                <div class="dashboard-module-tile">
-                                    <i class="bi {{ tile.icon }} text-{{ tile.tone }}"></i>
-                                    <strong>{{ tile.value }}</strong>
-                                    <span>{{ tile.label }}</span>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="d-grid gap-2">
-                        {% for section in dashboard.sections %}
-                            <a class="dashboard-module-link" href="{{ path(section.route) }}">
-                                <span><i class="bi {{ section.icon }} me-2"></i>{{ section.name }}</span>
-                                <i class="bi bi-arrow-right"></i>
-                            </a>
                         {% endfor %}
                     </div>
                 </div>
             </section>
         </div>
     </div>
+
+    {% if dashboard.available.agenda or dashboard.available.expenses %}
+    <div class="row g-4 mb-4">
+        {% if dashboard.available.agenda %}
+        <div class="col-12 col-xl-6">
+            <section class="dashboard-module-card card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <span class="dashboard-kicker">Agenda</span>
+                            <h2 class="h5 mb-1">Répartition des rendez-vous</h2>
+                        </div>
+                        <a class="btn btn-sm btn-outline-primary" href="{{ path('app_appointment_calendar') }}">Ouvrir</a>
+                    </div>
+
+                    {% include 'components/_dashboard_chart.html.twig' with {
+                        title: 'Statuts',
+                        subtitle: 'Rendez-vous visibles',
+                        chart: dashboard.charts.agenda,
+                        chart_type: 'bars',
+                        tone: 'primary',
+                        progress: dashboard.agenda_overview.total,
+                        progress_label: 'RDV'
+                    } only %}
+                </div>
+            </section>
+        </div>
+        {% endif %}
+
+        {% if dashboard.available.expenses %}
+        <div class="col-12 col-xl-6">
+            <section class="dashboard-module-card card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <span class="dashboard-kicker">Finances</span>
+                            <h2 class="h5 mb-1">Dépenses par catégorie</h2>
+                        </div>
+                        <a class="btn btn-sm btn-outline-warning" href="{{ path('app_expense_index') }}">Ouvrir</a>
+                    </div>
+
+                    {% include 'components/_dashboard_chart.html.twig' with {
+                        title: 'Montants TTC',
+                        subtitle: 'Catégories visibles',
+                        chart: dashboard.expense_type_chart,
+                        chart_type: 'bars',
+                        tone: 'warning',
+                        progress: dashboard.finance_overview.pending_count,
+                        progress_label: 'À valider'
+                    } only %}
+                </div>
+            </section>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <section class="dashboard-panel card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pb-0">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <h2 class="h5 mb-1">Modules accessibles</h2>
+                    <p class="text-secondary small mb-0">Vue synthétique des domaines actifs.</p>
+                </div>
+                <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ dashboard.sections|length }} module{{ dashboard.sections|length > 1 ? 's' : '' }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="dashboard-module-summary">
+                {% for section in dashboard.sections %}
+                    {% set tone = section.tone == 'dark' ? 'secondary' : section.tone %}
+                    <a class="dashboard-module-summary-item" href="{{ path(section.route) }}">
+                        <span class="dashboard-module-icon bg-{{ tone }}-subtle text-{{ tone }}-emphasis"><i class="bi {{ section.icon }}"></i></span>
+                        <div class="min-w-0">
+                            <strong>{{ section_labels[section.slug]|default(section.name) }}</strong>
+                            <small>{{ section.metrics|length }} indicateur{{ section.metrics|length > 1 ? 's' : '' }}</small>
+                        </div>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                {% else %}
+                    <div class="dashboard-empty">
+                        <i class="bi bi-grid"></i>
+                        <span>Aucun module disponible.</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
 </div>
 {% endblock %}

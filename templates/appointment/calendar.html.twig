@@ -138,13 +138,22 @@
                     <input type="hidden" name="startAt">
                     <input type="hidden" name="endAt">
                     <div class="row g-3">
-                        <div class="col-md-8">
+                        <div class="col-12">
                             <label class="form-label fw-semibold" for="quickAppointmentTitle">Titre</label>
                             <input class="form-control" id="quickAppointmentTitle" name="title" required placeholder="Rendez-vous client">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold" for="quickAppointmentDuration">Duree</label>
-                            <select class="form-select" id="quickAppointmentDuration" name="duration">
+                            <label class="form-label fw-semibold" for="quickAppointmentDate">Date</label>
+                            <input class="form-control" id="quickAppointmentDate" name="appointmentDate" type="date" required data-appointment-date>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" for="quickAppointmentStartTime">Heure de début</label>
+                            <input class="form-control" id="quickAppointmentStartTime" name="startTime" type="time" step="900" required data-appointment-time>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" for="quickAppointmentDuration">Durée</label>
+                            <select class="form-select" id="quickAppointmentDuration" name="duration" data-appointment-duration>
+                                <option value="15">15 minutes</option>
                                 <option value="30">30 minutes</option>
                                 <option value="45">45 minutes</option>
                                 <option value="60" selected>1 heure</option>

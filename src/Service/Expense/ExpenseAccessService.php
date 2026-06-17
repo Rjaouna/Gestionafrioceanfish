@@ -137,6 +137,11 @@ final readonly class ExpenseAccessService
 
     public function canDownloadDocument(User $user, ExpenseDocument $document): bool
     {
+        return $this->canViewDocument($user, $document);
+    }
+
+    public function canViewDocument(User $user, ExpenseDocument $document): bool
+    {
         $expense = $document->getExpense();
 
         return $expense instanceof Expense && $document->isActive() && $this->canView($user, $expense);

@@ -77,6 +77,20 @@ final readonly class ExpenseDocumentService
             throw new AccessDeniedException();
         }
 
+        return $this->storedFile($document);
+    }
+
+    public function previewFile(ExpenseDocument $document, User $actor): File
+    {
+        if (!$this->access->canViewDocument($actor, $document)) {
+            throw new AccessDeniedException();
+        }
+
+        return $this->storedFile($document);
+    }
+
+    private function storedFile(ExpenseDocument $document): File
+    {
         $fileName = $document->getFileName();
         if (!$fileName) {
             throw new \RuntimeException('Le justificatif est introuvable.');

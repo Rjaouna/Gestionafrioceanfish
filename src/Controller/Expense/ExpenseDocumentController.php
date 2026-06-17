@@ -56,6 +56,19 @@ final class ExpenseDocumentController extends AbstractController
         return $response;
     }
 
+    #[Route('/justificatifs/{id}/consulter', name: 'app_expense_document_view', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function view(ExpenseDocument $document): BinaryFileResponse
+    {
+        $this->denyAccessUnlessGranted(ExpenseVoter::VIEW_DOCUMENT, $document);
+        $response = new BinaryFileResponse($this->documentService->previewFile($document, $this->currentUser()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_INLINE, $this->documentService->downloadFileName($document));
+        $response->headers->set('Content-Type', $document->getMimeType() ?: 'application/octet-stream');
+        $response->headers->set('Cache-Control', 'no-store, private');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+
+        return $response;
+    }
+
     #[Route('/justificatifs/{id}', name: 'app_expense_document_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
     public function delete(ExpenseDocument $document, Request $request): JsonResponse
     {
