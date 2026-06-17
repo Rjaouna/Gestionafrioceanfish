@@ -135,23 +135,8 @@
                         </div>
                     {% endif %}
 
-                    {% if contact.city %}
-                        <div class="app-card-detail-line mb-2">
-                            <span class="app-card-detail-label"><i class="bi bi-building"></i>Ville</span>
-                            <span class="app-card-detail-value" title="{{ contact.city }}">{{ contact.city }}</span>
-                        </div>
-                    {% endif %}
+               
 
-                    {% if mobile_numbers %}
-                        <div class="app-card-detail-line mb-2">
-                            <span class="app-card-detail-label"><i class="bi bi-phone"></i>Portable</span>
-                            <span class="app-card-detail-value">
-                                {% for mobile in mobile_numbers %}
-                                    <a href="tel:{{ mobile|replace({' ': '', '.': '', '-': '', '(': '', ')': ''}) }}" class="text-decoration-none" title="Appeler {{ mobile }}">{{ mobile }}</a>{{ not loop.last ? ' · ' : '' }}
-                                {% endfor %}
-                            </span>
-                        </div>
-                    {% endif %}
 
                 {% endblock %}
 
