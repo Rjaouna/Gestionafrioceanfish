@@ -52,15 +52,17 @@
                                             <span class="badge text-bg-primary mt-1">Principal</span>
                                         {% endif %}
                                     </div>
-                                    <button
-                                        class="btn btn-outline-danger btn-sm"
-                                        data-confirm-url="{{ path('app_maintenance_intervention_remove_assignment', {id: intervention.id, assignmentId: assignment.id}) }}"
-                                        data-confirm-method="DELETE"
-                                        data-token="{{ csrf_token('remove_maintenance_assignment_' ~ intervention.id) }}"
-                                        data-confirm-message="Retirer cette affectation ?"
-                                    >
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
+                                    {% if is_granted('INTERVENTION_DELETE', intervention) %}
+                                        <button
+                                            class="btn btn-outline-danger btn-sm"
+                                            data-confirm-url="{{ path('app_maintenance_intervention_remove_assignment', {id: intervention.id, assignmentId: assignment.id}) }}"
+                                            data-confirm-method="DELETE"
+                                            data-token="{{ csrf_token('remove_maintenance_assignment_' ~ intervention.id) }}"
+                                            data-confirm-message="Retirer cette affectation ?"
+                                        >
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    {% endif %}
                                 </div>
                             </div>
                         {% else %}

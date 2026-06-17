@@ -49,7 +49,9 @@ final readonly class ContactPermissionService
 
     public function canDelete(User $user, Contact $contact): bool
     {
-        return $this->canEdit($user, $contact);
+        return $this->canCreate($user)
+            && $contact->isActive()
+            && $this->access->isAdmin($user);
     }
 
     private function isCreator(User $user, Contact $contact): bool

@@ -168,7 +168,7 @@ final readonly class InterventionService
 
     public function removeAssignment(InterventionIntervenant $assignment, User $actor): void
     {
-        if (!$this->access->canAssignIntervenant($actor)) {
+        if (!$this->access->canDelete($actor)) {
             throw new AccessDeniedException();
         }
 

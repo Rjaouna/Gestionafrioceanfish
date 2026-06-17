@@ -1,0 +1,45 @@
+<form data-share-form action="{{ path('app_expense_share_save', {id: expense.id}) }}" data-token="{{ csrf_token('share_expense_' ~ expense.id) }}">
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">Partager « {{ expense.title }} »</h2>
+            <p class="text-secondary small mb-0">Choisissez les utilisateurs qui peuvent consulter cette dépense.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="input-group mb-4">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="search" class="form-control" placeholder="Rechercher un nom ou un e-mail" data-user-search>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Utilisateur</th>
+                        <th>E-mail</th>
+                        <th class="text-center">Accès autorisé</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in share_matrix %}
+                        <tr data-share-row data-search-value="{{ (item.user.displayName ~ ' ' ~ item.user.email)|lower }}">
+                            <td class="fw-semibold">{{ item.user.displayName }}</td>
+                            <td>{{ item.user.email }}</td>
+                            <td class="text-center">
+                                <input class="form-check-input fs-5" type="checkbox" data-share-view data-user-id="{{ item.user.id }}" {{ item.canView ? 'checked' : '' }} aria-label="Autoriser l’accès">
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="3" class="text-center text-secondary py-5">Aucun utilisateur actif disponible.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-people me-1"></i>Enregistrer les partages
+        </button>
+    </div>
+</form>

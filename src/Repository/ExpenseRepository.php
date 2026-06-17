@@ -116,13 +116,14 @@ class ExpenseRepository extends ServiceEntityRepository
             ->leftJoin('e.category', 'c')
             ->leftJoin('e.createdBy', 'creator')
             ->leftJoin('e.documents', 'documents')
-            ->addSelect('c', 'creator', 'documents')
+            ->leftJoin('e.shares', 'shares')
+            ->addSelect('c', 'creator', 'documents', 'shares')
             ->orderBy('e.expenseDate', 'DESC')
             ->addOrderBy('e.createdAt', 'DESC');
 
         if (!$admin) {
             $builder
-                ->andWhere('e.createdBy = :visibleUser')
+                ->andWhere('e.createdBy = :visibleUser OR (e.isActive = true AND shares.user = :visibleUser AND shares.isActive = true AND shares.canView = true)')
                 ->setParameter('visibleUser', $user);
         }
 

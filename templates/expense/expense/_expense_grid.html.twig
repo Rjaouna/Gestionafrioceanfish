@@ -71,6 +71,11 @@
                                     <i class="bi bi-download"></i>
                                 </a>
                             {% endif %}
+                            {% if is_granted('EXPENSE_SHARE', expense) %}
+                                <button class="btn btn-outline-success" title="Partager" aria-label="Partager" data-remote-modal="{{ path('app_expense_share_modal', {id: expense.id}) }}">
+                                    <i class="bi bi-share"></i>
+                                </button>
+                            {% endif %}
                             {% if is_granted('EXPENSE_SUBMIT', expense) %}
                                 <button class="btn btn-outline-primary" title="Soumettre" aria-label="Soumettre" data-confirm-url="{{ path('app_expense_submit', {id: expense.id}) }}" data-token="{{ csrf_token('submit_expense_' ~ expense.id) }}" data-confirm-message="Soumettre cette dépense pour validation ?">
                                     <i class="bi bi-send"></i>

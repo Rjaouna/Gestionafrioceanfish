@@ -4,15 +4,19 @@ namespace App\Service\Expense;
 
 use App\Entity\Expense;
 use App\Entity\ExpenseDocument;
+use App\Entity\ExpenseShare;
 use App\Entity\User;
+use App\Repository\ExpenseShareRepository;
 use App\Service\SecurityAccessService;
 
 final readonly class ExpenseAccessService
 {
     public const MODULE_SLUG = 'expenses';
 
-    public function __construct(private SecurityAccessService $security)
-    {
+    public function __construct(
+        private SecurityAccessService $security,
+        private ExpenseShareRepository $shareRepository,
+    ) {
     }
 
     public function canAccess(User $user): bool
@@ -41,7 +45,16 @@ final readonly class ExpenseAccessService
             return false;
         }
 
-        return $this->isAdmin($user) || $this->isCreator($user, $expense);
+        if ($this->isAdmin($user) || $this->isCreator($user, $expense)) {
+            return true;
+        }
+
+        $share = $this->shareRepository->findFor($expense, $user);
+
+        return $expense->isActive()
+            && $share instanceof ExpenseShare
+            && $share->isActive()
+            && $share->canView();
     }
 
     public function canEdit(User $user, Expense $expense): bool
@@ -63,7 +76,12 @@ final readonly class ExpenseAccessService
 
     public function canDelete(User $user, Expense $expense): bool
     {
-        return $this->canView($user, $expense) && $this->isSuperAdmin($user);
+        return $this->canView($user, $expense) && $this->isAdmin($user);
+    }
+
+    public function canShare(User $user, Expense $expense): bool
+    {
+        return $this->canView($user, $expense) && $this->isAdmin($user) && $expense->isActive();
     }
 
     public function canArchive(User $user, Expense $expense): bool
@@ -122,6 +140,13 @@ final readonly class ExpenseAccessService
         $expense = $document->getExpense();
 
         return $expense instanceof Expense && $document->isActive() && $this->canView($user, $expense);
+    }
+
+    public function canDeleteDocument(User $user, ExpenseDocument $document): bool
+    {
+        $expense = $document->getExpense();
+
+        return $expense instanceof Expense && $document->isActive() && $this->canView($user, $expense) && $this->isAdmin($user);
     }
 
     public function canManageCategories(User $user): bool

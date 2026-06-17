@@ -71,7 +71,7 @@ final readonly class DocumentPermissionService
 
     public function canDelete(User $user, Document $document): bool
     {
-        return $this->canCreate($user) && $this->access->isSuperAdmin($user);
+        return $this->canCreate($user) && $this->access->isAdmin($user);
     }
 
     public function canManageShare(User $user, DocumentShare $share): bool

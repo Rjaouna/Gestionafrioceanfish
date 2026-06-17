@@ -29,7 +29,7 @@ final readonly class SecurityAccessService
 
     public function canDeletePasswords(User $user): bool
     {
-        return $this->isSuperAdmin($user);
+        return $this->isAdmin($user);
     }
 
     public function canViewPassword(User $user, PasswordEntry $entry): bool

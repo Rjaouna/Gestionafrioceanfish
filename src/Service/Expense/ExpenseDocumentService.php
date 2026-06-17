@@ -102,8 +102,7 @@ final readonly class ExpenseDocumentService
 
     public function delete(ExpenseDocument $document, User $actor): void
     {
-        $expense = $document->getExpense();
-        if (!$expense instanceof Expense || !$this->access->canEdit($actor, $expense)) {
+        if (!$this->access->canDeleteDocument($actor, $document)) {
             throw new AccessDeniedException();
         }
 

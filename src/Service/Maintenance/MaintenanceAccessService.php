@@ -33,7 +33,7 @@ final readonly class MaintenanceAccessService
 
     public function canDelete(User $user): bool
     {
-        return $this->securityAccess->isSuperAdmin($user);
+        return $this->canAccess($user) && $this->securityAccess->isAdmin($user);
     }
 
     public function canChangeStatus(User $user): bool

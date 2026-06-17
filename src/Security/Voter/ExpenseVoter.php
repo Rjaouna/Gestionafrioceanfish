@@ -14,6 +14,7 @@ final class ExpenseVoter extends Voter
     public const VIEW = 'EXPENSE_VIEW';
     public const CREATE = 'EXPENSE_CREATE';
     public const EDIT = 'EXPENSE_EDIT';
+    public const SHARE = 'EXPENSE_SHARE';
     public const DELETE = 'EXPENSE_DELETE';
     public const ARCHIVE = 'EXPENSE_ARCHIVE';
     public const VALIDATE = 'EXPENSE_VALIDATE';
@@ -35,6 +36,7 @@ final class ExpenseVoter extends Voter
             self::VIEW,
             self::CREATE,
             self::EDIT,
+            self::SHARE,
             self::DELETE,
             self::ARCHIVE,
             self::VALIDATE,
@@ -60,6 +62,7 @@ final class ExpenseVoter extends Voter
             self::MANAGE_CATEGORIES => $this->access->canManageCategories($user),
             self::VIEW => $subject instanceof Expense && $this->access->canView($user, $subject),
             self::EDIT => $subject instanceof Expense && $this->access->canEdit($user, $subject),
+            self::SHARE => $subject instanceof Expense && $this->access->canShare($user, $subject),
             self::DELETE => $subject instanceof Expense && $this->access->canDelete($user, $subject),
             self::ARCHIVE => $subject instanceof Expense && $this->access->canArchive($user, $subject),
             self::VALIDATE => $subject instanceof Expense && $this->access->canValidate($user, $subject),

@@ -29,7 +29,8 @@ final class SecurityAccessServiceTest extends TestCase
         self::assertTrue($service->isAdmin($admin));
         self::assertFalse($service->isAdmin($user));
         self::assertTrue($service->canDeletePasswords($superAdmin));
-        self::assertFalse($service->canDeletePasswords($admin));
+        self::assertTrue($service->canDeletePasswords($admin));
+        self::assertFalse($service->canDeletePasswords($user));
     }
 
     public function testCreatorKeepsAccessToOwnPendingPassword(): void

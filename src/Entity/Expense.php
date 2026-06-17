@@ -159,10 +159,15 @@ class Expense
     #[ORM\OneToMany(targetEntity: ExpenseDocument::class, mappedBy: 'expense', orphanRemoval: true, cascade: ['persist'])]
     private Collection $documents;
 
+    /** @var Collection<int, ExpenseShare> */
+    #[ORM\OneToMany(targetEntity: ExpenseShare::class, mappedBy: 'expense', orphanRemoval: true, cascade: ['persist'])]
+    private Collection $shares;
+
     public function __construct()
     {
         $this->expenseDate = new \DateTimeImmutable('today');
         $this->documents = new ArrayCollection();
+        $this->shares = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -486,6 +491,31 @@ class Expense
     {
         if ($this->documents->removeElement($document) && $document->getExpense() === $this) {
             $document->setExpense(null);
+        }
+
+        return $this;
+    }
+
+    /** @return Collection<int, ExpenseShare> */
+    public function getShares(): Collection
+    {
+        return $this->shares;
+    }
+
+    public function addShare(ExpenseShare $share): static
+    {
+        if (!$this->shares->contains($share)) {
+            $this->shares->add($share);
+            $share->setExpense($this);
+        }
+
+        return $this;
+    }
+
+    public function removeShare(ExpenseShare $share): static
+    {
+        if ($this->shares->removeElement($share) && $share->getExpense() === $this) {
+            $share->setExpense(null);
         }
 
         return $this;
