@@ -1,0 +1,14 @@
+<div class="modal-header">
+    <h2 class="modal-title h5">Annuler le rendez-vous</h2>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<form data-appointment-cancel-form data-url="{{ path('app_appointment_cancel', {id: appointment.id}) }}" data-token="{{ csrf_token('appointment_calendar') }}">
+    <div class="modal-body">
+        <label class="form-label fw-semibold" for="appointmentCancelReason">Motif</label>
+        <textarea class="form-control" id="appointmentCancelReason" name="reason" rows="4" placeholder="Motif d'annulation..."></textarea>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+        <button type="submit" class="btn btn-warning"><i class="bi bi-calendar-x me-2"></i>Annuler</button>
+    </div>
+</form>

@@ -1,0 +1,96 @@
+{% set statuses = constant('App\\Entity\\Appointment::STATUS_CHOICES') %}
+{% set priorities = constant('App\\Entity\\Appointment::PRIORITY_CHOICES') %}
+{% set types = constant('App\\Entity\\Appointment::TYPE_CHOICES') %}
+
+<div class="card border-0 shadow-sm mb-4" data-appointment-filter-panel>
+    <div class="card-body p-3">
+        <div class="row align-items-end g-3">
+            <div class="col-lg-4">
+                <label class="form-label small fw-semibold text-secondary" for="appointmentSearch">Recherche</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-primary"></i></span>
+                    <input
+                        id="appointmentSearch"
+                        type="search"
+                        class="form-control border-start-0"
+                        placeholder="Reference, titre, client, lieu..."
+                        value="{{ filters.q|default('') }}"
+                        data-appointment-search
+                        data-appointment-search-url="{{ path('app_appointment_search') }}"
+                        data-appointment-target="appointmentGrid"
+                    >
+                    <button class="btn btn-outline-secondary {{ filters.q|default('') ? '' : 'd-none' }}" type="button" data-appointment-clear-search aria-label="Effacer">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-2">
+                <label class="form-label small fw-semibold text-secondary" for="appointmentStatusFilter">Statut</label>
+                <select id="appointmentStatusFilter" class="form-select" data-appointment-filter="status">
+                    <option value="">Tous</option>
+                    {% for label, value in statuses %}
+                        <option value="{{ value }}" {{ filters.status|default('') == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6 col-lg-2">
+                <label class="form-label small fw-semibold text-secondary" for="appointmentPriorityFilter">Priorite</label>
+                <select id="appointmentPriorityFilter" class="form-select" data-appointment-filter="priority">
+                    <option value="">Toutes</option>
+                    {% for label, value in priorities %}
+                        <option value="{{ value }}" {{ filters.priority|default('') == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6 col-lg-2">
+                <label class="form-label small fw-semibold text-secondary" for="appointmentTypeFilter">Type</label>
+                <select id="appointmentTypeFilter" class="form-select" data-appointment-filter="appointmentType">
+                    <option value="">Tous</option>
+                    {% for label, value in types %}
+                        <option value="{{ value }}" {{ filters.appointmentType|default('') == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6 col-lg-2">
+                <label class="form-label small fw-semibold text-secondary" for="appointmentParticipantFilter">Utilisateur</label>
+                <select id="appointmentParticipantFilter" class="form-select" data-appointment-filter="participant">
+                    <option value="">Tous</option>
+                    {% for user in users %}
+                        <option value="{{ user.id }}" {{ filters.participant|default('') == user.id ? 'selected' : '' }}>{{ user.displayName }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6 col-lg-2">
+                <label class="form-label small fw-semibold text-secondary" for="appointmentDateFrom">Du</label>
+                <input id="appointmentDateFrom" type="date" class="form-control" value="{{ filters.dateFrom|default('') }}" data-appointment-filter="dateFrom">
+            </div>
+
+            <div class="col-md-6 col-lg-2">
+                <label class="form-label small fw-semibold text-secondary" for="appointmentDateTo">Au</label>
+                <input id="appointmentDateTo" type="date" class="form-control" value="{{ filters.dateTo|default('') }}" data-appointment-filter="dateTo">
+            </div>
+
+            <div class="col-md-6 col-lg-2">
+                <label class="form-label small fw-semibold text-secondary" for="appointmentActiveFilter">Etat</label>
+                <select id="appointmentActiveFilter" class="form-select" data-appointment-filter="active">
+                    <option value="active" {{ filters.active|default('active') == 'active' ? 'selected' : '' }}>Actifs</option>
+                    <option value="archived" {{ filters.active|default('') == 'archived' ? 'selected' : '' }}>Archives</option>
+                    <option value="all" {{ filters.active|default('') == 'all' ? 'selected' : '' }}>Tous</option>
+                </select>
+            </div>
+
+            <div class="col-lg-auto ms-lg-auto">
+                <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis px-3 py-2">
+                    <i class="bi bi-calendar-check me-1"></i>
+                    <span data-appointment-search-count>{{ pagination.total|default(0) }}</span>
+                    <span data-appointment-search-label>resultat{{ pagination.total|default(0) > 1 ? 's' : '' }}</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>

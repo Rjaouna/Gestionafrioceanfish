@@ -1,0 +1,26 @@
+<div class="appointment-history">
+    {% for item in history %}
+        <div class="appointment-history-item">
+            <span class="appointment-history-dot"></span>
+            <div class="min-w-0">
+                <div class="fw-semibold">{{ item.action }}</div>
+                <div class="small text-secondary">
+                    {{ item.createdAt ? item.createdAt|date('d/m/Y H:i') : '-' }}
+                    {% if item.createdBy %}par {{ item.createdBy.displayName }}{% endif %}
+                </div>
+                {% if item.oldValue or item.newValue or item.comment %}
+                    <div class="small text-secondary mt-1">
+                        {% if item.oldValue or item.newValue %}
+                            <span>{{ item.oldValue ?: '-' }} -> {{ item.newValue ?: '-' }}</span>
+                        {% endif %}
+                        {% if item.comment %}
+                            <span class="d-block">{{ item.comment }}</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="text-secondary small">Aucun historique pour le moment.</div>
+    {% endfor %}
+</div>

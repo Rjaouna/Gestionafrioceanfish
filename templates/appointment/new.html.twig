@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau rendez-vous{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Nouveau rendez-vous</h1>
+        <p class="text-secondary mb-0">Creation complete avec participants et verification des conflits.</p>
+    </div>
+    <a href="{{ path('app_appointment_calendar') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Retour calendrier
+    </a>
+</div>
+
+<div class="modal-content position-static">
+    {% include 'appointment/_form_modal.html.twig' with {
+        form: form,
+        appointment: null,
+        title: 'Creer un rendez-vous',
+        submit_label: 'Creer'
+    } %}
+</div>
+{% endblock %}

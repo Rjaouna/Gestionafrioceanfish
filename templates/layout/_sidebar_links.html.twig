@@ -2,11 +2,13 @@
 {% set password_modules = modules|filter(module => module.slug == 'passwords') %}
 {% set user_modules = modules|filter(module => module.slug == 'users') %}
 {% set module_admin_modules = modules|filter(module => module.slug == 'modules') %}
-{% set business_modules = modules|filter(module => module.slug not in ['passwords', 'users', 'modules']) %}
+{% set agenda_modules = modules|filter(module => module.slug == 'agenda') %}
+{% set business_modules = modules|filter(module => module.slug not in ['passwords', 'users', 'modules', 'agenda']) %}
 {% set can_manage_users = user_modules|length > 0 and is_granted('ROLE_ADMIN') %}
 {% set can_manage_modules = module_admin_modules|length > 0 and is_granted('ROLE_SUPER_ADMIN') %}
 {% set security_active = current_route starts with 'app_password' %}
 {% set users_active = current_route starts with 'app_user' %}
+{% set agenda_active = current_route starts with 'app_appointment' %}
 {% set configuration_active = current_route starts with 'app_module' %}
 {% set trash_active = current_route starts with 'app_trash' %}
 {% set deleted_items_count = is_granted('ROLE_SUPER_ADMIN') ? trash_deleted_count(app.user) : 0 %}
@@ -72,6 +74,33 @@
                     >
                         <i class="bi bi-person-plus"></i>
                         <span>Ajouter un utilisateur</span>
+                    </a>
+                </div>
+            </section>
+        {% endif %}
+
+        {% if agenda_modules|length > 0 %}
+            <section class="sidebar-open-section {{ agenda_active ? 'active' : '' }}">
+                <div class="sidebar-open-heading">
+                    <span class="sidebar-section-icon"><i class="bi bi-calendar-check"></i></span>
+                    <strong>Agenda - RDV</strong>
+                </div>
+                <div class="sidebar-open-body">
+                    <a class="sidebar-sub-link {{ current_route in ['app_appointment_calendar', 'app_appointment_calendar_alias'] ? 'active' : '' }}" href="{{ path('app_appointment_calendar') }}">
+                        <i class="bi bi-calendar3"></i>
+                        <span>Calendrier</span>
+                    </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route == 'app_appointment_index' ? 'active' : '' }}" href="{{ path('app_appointment_index') }}">
+                        <i class="bi bi-list-task"></i>
+                        <span>Liste des rendez-vous</span>
+                    </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route == 'app_appointment_new' ? 'active' : '' }}" href="{{ path('app_appointment_new') }}">
+                        <i class="bi bi-calendar-plus"></i>
+                        <span>Nouveau rendez-vous</span>
+                    </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route == 'app_appointment_my' ? 'active' : '' }}" href="{{ path('app_appointment_my') }}">
+                        <i class="bi bi-person-check"></i>
+                        <span>Mes rendez-vous</span>
                     </a>
                 </div>
             </section>

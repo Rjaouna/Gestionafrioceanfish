@@ -1,0 +1,138 @@
+{{ form_start(form, {attr: {'data-ajax-form': 'true', 'data-appointment-form': 'true'}}) }}
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title h5 mb-1">{{ title|default('Rendez-vous') }}</h2>
+            <p class="text-secondary small mb-0">Planification, contact, participants et rappel.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+
+    <div class="modal-body">
+        <div class="row g-4">
+            <div class="col-xl-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h3 class="h6 mb-3"><i class="bi bi-info-circle text-primary me-2"></i>Informations principales</h3>
+                        <div class="mb-3">
+                            {{ form_label(form.title, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                            {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.title) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(form.description, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                            {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.description) }}
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                {{ form_label(form.appointmentType, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.appointmentType, {'attr': {'class': 'form-select'}}) }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form_label(form.priority, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.priority, {'attr': {'class': 'form-select'}}) }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form_label(form.status, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h3 class="h6 mb-3"><i class="bi bi-clock text-primary me-2"></i>Date et lieu</h3>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                {{ form_label(form.startAt, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.startAt, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.startAt) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_label(form.endAt, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.endAt, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.endAt) }}
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-check form-switch">
+                                    {{ form_widget(form.allDay, {'attr': {'class': 'form-check-input'}}) }}
+                                    {{ form_label(form.allDay, null, {'label_attr': {'class': 'form-check-label fw-semibold'}}) }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_label(form.location, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.location, {'attr': {'class': 'form-control'}}) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_label(form.meetingLink, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.meetingLink, {'attr': {'class': 'form-control'}}) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h3 class="h6 mb-3"><i class="bi bi-person-lines-fill text-primary me-2"></i>Client / contact</h3>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                {{ form_label(form.customerName, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.customerName, {'attr': {'class': 'form-control'}}) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_label(form.customerEmail, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.customerEmail, {'attr': {'class': 'form-control'}}) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_label(form.customerPhone, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.customerPhone, {'attr': {'class': 'form-control'}}) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h3 class="h6 mb-3"><i class="bi bi-people text-primary me-2"></i>Participants</h3>
+                        {{ form_label(form.participantUsers, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                        {{ form_widget(form.participantUsers, {'attr': {'class': 'form-select'}}) }}
+                        <div class="form-text">Maintenez Ctrl pour selectionner plusieurs utilisateurs.</div>
+                        {{ form_errors(form.participantUsers) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h3 class="h6 mb-3"><i class="bi bi-bell text-primary me-2"></i>Rappel et couleur</h3>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                {{ form_label(form.reminderAt, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.reminderAt, {'attr': {'class': 'form-control'}}) }}
+                            </div>
+                            <div class="col-md-4">
+                                {{ form_label(form.color, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                {{ form_widget(form.color, {'attr': {'class': 'form-control form-control-color w-100'}}) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check2-circle me-2"></i>{{ submit_label|default('Enregistrer') }}
+        </button>
+    </div>
+{{ form_end(form) }}

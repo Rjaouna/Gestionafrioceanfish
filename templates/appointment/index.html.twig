@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des rendez-vous{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Liste des rendez-vous</h1>
+        <p class="text-secondary mb-0">{{ pagination.total }} rendez-vous visible{{ pagination.total > 1 ? 's' : '' }}.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path('app_appointment_calendar') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-calendar3 me-2"></i>Calendrier
+        </a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createAppointmentModal">
+            <i class="bi bi-calendar-plus me-2"></i>Nouveau rendez-vous
+        </button>
+    </div>
+</div>
+
+{% include 'appointment/_stats.html.twig' with {stats: stats} %}
+{% include 'appointment/_filters.html.twig' with {filters: filters, users: users, pagination: pagination} %}
+
+<div id="appointmentGrid">
+    {% include 'appointment/_appointment_grid.html.twig' with {appointments: appointments, pagination: pagination} %}
+</div>
+
+<div class="modal fade" id="createAppointmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+        <div class="modal-content">
+            {% include 'appointment/_form_modal.html.twig' with {
+                form: create_form,
+                appointment: null,
+                title: 'Creer un rendez-vous',
+                submit_label: 'Creer'
+            } %}
+        </div>
+    </div>
+</div>
+{% endblock %}

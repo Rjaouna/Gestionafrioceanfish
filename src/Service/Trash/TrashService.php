@@ -2,6 +2,7 @@
 
 namespace App\Service\Trash;
 
+use App\Entity\Appointment;
 use App\Entity\Contact;
 use App\Entity\Document;
 use App\Entity\Expense;
@@ -28,6 +29,7 @@ final readonly class TrashService
         'maintenance-contract' => ['class' => MaintenanceContract::class, 'label' => 'Contrat de maintenance', 'module' => 'Maintenance', 'icon' => 'bi-clipboard-check'],
         'intervention' => ['class' => Intervention::class, 'label' => 'Intervention', 'module' => 'Maintenance', 'icon' => 'bi-tools'],
         'intervenant' => ['class' => Intervenant::class, 'label' => 'Intervenant', 'module' => 'Maintenance', 'icon' => 'bi-person-gear'],
+        'appointment' => ['class' => Appointment::class, 'label' => 'Rendez-vous', 'module' => 'Agenda - RDV', 'icon' => 'bi-calendar-check'],
     ];
 
     public function __construct(
@@ -224,6 +226,7 @@ final readonly class TrashService
             $entity instanceof MaintenanceContract => (string) ($entity->getReference().' - '.$entity->getCustomerName()),
             $entity instanceof Intervention => (string) ($entity->getReference().' - '.$entity->getTitle()),
             $entity instanceof Intervenant => (string) $entity->getDisplayName(),
+            $entity instanceof Appointment => (string) ($entity->getReference().' - '.$entity->getTitle()),
             default => 'Élément supprimé',
         };
     }

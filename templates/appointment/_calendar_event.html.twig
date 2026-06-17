@@ -1,0 +1,4 @@
+<span class="appointment-calendar-event" style="--appointment-color: {{ appointment.calendarColor }}">
+    <span class="appointment-calendar-event-time">{{ appointment.startAt ? appointment.startAt|date('H:i') : '' }}</span>
+    <span class="appointment-calendar-event-title">{{ appointment.title }}</span>
+</span>

@@ -1,0 +1,67 @@
+{% set status_tone = {
+    planned: 'primary',
+    confirmed: 'success',
+    pending: 'warning',
+    completed: 'info',
+    cancelled: 'danger',
+    postponed: 'secondary'
+} %}
+{% set priority_tone = {
+    low: 'secondary',
+    normal: 'primary',
+    high: 'warning',
+    urgent: 'danger'
+} %}
+
+<tr>
+    <td class="fw-semibold text-nowrap">{{ appointment.reference }}</td>
+    <td>
+        <button class="btn btn-link p-0 text-start fw-semibold" type="button" data-remote-modal="{{ path('app_appointment_view', {id: appointment.id}) }}">
+            {{ appointment.title }}
+        </button>
+        <div class="small text-secondary text-truncate" style="max-width: 260px;">{{ appointment.customerName ?: appointment.location ?: 'Aucun contact renseigne' }}</div>
+    </td>
+    <td class="text-nowrap">
+        <span class="fw-semibold">{{ appointment.startAt ? appointment.startAt|date('d/m/Y') : '-' }}</span>
+        <div class="small text-secondary">{{ appointment.startAt ? appointment.startAt|date('H:i') : '-' }} - {{ appointment.endAt ? appointment.endAt|date('H:i') : '-' }}</div>
+    </td>
+    <td>{{ appointment.appointmentTypeLabel }}</td>
+    <td>
+        <span class="badge rounded-pill text-bg-{{ status_tone[appointment.status]|default('secondary') }}">{{ appointment.statusLabel }}</span>
+    </td>
+    <td>
+        <span class="badge rounded-pill text-bg-{{ priority_tone[appointment.priority]|default('secondary') }}">{{ appointment.priorityLabel }}</span>
+    </td>
+    <td>
+        <div class="avatar-stack">
+            {% for participant in appointment.participants|filter(p => p.active)|slice(0, 3) %}
+                <span class="appointment-avatar" title="{{ participant.user.displayName }}">{{ participant.user.displayName|first|upper }}</span>
+            {% else %}
+                <span class="text-secondary small">Aucun</span>
+            {% endfor %}
+            {% if appointment.participants|filter(p => p.active)|length > 3 %}
+                <span class="appointment-avatar appointment-avatar-more">+{{ appointment.participants|filter(p => p.active)|length - 3 }}</span>
+            {% endif %}
+        </div>
+    </td>
+    <td class="text-end text-nowrap">
+        <button class="btn btn-outline-primary btn-sm" type="button" title="Consulter" aria-label="Consulter" data-remote-modal="{{ path('app_appointment_view', {id: appointment.id}) }}">
+            <i class="bi bi-eye"></i>
+        </button>
+        {% if is_granted('APPOINTMENT_EDIT', appointment) %}
+            <button class="btn btn-outline-secondary btn-sm" type="button" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_appointment_form', {id: appointment.id}) }}">
+                <i class="bi bi-pencil"></i>
+            </button>
+        {% endif %}
+        {% if is_granted('APPOINTMENT_CANCEL', appointment) and appointment.status != 'cancelled' %}
+            <button class="btn btn-outline-warning btn-sm" type="button" title="Annuler" aria-label="Annuler" data-appointment-cancel-url="{{ path('app_appointment_cancel', {id: appointment.id}) }}" data-token="{{ csrf_token('appointment_calendar') }}">
+                <i class="bi bi-calendar-x"></i>
+            </button>
+        {% endif %}
+        {% if is_granted('APPOINTMENT_DELETE', appointment) %}
+            <button class="btn btn-outline-danger btn-sm" type="button" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_appointment_delete', {id: appointment.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('appointment_calendar') }}" data-confirm-message="Supprimer ce rendez-vous ?">
+                <i class="bi bi-trash"></i>
+            </button>
+        {% endif %}
+    </td>
+</tr>

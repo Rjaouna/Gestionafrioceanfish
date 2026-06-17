@@ -1,0 +1,199 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ mine ? 'Mes rendez-vous' : 'Agenda - RDV' }}{% endblock %}
+
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
+    {{ parent() }}
+{% endblock %}
+
+{% block body %}
+{% set statuses = constant('App\\Entity\\Appointment::STATUS_CHOICES') %}
+{% set priorities = constant('App\\Entity\\Appointment::PRIORITY_CHOICES') %}
+{% set types = constant('App\\Entity\\Appointment::TYPE_CHOICES') %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ mine ? 'Mes rendez-vous' : 'Agenda - RDV' }}</h1>
+        <p class="text-secondary mb-0">Calendrier interactif avec vues mois, semaine, jour et liste agenda.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path(mine ? 'app_appointment_calendar' : 'app_appointment_my') }}" class="btn btn-outline-secondary">
+            <i class="bi {{ mine ? 'bi-calendar3' : 'bi-person-check' }} me-2"></i>{{ mine ? 'Tous les rendez-vous' : 'Mes rendez-vous' }}
+        </a>
+        <a href="{{ path('app_appointment_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-list-task me-2"></i>Liste
+        </a>
+        <button class="btn btn-primary" type="button" data-appointment-open-quick-create>
+            <i class="bi bi-calendar-plus me-2"></i>Nouveau rendez-vous
+        </button>
+    </div>
+</div>
+
+{% include 'appointment/_stats.html.twig' with {stats: stats} %}
+
+<div class="appointment-calendar-layout">
+    <section class="appointment-calendar-main">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-3">
+                <div class="row align-items-end g-3" data-appointment-calendar-filters>
+                    <div class="col-lg-3">
+                        <label class="form-label small fw-semibold text-secondary" for="calendarStatusFilter">Statut</label>
+                        <select id="calendarStatusFilter" class="form-select" data-calendar-filter="status">
+                            <option value="">Tous</option>
+                            {% for label, value in statuses %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-3">
+                        <label class="form-label small fw-semibold text-secondary" for="calendarPriorityFilter">Priorite</label>
+                        <select id="calendarPriorityFilter" class="form-select" data-calendar-filter="priority">
+                            <option value="">Toutes</option>
+                            {% for label, value in priorities %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-3">
+                        <label class="form-label small fw-semibold text-secondary" for="calendarTypeFilter">Type</label>
+                        <select id="calendarTypeFilter" class="form-select" data-calendar-filter="appointmentType">
+                            <option value="">Tous</option>
+                            {% for label, value in types %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-lg-3">
+                        <label class="form-label small fw-semibold text-secondary" for="calendarUserFilter">Utilisateur</label>
+                        <select id="calendarUserFilter" class="form-select" data-calendar-filter="participant" {{ mine ? 'disabled' : '' }}>
+                            <option value="">Tous</option>
+                            {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.displayName }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="appointment-calendar-shell"
+            data-appointment-calendar
+            data-events-url="{{ path('app_appointment_events') }}"
+            data-view-url-template="{{ path('app_appointment_view', {id: 999999}) }}"
+            data-move-url-template="{{ path('app_appointment_move', {id: 999999}) }}"
+            data-resize-url-template="{{ path('app_appointment_resize', {id: 999999}) }}"
+            data-quick-create-url="{{ path('app_appointment_quick_create') }}"
+            data-token="{{ csrf_token('appointment_calendar') }}"
+            data-mine="{{ mine ? '1' : '0' }}"
+        >
+            <div id="appointmentCalendar"></div>
+        </div>
+    </section>
+
+    <aside class="appointment-upcoming-panel">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+                    <h2 class="h6 mb-0"><i class="bi bi-clock text-primary me-2"></i>Prochains RDV</h2>
+                    <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis">{{ upcoming|length }}</span>
+                </div>
+                <div class="appointment-upcoming-list">
+                    {% for appointment in upcoming %}
+                        <button class="appointment-upcoming-item" type="button" data-remote-modal="{{ path('app_appointment_view', {id: appointment.id}) }}">
+                            <span class="appointment-upcoming-date">{{ appointment.startAt ? appointment.startAt|date('d/m') : '--' }}</span>
+                            <span class="min-w-0">
+                                <strong>{{ appointment.title }}</strong>
+                                <small>{{ appointment.startAt ? appointment.startAt|date('H:i') : '' }} · {{ appointment.customerName ?: appointment.location ?: appointment.statusLabel }}</small>
+                            </span>
+                        </button>
+                    {% else %}
+                        <div class="dashboard-empty">
+                            <div>
+                                <i class="bi bi-calendar2-check"></i>
+                                <p class="mb-0 mt-2">Aucun prochain rendez-vous.</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<div class="modal fade" id="quickAppointmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form data-appointment-quick-form>
+                <div class="modal-header">
+                    <div>
+                        <h2 class="modal-title h5 mb-1">Nouveau rendez-vous</h2>
+                        <p class="text-secondary small mb-0" data-appointment-selected-slot>Selectionnez un creneau dans le calendrier.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="token" value="{{ csrf_token('appointment_calendar') }}">
+                    <input type="hidden" name="startAt">
+                    <input type="hidden" name="endAt">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold" for="quickAppointmentTitle">Titre</label>
+                            <input class="form-control" id="quickAppointmentTitle" name="title" required placeholder="Rendez-vous client">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" for="quickAppointmentDuration">Duree</label>
+                            <select class="form-select" id="quickAppointmentDuration" name="duration">
+                                <option value="30">30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60" selected>1 heure</option>
+                                <option value="90">1 heure 30</option>
+                                <option value="120">2 heures</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="quickAppointmentType">Type</label>
+                            <select class="form-select" id="quickAppointmentType" name="appointmentType">
+                                {% for label, value in types %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="quickAppointmentPriority">Priorite</label>
+                            <select class="form-select" id="quickAppointmentPriority" name="priority">
+                                {% for label, value in priorities %}
+                                    <option value="{{ value }}" {{ value == 'normal' ? 'selected' : '' }}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="quickAppointmentLocation">Lieu</label>
+                            <input class="form-control" id="quickAppointmentLocation" name="location" placeholder="Bureau, client, visio...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="quickAppointmentCustomer">Client / contact</label>
+                            <input class="form-control" id="quickAppointmentCustomer" name="customerName" placeholder="Nom du client">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" for="quickAppointmentParticipants">Participants</label>
+                            <select class="form-select" id="quickAppointmentParticipants" name="participantIds" multiple size="5">
+                                {% for user in users %}
+                                    <option value="{{ user.id }}" {{ app.user and user.id == app.user.id ? 'selected' : '' }}>{{ user.displayName }} - {{ user.email }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-calendar-plus me-2"></i>Creer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

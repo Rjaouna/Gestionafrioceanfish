@@ -1,0 +1,43 @@
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title h5 mb-1">Ajouter un participant</h2>
+        <p class="text-secondary small mb-0">{{ appointment.reference }} · {{ appointment.title }}</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+
+<form data-ajax-form method="post" action="{{ path('app_appointment_participant_add', {id: appointment.id}) }}">
+    <div class="modal-body">
+        <input type="hidden" name="token" value="{{ csrf_token('participant_appointment_' ~ appointment.id) }}">
+        <div class="row g-3">
+            <div class="col-lg-7">
+                <label class="form-label fw-semibold" for="appointmentParticipantUser">Utilisateur</label>
+                <select class="form-select" id="appointmentParticipantUser" name="userId" required>
+                    <option value="">Selectionner un utilisateur</option>
+                    {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.displayName }} - {{ user.email }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-5">
+                <label class="form-label fw-semibold" for="appointmentParticipantRole">Role</label>
+                <select class="form-select" id="appointmentParticipantRole" name="roleInAppointment">
+                    <option value="participant">Participant</option>
+                    <option value="organizer">Organisateur</option>
+                    <option value="observer">Observateur</option>
+                    <option value="owner">Responsable</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <div class="form-check form-switch">
+                    <input type="checkbox" class="form-check-input" id="appointmentParticipantRequired" name="isRequired" value="1" checked>
+                    <label class="form-check-label fw-semibold" for="appointmentParticipantRequired">Participant obligatoire</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-person-plus me-2"></i>Ajouter</button>
+    </div>
+</form>
