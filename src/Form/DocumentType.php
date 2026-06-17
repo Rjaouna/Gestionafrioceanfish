@@ -4,6 +4,8 @@ namespace App\Form;
 
 use App\Entity\Document;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -38,14 +40,6 @@ final class DocumentType extends AbstractType
                     'data-document-name' => 'true',
                 ],
             ])
-            ->add('description', TextareaType::class, [
-                'label' => 'Description',
-                'required' => false,
-                'attr' => [
-                    'rows' => 4,
-                    'placeholder' => 'Ajoutez un descriptif, une référence ou une note utile...',
-                ],
-            ])
             ->add('file', FileType::class, [
                 'label' => $options['file_required'] ? 'Fichier' : 'Remplacer le fichier',
                 'mapped' => false,
@@ -57,6 +51,69 @@ final class DocumentType extends AbstractType
                     'data-document-file' => 'true',
                 ],
                 'help' => $options['file_required'] ? null : 'Laissez vide pour conserver le fichier actuel.',
+            ])
+            ->add('description', TextareaType::class, [
+                'label' => 'Description',
+                'required' => false,
+                'attr' => [
+                    'rows' => 4,
+                    'placeholder' => 'Ajoutez un descriptif, une référence ou une note utile...',
+                ],
+            ])
+            ->add('category', TextType::class, [
+                'label' => 'Catégorie',
+                'required' => false,
+                'attr' => [
+                    'list' => 'document-category-suggestions',
+                    'placeholder' => 'Ex. Contrat, Facture, Administratif...',
+                ],
+            ])
+            ->add('issuer', TextType::class, [
+                'label' => 'Émetteur / origine',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'Ex. Client, Fournisseur, Banque...',
+                ],
+            ])
+            ->add('language', TextType::class, [
+                'label' => 'Langue',
+                'required' => false,
+                'attr' => [
+                    'list' => 'document-language-suggestions',
+                    'placeholder' => 'Ex. Français, Anglais, Portugais...',
+                ],
+            ])
+            ->add('tags', TextareaType::class, [
+                'label' => 'Tags',
+                'required' => false,
+                'help' => 'Séparez les mots-clés par des virgules.',
+                'attr' => [
+                    'rows' => 2,
+                    'placeholder' => 'Ex. arrêté conjoint, Guinée-Bissau, juridique, 2025',
+                ],
+            ])
+            ->add('status', ChoiceType::class, [
+                'label' => 'Statut',
+                'choices' => array_flip(Document::STATUS_LABELS),
+            ])
+            ->add('expiresAt', DateType::class, [
+                'label' => 'Date d’expiration',
+                'required' => false,
+                'widget' => 'single_text',
+                'input' => 'datetime_immutable',
+            ])
+            ->add('confidentialityLevel', ChoiceType::class, [
+                'label' => 'Confidentialité',
+                'required' => false,
+                'placeholder' => 'Non renseignée',
+                'choices' => array_flip(Document::CONFIDENTIALITY_LABELS),
+            ])
+            ->add('version', TextType::class, [
+                'label' => 'Version',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'Ex. v1, signé, brouillon, final',
+                ],
             ]);
     }
 

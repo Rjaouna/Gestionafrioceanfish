@@ -1,3 +1,5 @@
+{% set document = form.vars.data %}
+
 {{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
     <div class="modal-header">
         <div>
@@ -7,11 +9,77 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
     </div>
     <div class="modal-body">
-        <div class="row g-3">
-            <div class="col-lg-6">{{ form_row(form.name) }}</div>
-            <div class="col-lg-6">{{ form_row(form.file) }}</div>
-            <div class="col-12">{{ form_row(form.description) }}</div>
+        <div class="d-grid gap-4">
+            <section>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis">1</span>
+                    <h3 class="h6 mb-0">Informations principales</h3>
+                </div>
+                <div class="row g-3">
+                    <div class="col-lg-6">{{ form_row(form.name) }}</div>
+                    <div class="col-lg-6">{{ form_row(form.file) }}</div>
+                    <div class="col-12">{{ form_row(form.description) }}</div>
+                </div>
+            </section>
+
+            <section>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis">2</span>
+                    <h3 class="h6 mb-0">Classement</h3>
+                </div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="alert alert-light border small mb-0">
+                            <i class="bi bi-magic text-primary me-1"></i>
+                            La référence interne est générée automatiquement.
+                            La date du document correspond à la date de création.
+                            {% if document.internalReference %}
+                                <span class="d-block mt-1 text-secondary">Référence actuelle : {{ document.internalReference }}</span>
+                            {% endif %}
+                            {% if document.documentDate %}
+                                <span class="d-block text-secondary">Date actuelle : {{ document.documentDate|date('d/m/Y') }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-4">{{ form_row(form.category) }}</div>
+                    <div class="col-md-6 col-xl-4">{{ form_row(form.issuer) }}</div>
+                    <div class="col-md-6 col-xl-4">{{ form_row(form.language) }}</div>
+                    <div class="col-12">{{ form_row(form.tags) }}</div>
+                </div>
+            </section>
+
+            <section>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis">3</span>
+                    <h3 class="h6 mb-0">Gestion</h3>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6 col-xl-3">{{ form_row(form.status) }}</div>
+                    <div class="col-md-6 col-xl-3">{{ form_row(form.expiresAt) }}</div>
+                    <div class="col-md-6 col-xl-3">{{ form_row(form.confidentialityLevel) }}</div>
+                    <div class="col-md-6 col-xl-3">{{ form_row(form.version) }}</div>
+                </div>
+            </section>
         </div>
+
+        <datalist id="document-category-suggestions">
+            <option value="Contrat">
+            <option value="Facture">
+            <option value="Administratif">
+            <option value="Juridique">
+            <option value="Technique">
+            <option value="RH">
+            <option value="Client">
+            <option value="Fournisseur">
+            <option value="Autre">
+        </datalist>
+        <datalist id="document-language-suggestions">
+            <option value="Français">
+            <option value="Anglais">
+            <option value="Arabe">
+            <option value="Portugais">
+            <option value="Espagnol">
+        </datalist>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>

@@ -35,11 +35,15 @@ final class DocumentController extends AbstractController
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'documents');
         $this->denyAccessUnlessGranted(DocumentVoter::CREATE);
-        $result = $this->documentService->search($this->currentUser(), (string) $request->query->get('q', ''), max(1, $request->query->getInt('page', 1)));
+        $user = $this->currentUser();
+        $filters = $this->filtersFromRequest($request);
+        $result = $this->documentService->search($user, (string) $request->query->get('q', ''), max(1, $request->query->getInt('page', 1)), 12, $filters);
 
         return $this->render('document/index.html.twig', [
             'documents' => $result['items'],
             'pagination' => $result,
+            'document_filters' => $this->documentService->filterChoices($user),
+            'active_filters' => $result['filters'],
             'create_form' => $this->buildForm(new Document(), true, 'app_document_create'),
         ]);
     }
@@ -48,7 +52,7 @@ final class DocumentController extends AbstractController
     public function search(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'documents');
-        $result = $this->documentService->search($this->currentUser(), (string) $request->query->get('q', ''), max(1, $request->query->getInt('page', 1)));
+        $result = $this->documentService->search($this->currentUser(), (string) $request->query->get('q', ''), max(1, $request->query->getInt('page', 1)), 12, $this->filtersFromRequest($request));
 
         return $this->jsonResponder->success('Recherche mise à jour.', [
             'html' => $this->renderView('document/_document_grid.html.twig', [
@@ -181,6 +185,17 @@ final class DocumentController extends AbstractController
         if (!$this->isCsrfTokenValid($id, $token)) {
             throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
+    }
+
+    /** @return array{category: string, issuer: string, language: string, status: string} */
+    private function filtersFromRequest(Request $request): array
+    {
+        return [
+            'category' => (string) $request->query->get('category', ''),
+            'issuer' => (string) $request->query->get('issuer', ''),
+            'language' => (string) $request->query->get('language', ''),
+            'status' => (string) $request->query->get('status', ''),
+        ];
     }
 
     private function currentUser(): User

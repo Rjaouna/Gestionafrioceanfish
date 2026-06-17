@@ -18,26 +18,93 @@
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
+                    <div class="small text-uppercase text-secondary fw-semibold mb-3">Informations</div>
                     <div class="d-grid gap-3">
-                        <div class="d-flex justify-content-between gap-3">
-                            <span class="text-secondary">Type MIME</span>
-                            <span class="fw-semibold text-end">{{ document.mimeType }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between gap-3">
-                            <span class="text-secondary">Taille</span>
-                            <span class="fw-semibold">{{ (document.fileSize / 1024)|number_format(1, ',', ' ') }} Ko</span>
-                        </div>
-                        <div class="d-flex justify-content-between gap-3">
-                            <span class="text-secondary">Créateur</span>
-                            <span class="fw-semibold text-end">{{ document.createdBy ? document.createdBy.displayName : 'Système' }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between gap-3">
-                            <span class="text-secondary">Date</span>
-                            <span class="fw-semibold">{{ document.createdAt ? document.createdAt|date('d/m/Y H:i') : '-' }}</span>
-                        </div>
+                        {% if document.category %}
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-secondary">Catégorie</span>
+                                <span class="fw-semibold text-end">{{ document.category }}</span>
+                            </div>
+                        {% endif %}
+                        {% if document.internalReference %}
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-secondary">Référence interne</span>
+                                <span class="fw-semibold text-end">{{ document.internalReference }}</span>
+                            </div>
+                        {% endif %}
+                        {% if document.documentDate %}
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-secondary">Date du document</span>
+                                <span class="fw-semibold">{{ document.documentDate|date('d/m/Y') }}</span>
+                            </div>
+                        {% endif %}
+                        {% if document.issuer %}
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-secondary">Émetteur</span>
+                                <span class="fw-semibold text-end">{{ document.issuer }}</span>
+                            </div>
+                        {% endif %}
+                        {% if document.language %}
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-secondary">Langue</span>
+                                <span class="fw-semibold text-end">{{ document.language }}</span>
+                            </div>
+                        {% endif %}
+                        {% if document.version %}
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-secondary">Version</span>
+                                <span class="fw-semibold text-end">{{ document.version }}</span>
+                            </div>
+                        {% endif %}
+                        {% if document.expiresAt %}
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-secondary">Expiration</span>
+                                <span class="fw-semibold">{{ document.expiresAt|date('d/m/Y') }}</span>
+                            </div>
+                        {% endif %}
                         <div class="d-flex justify-content-between gap-3">
                             <span class="text-secondary">Statut</span>
-                            <span class="badge {{ document.active ? 'text-bg-success' : 'text-bg-secondary' }}">{{ document.active ? 'Actif' : 'Archivé' }}</span>
+                            <span class="badge {{ document.statusBadgeClass }}">{{ document.statusLabel }}</span>
+                        </div>
+                        {% if document.confidentialityLabel %}
+                            <div class="d-flex justify-content-between gap-3">
+                                <span class="text-secondary">Confidentialité</span>
+                                <span class="badge {{ document.confidentialityBadgeClass }}">{{ document.confidentialityLabel }}</span>
+                            </div>
+                        {% endif %}
+                        {% if document.tagList is not empty %}
+                            <div>
+                                <span class="text-secondary d-block mb-2">Tags</span>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for tag in document.tagList %}
+                                        <span class="badge rounded-pill text-bg-light border">{{ tag }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row g-3 small">
+                        <div class="col-md-3">
+                            <span class="text-secondary d-block">Type MIME</span>
+                            <span class="fw-semibold">{{ document.mimeType }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <span class="text-secondary d-block">Taille</span>
+                            <span class="fw-semibold">{{ (document.fileSize / 1024)|number_format(1, ',', ' ') }} Ko</span>
+                        </div>
+                        <div class="col-md-3">
+                            <span class="text-secondary d-block">Créateur</span>
+                            <span class="fw-semibold">{{ document.createdBy ? document.createdBy.displayName : 'Système' }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            <span class="text-secondary d-block">Ajouté le</span>
+                            <span class="fw-semibold">{{ document.createdAt ? document.createdAt|date('d/m/Y H:i') : '-' }}</span>
                         </div>
                     </div>
                 </div>

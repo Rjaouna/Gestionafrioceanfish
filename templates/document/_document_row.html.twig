@@ -1,7 +1,19 @@
+{% set archived_status = constant('App\\Entity\\Document::STATUS_ARCHIVED') %}
+{% set expired_status = constant('App\\Entity\\Document::STATUS_EXPIRED') %}
+{% set review_status = constant('App\\Entity\\Document::STATUS_TO_REVIEW') %}
+{% set status_icon = 'bi-check-circle' %}
+{% if document.status == archived_status %}
+    {% set status_icon = 'bi-archive' %}
+{% elseif document.status == expired_status %}
+    {% set status_icon = 'bi-exclamation-octagon' %}
+{% elseif document.status == review_status %}
+    {% set status_icon = 'bi-exclamation-triangle' %}
+{% endif %}
+
 <div
     class="col-12 col-md-4 col-xl-3"
     data-search-item
-    data-search-value="{{ (document.name ~ ' ' ~ document.description ~ ' ' ~ document.mimeType ~ ' ' ~ document.originalFileName ~ ' ' ~ document.createdBy.displayName|default('') ~ ' ' ~ (document.active ? 'actif' : 'archivé'))|lower }}"
+    data-search-value="{{ (document.name ~ ' ' ~ document.description ~ ' ' ~ document.category ~ ' ' ~ document.internalReference ~ ' ' ~ document.issuer ~ ' ' ~ document.language ~ ' ' ~ document.status ~ ' ' ~ document.tags ~ ' ' ~ document.confidentialityLevel ~ ' ' ~ document.version ~ ' ' ~ document.mimeType ~ ' ' ~ document.originalFileName ~ ' ' ~ document.createdBy.displayName|default(''))|lower }}"
 >
     {% embed 'components/_entity_card.html.twig' with {
         title: document.name,
@@ -9,10 +21,11 @@
         subtitle: document.originalFileName,
         icon: 'bi-file-earmark-text',
         icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-3 module-mark',
-        status_label: document.active ? 'Actif' : 'Archivé',
-        status_class: document.active ? 'text-bg-success' : 'text-bg-secondary',
-        status_icon: document.active ? 'bi-check-circle' : 'bi-archive',
-        muted: not document.active,
+        status_label: document.statusLabel,
+        status_class: document.statusBadgeClass,
+        status_icon: status_icon,
+        muted: not document.active or document.status == archived_status,
+        compact: false,
         created_at: document.createdAt,
         updated_at: document.updatedAt
     } %}
@@ -31,18 +44,54 @@
 
         {% block body %}
             <div class="d-grid gap-2 small">
-                <div class="app-card-info-row">
-                    <span class="text-secondary"><i class="bi bi-file-earmark me-1"></i>Type</span>
-                    <span class="fw-semibold text-end">{{ document.mimeType }}</span>
-                </div>
-                <div class="app-card-info-row">
-                    <span class="text-secondary"><i class="bi bi-hdd me-1"></i>Taille</span>
-                    <span class="fw-semibold">{{ (document.fileSize / 1024)|number_format(1, ',', ' ') }} Ko</span>
-                </div>
-                <div class="app-card-info-row">
-                    <span class="text-secondary"><i class="bi bi-person me-1"></i>Créateur</span>
-                    <span class="fw-semibold text-end">{{ document.createdBy ? document.createdBy.displayName : 'Système' }}</span>
-                </div>
+                {% if document.category %}
+                    <div class="app-card-info-row">
+                        <span class="text-secondary"><i class="bi bi-tag me-1"></i>Catégorie</span>
+                        <span class="text-end">{{ document.category }}</span>
+                    </div>
+                {% endif %}
+                {% if document.internalReference %}
+                    <div class="app-card-info-row">
+                        <span class="text-secondary"><i class="bi bi-hash me-1"></i>Référence</span>
+                        <span class="text-end">{{ document.internalReference }}</span>
+                    </div>
+                {% endif %}
+                {% if document.documentDate %}
+                    <div class="app-card-info-row">
+                        <span class="text-secondary"><i class="bi bi-calendar-event me-1"></i>Date</span>
+                        <span>{{ document.documentDate|date('d/m/Y') }}</span>
+                    </div>
+                {% endif %}
+                {% if document.issuer %}
+                    <div class="app-card-info-row">
+                        <span class="text-secondary"><i class="bi bi-building me-1"></i>Émetteur</span>
+                        <span class="text-end">{{ document.issuer }}</span>
+                    </div>
+                {% endif %}
+                {% if document.language or document.version %}
+                    <div class="app-card-info-row">
+                        <span class="text-secondary"><i class="bi bi-translate me-1"></i>Langue / version</span>
+                        <span class="text-end">{{ [document.language, document.version]|filter(v => v is not empty)|join(' · ') }}</span>
+                    </div>
+                {% endif %}
+                {% if document.expiresAt %}
+                    <div class="app-card-info-row">
+                        <span class="text-secondary"><i class="bi bi-hourglass-split me-1"></i>Expiration</span>
+                        <span>{{ document.expiresAt|date('d/m/Y') }}</span>
+                    </div>
+                {% endif %}
+                {% if document.confidentialityLabel %}
+                    <div>
+                        <span class="badge {{ document.confidentialityBadgeClass }}">{{ document.confidentialityLabel }}</span>
+                    </div>
+                {% endif %}
+                {% if document.tagList is not empty %}
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for tag in document.tagList|slice(0, 5) %}
+                            <span class="badge rounded-pill text-bg-light border">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
         {% endblock %}
 
