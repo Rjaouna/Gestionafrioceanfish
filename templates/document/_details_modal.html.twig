@@ -1,7 +1,36 @@
+{% set file_name = document.originalFileName|default('') %}
+{% set file_name_lower = file_name|lower %}
+{% set mime = document.mimeType|default('')|lower %}
+{% set has_file = document.fileName is not empty and file_name is not empty %}
+{% set file_icon = 'bi-file-earmark' %}
+{% set file_tone = 'secondary' %}
+{% set file_kind = 'Aucune pièce jointe' %}
+{% if has_file %}
+    {% set file_kind = 'Fichier' %}
+    {% if mime == 'application/pdf' or file_name_lower ends with '.pdf' %}
+        {% set file_icon = 'bi-file-earmark-pdf-fill' %}
+        {% set file_tone = 'danger' %}
+        {% set file_kind = 'PDF' %}
+    {% elseif 'spreadsheet' in mime or 'excel' in mime or file_name_lower ends with '.xls' or file_name_lower ends with '.xlsx' or file_name_lower ends with '.csv' %}
+        {% set file_icon = 'bi-file-earmark-excel-fill' %}
+        {% set file_tone = 'success' %}
+        {% set file_kind = 'Excel' %}
+    {% elseif 'word' in mime or file_name_lower ends with '.doc' or file_name_lower ends with '.docx' %}
+        {% set file_icon = 'bi-file-earmark-word-fill' %}
+        {% set file_tone = 'primary' %}
+        {% set file_kind = 'Word' %}
+    {% endif %}
+{% endif %}
+
 <div class="modal-header">
-    <div>
-        <h2 class="modal-title fs-5">{{ document.name }}</h2>
-        <p class="text-secondary small mb-0">{{ document.originalFileName }}</p>
+    <div class="d-flex align-items-center gap-3 min-w-0">
+        <span class="document-file-icon document-file-icon-{{ file_tone }}">
+            <i class="bi {{ file_icon }}"></i>
+        </span>
+        <div class="min-w-0">
+            <h2 class="modal-title fs-5 text-truncate">{{ document.name }}</h2>
+            <p class="text-secondary small mb-0 text-truncate">{{ has_file ? file_name : 'Aucune pièce jointe associée' }}</p>
+        </div>
     </div>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
 </div>
@@ -92,11 +121,11 @@
                     <div class="row g-3 small">
                         <div class="col-md-3">
                             <span class="text-secondary d-block">Type MIME</span>
-                            <span class="fw-semibold">{{ document.mimeType }}</span>
+                            <span class="fw-semibold">{{ has_file ? document.mimeType : file_kind }}</span>
                         </div>
                         <div class="col-md-3">
                             <span class="text-secondary d-block">Taille</span>
-                            <span class="fw-semibold">{{ (document.fileSize / 1024)|number_format(1, ',', ' ') }} Ko</span>
+                            <span class="fw-semibold">{{ has_file ? (document.fileSize / 1024)|number_format(1, ',', ' ') ~ ' Ko' : '-' }}</span>
                         </div>
                         <div class="col-md-3">
                             <span class="text-secondary d-block">Créateur</span>
@@ -114,12 +143,12 @@
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
-    {% if is_granted('DOCUMENT_EMAIL', document) %}
+    {% if has_file and is_granted('DOCUMENT_EMAIL', document) %}
         <button class="btn btn-outline-primary" data-remote-modal="{{ path('app_document_email_modal', {id: document.id}) }}">
             <i class="bi bi-envelope me-1"></i>Envoyer par e-mail
         </button>
     {% endif %}
-    {% if is_granted('DOCUMENT_DOWNLOAD', document) %}
+    {% if has_file and is_granted('DOCUMENT_DOWNLOAD', document) %}
         <a class="btn btn-primary" href="{{ path('app_document_download', {id: document.id}) }}">
             <i class="bi bi-download me-1"></i>Télécharger
         </a>

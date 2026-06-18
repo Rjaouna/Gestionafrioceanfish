@@ -6,6 +6,7 @@ use App\Entity\Appointment;
 use App\Entity\Contact;
 use App\Entity\Document;
 use App\Entity\Expense;
+use App\Entity\InventoryItem;
 use App\Entity\Intervenant;
 use App\Entity\Intervention;
 use App\Entity\MaintenanceContract;
@@ -13,6 +14,7 @@ use App\Entity\PasswordEntry;
 use App\Entity\User;
 use App\Service\DocumentStorageService;
 use App\Service\Expense\ExpenseDocumentService;
+use App\Service\Inventory\InventoryFileService;
 use App\Service\Maintenance\MaintenanceShareService;
 use App\Service\SecurityAccessService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -30,6 +32,7 @@ final readonly class TrashService
         'intervention' => ['class' => Intervention::class, 'label' => 'Intervention', 'module' => 'Maintenance', 'icon' => 'bi-tools'],
         'intervenant' => ['class' => Intervenant::class, 'label' => 'Intervenant', 'module' => 'Maintenance', 'icon' => 'bi-person-gear'],
         'appointment' => ['class' => Appointment::class, 'label' => 'Rendez-vous', 'module' => 'Agenda - RDV', 'icon' => 'bi-calendar-check'],
+        'inventory-item' => ['class' => InventoryItem::class, 'label' => 'Materiel', 'module' => 'Inventaire', 'icon' => 'bi-box-seam'],
     ];
 
     public function __construct(
@@ -38,6 +41,7 @@ final readonly class TrashService
         private DocumentStorageService $documentStorage,
         private ExpenseDocumentService $expenseDocumentService,
         private MaintenanceShareService $maintenanceShareService,
+        private InventoryFileService $inventoryFileService,
     ) {
     }
 
@@ -95,6 +99,10 @@ final readonly class TrashService
 
         if ($entity instanceof Intervenant || $entity instanceof MaintenanceContract || $entity instanceof Intervention) {
             $this->maintenanceShareService->removeSharesFor($entity);
+        }
+
+        if ($entity instanceof InventoryItem) {
+            $this->inventoryFileService->deleteFilesForItem($entity);
         }
 
         $this->entityManager->remove($entity);
@@ -227,6 +235,7 @@ final readonly class TrashService
             $entity instanceof Intervention => (string) ($entity->getReference().' - '.$entity->getTitle()),
             $entity instanceof Intervenant => (string) $entity->getDisplayName(),
             $entity instanceof Appointment => (string) ($entity->getReference().' - '.$entity->getTitle()),
+            $entity instanceof InventoryItem => (string) ($entity->getReference().' - '.$entity->getName()),
             default => 'Élément supprimé',
         };
     }

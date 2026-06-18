@@ -1,20 +1,28 @@
-<div class="row g-4">
-    {% for document in documents %}
-        {% include 'document/_document_row.html.twig' with {document: document} %}
-    {% else %}
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center py-5">
-                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
-                        <i class="bi bi-folder2-open"></i>
-                    </span>
-                    <h2 class="h5 mt-3">Aucun document trouvé</h2>
+<section class="document-browser" aria-label="Liste des documents">
+    <div class="document-browser-head">
+        <div class="document-browser-col-name">Nom</div>
+        <div class="document-browser-col-updated">Mis à jour</div>
+        <div class="document-browser-col-size">Taille</div>
+        <div class="document-browser-col-status">Statut</div>
+        <div class="document-browser-col-actions" aria-label="Actions"></div>
+    </div>
+
+    <div class="document-browser-list">
+        {% for document in documents %}
+            {% include 'document/_document_row.html.twig' with {document: document} %}
+        {% else %}
+            <div class="document-browser-empty">
+                <span class="document-file-list-icon document-file-list-icon-secondary">
+                    <i class="bi bi-folder2-open"></i>
+                </span>
+                <div>
+                    <h2 class="h6 mb-1">Aucun document trouvé</h2>
                     <p class="text-secondary mb-0">Ajoutez un document ou ajustez votre recherche.</p>
                 </div>
             </div>
-        </div>
-    {% endfor %}
-</div>
+        {% endfor %}
+    </div>
+</section>
 
 {% if pagination.pages > 1 %}
     <nav class="d-flex justify-content-center mt-4" aria-label="Pagination des documents">

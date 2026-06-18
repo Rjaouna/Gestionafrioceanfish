@@ -1,0 +1,97 @@
+{% set is_move = field in ['site', 'location', 'move'] %}
+{% set is_inventory = field == 'inventory' %}
+<form method="post" action="{{ path('app_inventory_item_quick_update', {id: item.id, field: field}) }}" data-ajax-form>
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">
+                {% if field == 'quantity' %}Ajuster la quantite
+                {% elseif field == 'logistics' %}Changer le suivi logistique
+                {% elseif is_inventory %}Demander un inventaire
+                {% else %}Demander un transport{% endif %}
+            </h2>
+            <div class="small text-secondary">{{ item.reference }} - {{ item.name }}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" name="token" value="{{ csrf_token('quick_inventory_item_' ~ item.id) }}">
+
+        {% if field == 'quantity' %}
+            <div class="alert alert-light border">
+                Quantite actuelle : <strong>{{ item.quantity }} {{ item.unit }}</strong>.
+                La modification sera tracee comme un mouvement d ajustement.
+            </div>
+            <label class="form-label fw-semibold" for="inventory-quick-quantity">Nouvelle quantite totale</label>
+            <input id="inventory-quick-quantity" class="form-control" type="number" name="quantity" min="0" value="{{ item.quantity }}" required autofocus>
+        {% elseif field == 'logistics' %}
+            <label class="form-label fw-semibold" for="inventory-quick-logistics">Situation du materiel</label>
+            <select id="inventory-quick-logistics" class="form-select" name="logisticsStatus" required>
+                {% for label, value in constant('App\\Entity\\InventoryItem::LOGISTICS_STATUSES') %}
+                    <option value="{{ value }}" {{ item.logisticsStatus == value ? 'selected' : '' }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        {% elseif is_inventory %}
+            <div class="alert alert-info">
+                Cette action cree une demande a valider. La quantite du materiel ne changera que lorsque la reponse d inventaire sera validee.
+            </div>
+            <div class="border rounded p-3 mb-3">
+                <div class="small text-secondary">Quantite actuelle</div>
+                <div class="fw-semibold">{{ item.quantity }} {{ item.unit }}</div>
+                <div class="small text-secondary mt-2">Site / emplacement</div>
+                <div>{{ item.location ? item.location.displayName : item.site.name|default('Non renseigne') }}</div>
+            </div>
+            <label class="form-label fw-semibold" for="inventory-request-notes">Commentaire pour la demande</label>
+            <textarea id="inventory-request-notes" class="form-control" name="notes" rows="3" placeholder="Ex : merci de confirmer la quantite sur place"></textarea>
+        {% elseif is_move %}
+            <div class="border rounded p-3 mb-3">
+                <div class="small text-secondary">Site actuel</div>
+                <div class="fw-semibold">{{ item.site.name|default('Non renseigne') }}</div>
+                <div class="small text-secondary mt-2">Emplacement actuel</div>
+                <div>{{ item.location ? item.location.name : 'Non renseigne' }}</div>
+            </div>
+            <div class="alert alert-info">
+                Le site actuel est exclu des destinations. Le materiel ne bougera pas tout de suite : une demande sera ajoutee aux validations.
+            </div>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" for="inventory-move-quantity">Quantite a transporter</label>
+                    <input id="inventory-move-quantity" class="form-control" type="number" name="quantity" min="1" max="{{ item.availableQuantity }}" value="{{ item.availableQuantity > 0 ? item.availableQuantity : item.quantity }}" required>
+                    <div class="form-text">Disponible : {{ item.availableQuantity }} / {{ item.quantity }} {{ item.unit }}</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" for="inventory-move-site">Site de destination</label>
+                    <select id="inventory-move-site" class="form-select" name="site" data-inventory-move-site required>
+                        <option value="">Choisir un site</option>
+                        {% for site in sites %}
+                            {% if site.id != item.site.id|default(null) %}
+                                <option value="{{ site.id }}">{{ site.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" for="inventory-move-location">Emplacement de destination</label>
+                    <select id="inventory-move-location" class="form-select" name="location" data-inventory-move-location>
+                        <option value="">Aucun emplacement precis</option>
+                        {% for location in locations %}
+                            {% if location.site.id != item.site.id|default(null) %}
+                                <option value="{{ location.id }}" data-site-id="{{ location.site.id }}">{{ location.displayName }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold" for="inventory-move-notes">Commentaire pour la demande</label>
+                    <textarea id="inventory-move-notes" class="form-control" name="notes" rows="3" placeholder="Ex : transporter uniquement 5 tables"></textarea>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi {{ is_move ? 'bi-truck' : (is_inventory ? 'bi-clipboard-check' : 'bi-check-lg') }} me-1"></i>
+            {{ is_move or is_inventory ? 'Creer la demande' : 'Enregistrer' }}
+        </button>
+    </div>
+</form>

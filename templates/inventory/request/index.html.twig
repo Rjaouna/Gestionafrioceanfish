@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Demandes inventaire{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Demandes a valider</h1>
+        <p class="text-secondary mb-0">Transports et inventaires restent en attente tant qu ils ne sont pas valides ou annules.</p>
+    </div>
+    <a class="btn btn-outline-primary" href="{{ path('app_inventory_item_index') }}">
+        <i class="bi bi-plus-circle me-2"></i>Nouvelle demande depuis le materiel
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form id="inventory-request-filters" class="row g-3 align-items-end" method="get" action="{{ path('app_inventory_request_index') }}" data-ajax-filter-region="inventory-requests">
+            <div class="col-md-5">
+                <label class="form-label" for="request-search">Recherche</label>
+                <input id="request-search" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Materiel, reference, site, note...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="request-type">Type</label>
+                <select id="request-type" class="form-select" name="type">
+                    <option value="">Tous</option>
+                    {% for label, value in constant('App\\Entity\\InventoryRequest::TYPES') %}
+                        <option value="{{ value }}" {{ filters.type == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="request-status">Statut</label>
+                <select id="request-status" class="form-select" name="status">
+                    <option value="">Tous</option>
+                    {% for label, value in constant('App\\Entity\\InventoryRequest::STATUSES') %}
+                        <option value="{{ value }}" {{ filters.status == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button class="btn btn-outline-primary" type="submit"><i class="bi bi-funnel me-1"></i>Filtrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div
+    data-ajax-region="inventory-requests"
+    data-refresh-url="{{ path('app_inventory_request_search') }}"
+    data-refresh-form="#inventory-request-filters"
+>
+    {% include 'inventory/request/_table.html.twig' with {requests: requests} %}
+</div>
+{% endblock %}

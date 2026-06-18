@@ -1,0 +1,51 @@
+<form method="post" action="{{ path('app_inventory_location_delete', {id: location.id}) }}" data-ajax-form>
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">Supprimer l emplacement {{ location.name }}</h2>
+            <div class="small text-secondary">{{ location.site.name }} - {{ item_count }} materiel{{ item_count > 1 ? 's' : '' }} attache{{ item_count > 1 ? 's' : '' }}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" name="token" value="{{ csrf_token('delete_inventory_location_' ~ location.id) }}">
+
+        <div class="alert {{ item_count > 0 ? 'alert-warning' : 'alert-danger' }}">
+            {% if item_count > 0 %}
+                Cet emplacement contient du materiel. Choisissez un autre emplacement de destination, ou laissez vide pour garder le materiel sur le site sans emplacement precis.
+            {% else %}
+                Aucun materiel n est attache a cet emplacement, il peut etre supprime directement.
+            {% endif %}
+        </div>
+
+        {% if item_count > 0 %}
+            <label class="form-label fw-semibold" for="inventory-location-destination">Rattacher le materiel vers</label>
+            <select id="inventory-location-destination" class="form-select" name="destinationLocation">
+                <option value="">Garder le site, sans emplacement</option>
+                {% for destination in destination_locations %}
+                    <option value="{{ destination.id }}">{{ destination.displayName }}</option>
+                {% endfor %}
+            </select>
+
+            <div class="border rounded p-3 mt-3">
+                <div class="fw-semibold mb-2">Materiel concerne</div>
+                <div class="list-group list-group-flush">
+                    {% for item in items %}
+                        <div class="list-group-item px-0 d-flex justify-content-between gap-3">
+                            <span>{{ item.name }}</span>
+                            <span class="text-secondary small">{{ item.reference }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if item_count > items|length %}
+                    <div class="small text-secondary mt-2">+ {{ item_count - items|length }} autre{{ item_count - items|length > 1 ? 's' : '' }} materiel{{ item_count - items|length > 1 ? 's' : '' }}.</div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash me-1"></i>Supprimer l emplacement
+        </button>
+    </div>
+</form>

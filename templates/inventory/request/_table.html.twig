@@ -1,0 +1,114 @@
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Demande</th>
+                    <th>Materiel</th>
+                    <th class="text-end">Quantite</th>
+                    <th>Depart</th>
+                    <th>Destination / reponse</th>
+                    <th>Demandeur</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in requests %}
+                    {% set status_class = request.status == 'pending' ? 'warning' : (request.status == 'validated' ? 'success' : 'secondary') %}
+                    <tr>
+                        <td>
+                            <div class="d-flex flex-column gap-1">
+                                <div>
+                                    <span class="badge text-bg-light border">{{ request.typeLabel }}</span>
+                                    <span class="badge text-bg-{{ status_class }}">{{ request.statusLabel }}</span>
+                                </div>
+                                <div class="small text-secondary">#{{ request.id }} - {{ request.createdAt ? request.createdAt|date('d/m/Y H:i') : '' }}</div>
+                                {% if request.notes %}
+                                    <div class="small text-secondary">{{ request.notes }}</div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ request.item.name }}</div>
+                            <div class="small text-secondary">{{ request.item.reference }}</div>
+                            {% if request.resultItem %}
+                                <div class="small text-success">Ligne destination : {{ request.resultItem.reference }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if request.inventory %}
+                                <span class="text-secondary">Actuelle</span>
+                                <div class="fw-semibold">{{ request.item.quantity }} {{ request.item.unit }}</div>
+                                {% if request.countedQuantity is not null %}
+                                    <div class="small text-success">Constatee : {{ request.countedQuantity }}</div>
+                                {% endif %}
+                            {% else %}
+                                <span class="fw-semibold">{{ request.requestedQuantity }}</span>
+                                <span class="text-secondary">/ {{ request.item.quantity }} {{ request.item.unit }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div>{{ request.fromLocation ? request.fromLocation.displayName : request.fromSite.name|default('Non renseigne') }}</div>
+                            <div class="small text-secondary">Etat actuel : {{ request.item.location ? request.item.location.displayName : request.item.site.name|default('Non renseigne') }}</div>
+                        </td>
+                        <td>
+                            {% if request.transfer %}
+                                <div>{{ request.toLocation ? request.toLocation.displayName : request.toSite.name|default('Non renseigne') }}</div>
+                                {% if request.requestedLogisticsStatus %}
+                                    <div class="small text-secondary">Suivi apres validation : {{ request.requestedLogisticsStatusLabel }}</div>
+                                {% endif %}
+                            {% else %}
+                                <div>Quantite a confirmer sur place</div>
+                                <div class="small text-secondary">Validation possible avec la quantite actuelle ou une nouvelle quantite.</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div>{{ request.createdBy ? request.createdBy.displayName : 'Systeme' }}</div>
+                            {% if request.validatedBy %}
+                                <div class="small text-success">Validee par {{ request.validatedBy.displayName }}</div>
+                            {% elseif request.canceledBy %}
+                                <div class="small text-secondary">Annulee par {{ request.canceledBy.displayName }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if request.pending %}
+                                <div class="btn-group btn-group-sm">
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-success"
+                                        data-remote-modal="{{ path('app_inventory_request_validate_form', {id: request.id}) }}"
+                                        title="Valider"
+                                        aria-label="Valider"
+                                    >
+                                        <i class="bi bi-check2-circle"></i>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary"
+                                        data-confirm-url="{{ path('app_inventory_request_cancel', {id: request.id}) }}"
+                                        data-confirm-method="POST"
+                                        data-token="{{ csrf_token('cancel_inventory_request_' ~ request.id) }}"
+                                        data-confirm-message="Annuler cette demande sans modifier le materiel ?"
+                                        title="Annuler"
+                                        aria-label="Annuler"
+                                    >
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </div>
+                            {% else %}
+                                <span class="text-secondary small">Traitee</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-secondary py-5">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            Aucune demande a afficher.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

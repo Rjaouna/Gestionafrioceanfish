@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Materiel{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Materiel</h1>
+        <p class="text-secondary mb-0" data-ajax-count-region="inventory-items">{{ result.total }} element{{ result.total > 1 ? 's' : '' }} visible{{ result.total > 1 ? 's' : '' }}.</p>
+    </div>
+    <button type="button" class="btn btn-primary" data-remote-modal="{{ path('app_inventory_item_new') }}">
+        <i class="bi bi-plus-circle me-2"></i>Ajouter un materiel
+    </button>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form id="inventory-item-filters" class="row g-3 align-items-end" method="get" action="{{ path('app_inventory_item_index') }}" data-ajax-filter-region="inventory-items">
+            <div class="col-lg-3">
+                <label class="form-label" for="inventory-search">Recherche</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input id="inventory-search" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Reference, nom, marque, serie...">
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <label class="form-label" for="inventory-logistics-status">Suivi entre les usines</label>
+                <select id="inventory-logistics-status" class="form-select" name="logisticsStatus">
+                    <option value="">Tous les materiels</option>
+                    {% for label, value in constant('App\\Entity\\InventoryItem::LOGISTICS_STATUSES') %}
+                        <option value="{{ value }}" {{ filters.logisticsStatus == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 col-lg-2">
+                <label class="form-label" for="inventory-status">Statut</label>
+                <select id="inventory-status" class="form-select" name="status">
+                    <option value="">Tous</option>
+                    {% for label, value in constant('App\\Entity\\InventoryItem::STATUSES') %}
+                        <option value="{{ value }}" {{ filters.status == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 col-lg-2">
+                <label class="form-label" for="inventory-condition">Etat</label>
+                <select id="inventory-condition" class="form-select" name="condition">
+                    <option value="">Tous</option>
+                    {% for label, value in constant('App\\Entity\\InventoryItem::CONDITIONS') %}
+                        <option value="{{ value }}" {{ filters.condition == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 col-lg-2">
+                <label class="form-label" for="inventory-active">Affichage</label>
+                <select id="inventory-active" class="form-select" name="active">
+                    <option value="active" {{ filters.active == 'active' ? 'selected' : '' }}>Actifs</option>
+                    <option value="archived" {{ filters.active == 'archived' ? 'selected' : '' }}>Archives</option>
+                    <option value="all" {{ filters.active == 'all' ? 'selected' : '' }}>Tous</option>
+                </select>
+            </div>
+            <div class="col-md-3 col-lg-2 d-grid">
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="bi bi-funnel me-1"></i>Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div
+    data-ajax-region="inventory-items"
+    data-refresh-url="{{ path('app_inventory_item_search') }}"
+    data-refresh-form="#inventory-item-filters"
+>
+    {% include 'inventory/item/_table.html.twig' with {result: result, filters: filters} %}
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Materiel</th>
+                    <th class="text-end">Quantite</th>
+                    <th>Destination</th>
+                    <th>Motif</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for movement in movements %}
+                    <tr>
+                        <td class="text-secondary small">{{ movement.movementDate|date('d/m/Y H:i') }}</td>
+                        <td><span class="badge text-bg-light border">{{ movement.typeLabel }}</span></td>
+                        <td>
+                            <div class="fw-semibold">{{ movement.item.name }}</div>
+                            <div class="small text-secondary">{{ movement.item.reference }}</div>
+                        </td>
+                        <td class="text-end">{{ movement.quantity }}</td>
+                        <td>{{ movement.toLocation ? movement.toLocation.displayName : movement.toSite.name|default('Inchange') }}</td>
+                        <td class="text-secondary">{{ movement.reason ?: 'Sans motif' }}</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary"
+                                    data-remote-modal="{{ path('app_inventory_movement_view', {id: movement.id}) }}"
+                                    title="Voir le mouvement"
+                                    aria-label="Voir le mouvement"
+                                >
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                {% if is_granted('INVENTORY_ITEM_EDIT', movement.item) %}
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary"
+                                        data-remote-modal="{{ path('app_inventory_movement_correct', {id: movement.id}) }}"
+                                        title="Créer une correction"
+                                        aria-label="Créer une correction"
+                                    >
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7" class="text-center text-secondary py-5">Aucun mouvement enregistre.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

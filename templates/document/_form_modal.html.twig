@@ -1,4 +1,40 @@
 {% set document = form.vars.data %}
+{% set file_name = document.originalFileName|default('') %}
+{% set file_name_lower = file_name|lower %}
+{% set mime = document.mimeType|default('')|lower %}
+{% set has_existing_file = document.id and document.fileName is not empty and file_name is not empty %}
+{% set show_file_field = form.file.vars.required or not has_existing_file or form.file.vars.errors|length > 0 %}
+{% set file_icon = 'bi-file-earmark' %}
+{% set file_tone = 'secondary' %}
+{% set file_kind = 'Fichier' %}
+{% if has_existing_file %}
+    {% if mime == 'application/pdf' or file_name_lower ends with '.pdf' %}
+        {% set file_icon = 'bi-file-earmark-pdf-fill' %}
+        {% set file_tone = 'danger' %}
+        {% set file_kind = 'PDF' %}
+    {% elseif 'spreadsheet' in mime or 'excel' in mime or file_name_lower ends with '.xls' or file_name_lower ends with '.xlsx' or file_name_lower ends with '.csv' %}
+        {% set file_icon = 'bi-file-earmark-excel-fill' %}
+        {% set file_tone = 'success' %}
+        {% set file_kind = 'Excel' %}
+    {% elseif 'word' in mime or file_name_lower ends with '.doc' or file_name_lower ends with '.docx' %}
+        {% set file_icon = 'bi-file-earmark-word-fill' %}
+        {% set file_tone = 'primary' %}
+        {% set file_kind = 'Word' %}
+    {% elseif 'powerpoint' in mime or file_name_lower ends with '.ppt' or file_name_lower ends with '.pptx' %}
+        {% set file_icon = 'bi-file-earmark-ppt-fill' %}
+        {% set file_tone = 'warning' %}
+        {% set file_kind = 'PowerPoint' %}
+    {% elseif mime starts with 'image/' %}
+        {% set file_icon = 'bi-file-earmark-image-fill' %}
+        {% set file_tone = 'info' %}
+        {% set file_kind = 'Image' %}
+    {% elseif mime starts with 'text/' %}
+        {% set file_icon = 'bi-file-earmark-text-fill' %}
+        {% set file_tone = 'secondary' %}
+        {% set file_kind = 'Texte' %}
+    {% endif %}
+{% endif %}
+{% set file_size_label = has_existing_file ? (document.fileSize >= 1048576 ? (document.fileSize / 1048576)|number_format(1, ',', ' ') ~ ' Mo' : (document.fileSize / 1024)|number_format(1, ',', ' ') ~ ' Ko') : 'Aucune pièce jointe' %}
 
 {{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
     <div class="modal-header">
@@ -17,7 +53,42 @@
                 </div>
                 <div class="row g-3">
                     <div class="col-lg-6">{{ form_row(form.name) }}</div>
-                    <div class="col-lg-6">{{ form_row(form.file) }}</div>
+                    <div class="col-lg-6">
+                        <div data-document-file-panel>
+                            {% if has_existing_file %}
+                                <div class="document-current-file {{ show_file_field ? 'd-none' : '' }}" data-document-current-file>
+                                    <span class="document-file-icon document-file-icon-{{ file_tone }}">
+                                        <i class="bi {{ file_icon }}"></i>
+                                    </span>
+                                    <div class="min-w-0 flex-grow-1">
+                                        <span class="document-current-file-label">Pièce jointe actuelle</span>
+                                        <strong title="{{ file_name }}">{{ file_name }}</strong>
+                                        <small>{{ file_kind }} · {{ file_size_label }}</small>
+                                    </div>
+                                    <button class="btn btn-outline-danger btn-sm" type="button" data-document-replace-file>
+                                        <i class="bi bi-trash me-1"></i>Supprimer pour remplacer
+                                    </button>
+                                </div>
+                                <div class="{{ show_file_field ? '' : 'd-none' }}" data-document-file-field>
+                                    {{ form_row(form.file) }}
+                                </div>
+                            {% elseif document.id %}
+                                <div class="document-current-file document-current-file-missing mb-2">
+                                    <span class="document-file-icon document-file-icon-secondary">
+                                        <i class="bi bi-file-earmark"></i>
+                                    </span>
+                                    <div class="min-w-0">
+                                        <span class="document-current-file-label">Pièce jointe</span>
+                                        <strong>Aucun fichier associé</strong>
+                                        <small>Ajoutez un fichier pour compléter ce document.</small>
+                                    </div>
+                                </div>
+                                {{ form_row(form.file) }}
+                            {% else %}
+                                {{ form_row(form.file) }}
+                            {% endif %}
+                        </div>
+                    </div>
                     <div class="col-12">{{ form_row(form.description) }}</div>
                 </div>
             </section>

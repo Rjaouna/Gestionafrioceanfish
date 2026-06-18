@@ -3,12 +3,15 @@
 {% set user_modules = modules|filter(module => module.slug == 'users') %}
 {% set module_admin_modules = modules|filter(module => module.slug == 'modules') %}
 {% set agenda_modules = modules|filter(module => module.slug == 'agenda') %}
-{% set business_modules = modules|filter(module => module.slug not in ['passwords', 'users', 'modules', 'agenda']) %}
+{% set inventory_modules = modules|filter(module => module.slug == 'inventory') %}
+{% set business_modules = modules|filter(module => module.slug not in ['passwords', 'users', 'modules', 'agenda', 'inventory']) %}
 {% set can_manage_users = user_modules|length > 0 and is_granted('ROLE_ADMIN') %}
 {% set can_manage_modules = module_admin_modules|length > 0 and is_granted('ROLE_SUPER_ADMIN') %}
 {% set security_active = current_route starts with 'app_password' %}
 {% set users_active = current_route starts with 'app_user' %}
 {% set agenda_active = current_route starts with 'app_appointment' %}
+{% set inventory_active = current_route starts with 'app_inventory' %}
+{% set inventory_locations_active = current_route starts with 'app_inventory_location' or current_route starts with 'app_inventory_site' %}
 {% set configuration_active = current_route starts with 'app_module' %}
 {% set trash_active = current_route starts with 'app_trash' %}
 {% set deleted_items_count = is_granted('ROLE_SUPER_ADMIN') ? trash_deleted_count(app.user) : 0 %}
@@ -101,6 +104,37 @@
                     <a class="sidebar-sub-link ps-4 {{ current_route == 'app_appointment_my' ? 'active' : '' }}" href="{{ path('app_appointment_my') }}">
                         <i class="bi bi-person-check"></i>
                         <span>Mes rendez-vous</span>
+                    </a>
+                </div>
+            </section>
+        {% endif %}
+
+        {% if inventory_modules|length > 0 %}
+            <section class="sidebar-open-section {{ inventory_active ? 'active' : '' }}">
+                <div class="sidebar-open-heading">
+                    <span class="sidebar-section-icon"><i class="bi bi-box-seam"></i></span>
+                    <strong>Inventaire</strong>
+                </div>
+                <div class="sidebar-open-body">
+                    <a class="sidebar-sub-link {{ current_route == 'app_inventory_dashboard' ? 'active' : '' }}" href="{{ path('app_inventory_dashboard') }}">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Tableau de bord</span>
+                    </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_inventory_request' ? 'active' : '' }}" href="{{ path('app_inventory_request_index') }}">
+                        <i class="bi bi-inbox"></i>
+                        <span>Demandes a valider</span>
+                    </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_inventory_item' ? 'active' : '' }}" href="{{ path('app_inventory_item_index') }}">
+                        <i class="bi bi-box-seam"></i>
+                        <span>Materiel</span>
+                    </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_inventory_carton' ? 'active' : '' }}" href="{{ path('app_inventory_carton_stock_index') }}">
+                        <i class="bi bi-boxes"></i>
+                        <span>Stocks cartons</span>
+                    </a>
+                    <a class="sidebar-sub-link ps-4 {{ inventory_locations_active ? 'active' : '' }}" href="{{ path('app_inventory_location_index') }}">
+                        <i class="bi bi-pin-map"></i>
+                        <span>Sites et emplacements</span>
                     </a>
                 </div>
             </section>

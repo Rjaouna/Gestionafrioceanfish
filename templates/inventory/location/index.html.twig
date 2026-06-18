@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sites et emplacements{% endblock %}
+
+{% block body %}
+<div data-ajax-region="inventory-taxonomy" data-refresh-url="{{ path('app_inventory_location_content') }}">
+    {% include 'inventory/location/_content.html.twig' with {
+        sites: sites,
+        locations: locations,
+        site_form: site_form,
+        site_item_counts: site_item_counts,
+        location_item_counts: location_item_counts
+    } %}
+</div>
+{% endblock %}

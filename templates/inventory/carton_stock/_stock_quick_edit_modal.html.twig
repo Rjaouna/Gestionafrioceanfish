@@ -1,0 +1,40 @@
+<form method="post" action="{{ path('app_inventory_carton_stock_quick_update', {id: stock.id, field: field}) }}" data-ajax-form>
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">Modifier {{ field_label }}</h2>
+            <div class="small text-secondary">{{ stock.name }}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" name="token" value="{{ csrf_token('quick_inventory_carton_stock_' ~ stock.id) }}">
+
+        {% if field == 'description' %}
+            <label class="form-label fw-semibold" for="carton-stock-quick-value">{{ field_label }}</label>
+            <textarea id="carton-stock-quick-value" class="form-control" name="value" rows="4" autofocus>{{ stock.description }}</textarea>
+        {% elseif field == 'isActive' %}
+            <input type="hidden" name="value" value="0">
+            <div class="form-check form-switch">
+                <input id="carton-stock-quick-value" class="form-check-input" type="checkbox" name="value" value="1" {{ stock.active ? 'checked' : '' }} autofocus>
+                <label class="form-check-label fw-semibold" for="carton-stock-quick-value">Stock actif</label>
+            </div>
+        {% else %}
+            <label class="form-label fw-semibold" for="carton-stock-quick-value">{{ field_label }}</label>
+            <input
+                id="carton-stock-quick-value"
+                class="form-control"
+                type="text"
+                name="value"
+                value="{{ field == 'name' ? stock.name : stock.sourceSheet }}"
+                autofocus
+                {{ field == 'name' ? 'required' : '' }}
+            >
+        {% endif %}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>Enregistrer
+        </button>
+    </div>
+</form>

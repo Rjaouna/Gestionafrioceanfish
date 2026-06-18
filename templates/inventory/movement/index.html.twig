@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mouvements inventaire{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Mouvements</h1>
+        <p class="text-secondary mb-0">Historique non destructif des entrees, transferts, affectations et ajustements.</p>
+    </div>
+    <button type="button" class="btn btn-primary" data-remote-modal="{{ path('app_inventory_movement_new') }}">
+        <i class="bi bi-arrow-left-right me-2"></i>Nouveau mouvement
+    </button>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form id="inventory-movement-filters" class="row g-3 align-items-end" method="get" action="{{ path('app_inventory_movement_index') }}" data-ajax-filter-region="inventory-movements">
+            <div class="col-md-6">
+                <label class="form-label" for="movement-search">Recherche</label>
+                <input id="movement-search" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Materiel, reference, motif...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" for="movement-type">Type</label>
+                <select id="movement-type" class="form-select" name="type">
+                    <option value="">Tous</option>
+                    {% for label, value in constant('App\\Entity\\InventoryMovement::TYPES') %}
+                        <option value="{{ value }}" {{ filters.type == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-grid">
+                <button class="btn btn-outline-primary" type="submit"><i class="bi bi-funnel me-1"></i>Filtrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div
+    data-ajax-region="inventory-movements"
+    data-refresh-url="{{ path('app_inventory_movement_search') }}"
+    data-refresh-form="#inventory-movement-filters"
+>
+    {% include 'inventory/movement/_table.html.twig' with {movements: movements} %}
+</div>
+{% endblock %}

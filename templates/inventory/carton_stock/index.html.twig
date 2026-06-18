@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Stocks cartons{% endblock %}
+
+{% block body %}
+<div data-ajax-region="carton-stocks" data-refresh-url="{{ path('app_inventory_carton_stock_content') }}">
+    {% include 'inventory/carton_stock/_content.html.twig' with {stocks: stocks, summaries: summaries} %}
+</div>
+{% endblock %}

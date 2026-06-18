@@ -1,0 +1,68 @@
+<form method="post" action="{{ path('app_inventory_carton_line_quick_update', {id: line.id, field: field}) }}" data-ajax-form>
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">Modifier {{ field_label }}</h2>
+            <div class="small text-secondary">{{ line.stock.name }} - {{ line.reference }}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" name="token" value="{{ csrf_token('quick_inventory_carton_line_' ~ line.id) }}">
+
+        {% if field == 'lineType' %}
+            <label class="form-label fw-semibold" for="carton-line-quick-value">{{ field_label }}</label>
+            <select id="carton-line-quick-value" class="form-select" name="value" required autofocus>
+                {% for label, value in constant('App\\Entity\\InventoryCartonStockLine::LINE_TYPES') %}
+                    {% if value != 'summary' %}
+                        <option value="{{ value }}" {{ line.lineType == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        {% elseif field == 'notes' %}
+            <label class="form-label fw-semibold" for="carton-line-quick-value">{{ field_label }}</label>
+            <textarea id="carton-line-quick-value" class="form-control" name="value" rows="4" autofocus>{{ line.notes }}</textarea>
+        {% elseif field in ['unitPrice', 'totalAmount'] %}
+            <label class="form-label fw-semibold" for="carton-line-quick-value">{{ field_label }}</label>
+            <input
+                id="carton-line-quick-value"
+                class="form-control"
+                type="text"
+                name="value"
+                inputmode="decimal"
+                value="{{ field == 'unitPrice' ? line.unitPriceLabel : line.totalAmountLabel }}"
+                placeholder="Ex : 8,4"
+                autofocus
+            >
+            <div class="form-text">Virgule ou point accepte.</div>
+        {% elseif field == 'quantity' %}
+            <label class="form-label fw-semibold" for="carton-line-quick-value">{{ field_label }}</label>
+            <input
+                id="carton-line-quick-value"
+                class="form-control"
+                type="number"
+                name="value"
+                min="0"
+                step="1"
+                value="{{ line.quantity }}"
+                autofocus
+            >
+        {% else %}
+            <label class="form-label fw-semibold" for="carton-line-quick-value">{{ field_label }}</label>
+            <input
+                id="carton-line-quick-value"
+                class="form-control"
+                type="text"
+                name="value"
+                value="{{ field == 'groupName' ? line.groupName : line.reference }}"
+                autofocus
+                {{ field == 'reference' ? 'required' : '' }}
+            >
+        {% endif %}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>Enregistrer
+        </button>
+    </div>
+</form>

@@ -1,0 +1,77 @@
+{% set photo = null %}
+{% for attachment in item.attachments %}
+    {% if photo is null and attachment.image %}
+        {% set photo = attachment %}
+    {% endif %}
+{% endfor %}
+
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">Envoyer une consigne WhatsApp</h2>
+        <div class="small text-secondary">{{ item.reference }} - {{ item.name }}</div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    <form data-inventory-whatsapp-form data-url="{{ path('app_inventory_item_whatsapp_prepare', {id: item.id}) }}" data-contact-search-url="{{ path('app_inventory_contact_search') }}" data-token="{{ csrf_token('whatsapp_inventory_item_' ~ item.id) }}">
+        <div class="row g-4">
+            <div class="col-md-4">
+                {% if photo %}
+                    <img class="img-fluid rounded border inventory-whatsapp-photo" src="{{ path('app_inventory_attachment_view', {id: photo.id}) }}" alt="Photo de {{ item.name }}">
+                {% else %}
+                    <div class="inventory-whatsapp-photo-placeholder border rounded">
+                        <i class="bi bi-image"></i>
+                        <span>Aucune photo</span>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-8">
+                <div class="fw-semibold">{{ item.name }}</div>
+                <div class="small text-secondary mb-3">{{ item.reference }} · {{ item.quantity }} {{ item.unit }}</div>
+
+                <label class="form-label fw-semibold">Action demandee</label>
+                <div class="btn-group w-100 mb-3" role="group">
+                    <input class="btn-check" type="radio" name="action" id="inventory-action-transport" value="transport" checked>
+                    <label class="btn btn-outline-primary" for="inventory-action-transport"><i class="bi bi-truck me-1"></i>Transporter</label>
+                    <input class="btn-check" type="radio" name="action" id="inventory-action-count" value="inventory">
+                    <label class="btn btn-outline-primary" for="inventory-action-count"><i class="bi bi-clipboard-check me-1"></i>Faire l inventaire</label>
+                </div>
+
+                <div class="mb-3" data-inventory-whatsapp-destination>
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label fw-semibold" for="inventory-whatsapp-site">Site de destination</label>
+                            <select id="inventory-whatsapp-site" class="form-select" name="destinationSiteId">
+                                <option value="">Choisir le site</option>
+                                {% for site in sites %}
+                                    {% if site.id != item.site.id|default(null) %}
+                                        <option value="{{ site.id }}" {{ sites|length == 2 ? 'selected' : '' }}>{{ site.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold" for="inventory-whatsapp-quantity">Quantite</label>
+                            <input id="inventory-whatsapp-quantity" class="form-control" type="number" name="quantity" min="1" max="{{ item.availableQuantity }}" value="{{ item.availableQuantity > 0 ? item.availableQuantity : item.quantity }}">
+                        </div>
+                    </div>
+                </div>
+
+                <label class="form-label fw-semibold" for="inventory-whatsapp-notes">Commentaire</label>
+                <textarea id="inventory-whatsapp-notes" class="form-control mb-3" name="notes" rows="2" placeholder="Facultatif, sera conserve dans la demande"></textarea>
+
+                <label class="form-label fw-semibold" for="inventory-whatsapp-contact">Contact a prevenir</label>
+                <input id="inventory-whatsapp-contact" class="form-control" type="search" placeholder="Saisir un nom ou un numero..." autocomplete="off" data-inventory-contact-search>
+                <input type="hidden" name="contactId" data-inventory-contact-id>
+                <div class="list-group mt-2" data-inventory-contact-results></div>
+                <div class="small text-secondary mt-2" data-inventory-contact-selection>Aucun contact selectionne.</div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+    <button type="button" class="btn btn-success" data-inventory-whatsapp-send>
+        <i class="bi bi-whatsapp me-2"></i>Ouvrir WhatsApp
+    </button>
+</div>

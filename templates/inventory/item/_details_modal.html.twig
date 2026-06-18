@@ -1,0 +1,110 @@
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">{{ item.name }}</h2>
+        <div class="text-secondary small">{{ item.reference }}</div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <span class="inventory-logistics-badge" style="--inventory-logistics-color: {{ item.logisticsColor }}">
+                <span class="inventory-logistics-dot"></span>{{ item.logisticsStatusLabel }}
+            </span>
+        </div>
+        <div class="col-md-3">
+            <div class="border rounded p-3 h-100">
+                <div class="small text-secondary">Statut</div>
+                <div class="fw-semibold">{{ item.statusLabel }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="border rounded p-3 h-100">
+                <div class="small text-secondary">Etat</div>
+                <div class="fw-semibold">{{ item.conditionLabel }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="border rounded p-3 h-100">
+                <div class="small text-secondary">Quantite disponible</div>
+                <div class="fw-semibold">{{ item.availableQuantity }} / {{ item.quantity }} {{ item.unit }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="border rounded p-3 h-100">
+                <div class="small text-secondary">Responsable</div>
+                <div class="fw-semibold">{{ item.responsibleUser ? item.responsibleUser.displayName : 'Non attribue' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Categorie</dt><dd class="col-sm-8">{{ item.category.name|default('Non classe') }}</dd>
+                <dt class="col-sm-4">Site</dt><dd class="col-sm-8">{{ item.site.name|default('Non renseigne') }}</dd>
+                <dt class="col-sm-4">Emplacement</dt><dd class="col-sm-8">{{ item.location ? item.location.displayName : 'Non renseigne' }}</dd>
+                <dt class="col-sm-4">Dimensions</dt><dd class="col-sm-8">{{ item.dimensions ?: 'Non renseignees' }}</dd>
+                <dt class="col-sm-4">Couleur</dt><dd class="col-sm-8">{{ item.color ?: 'Non renseignee' }}</dd>
+                <dt class="col-sm-4">Marque / modele</dt><dd class="col-sm-8">{{ item.brand ?: 'Non renseignee' }}{% if item.model %} · {{ item.model }}{% endif %}</dd>
+                <dt class="col-sm-4">Numero serie</dt><dd class="col-sm-8">{{ item.serialNumber ?: 'Non renseigne' }}</dd>
+                <dt class="col-sm-4">Prix / valeur unitaire</dt><dd class="col-sm-8">{{ item.acquisitionValue ? item.acquisitionValue ~ ' EUR' : 'Non renseignee' }}</dd>
+                <dt class="col-sm-4">Description</dt><dd class="col-sm-8">{{ item.description ?: 'Aucune description' }}</dd>
+            </dl>
+        </div>
+        <div class="col-lg-5">
+            <h3 class="h6">Pieces jointes privees</h3>
+            <div class="list-group list-group-flush border rounded">
+                {% for attachment in item.attachments %}
+                    <a class="list-group-item list-group-item-action d-flex align-items-center gap-2" href="{{ path('app_inventory_attachment_view', {id: attachment.id}) }}" target="_blank" rel="noopener">
+                        <i class="bi {{ attachment.image ? 'bi-file-earmark-image' : 'bi-file-earmark-text' }} text-primary"></i>
+                        <span class="text-truncate">{{ attachment.originalFileName }}</span>
+                    </a>
+                {% else %}
+                    <div class="list-group-item text-secondary">Aucune piece jointe.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-success" data-remote-modal="{{ path('app_inventory_item_whatsapp_form', {id: item.id}) }}">
+        <i class="bi bi-whatsapp me-1"></i>Envoyer une consigne
+    </button>
+    {% if is_granted('INVENTORY_ITEM_EDIT', item) %}
+        <button type="button" class="btn btn-outline-primary" data-remote-modal="{{ path('app_inventory_item_quick_form', {id: item.id, field: 'move'}) }}">
+            <i class="bi bi-truck me-1"></i>Demander transport
+        </button>
+        <button type="button" class="btn btn-outline-info" data-remote-modal="{{ path('app_inventory_item_quick_form', {id: item.id, field: 'inventory'}) }}">
+            <i class="bi bi-clipboard-check me-1"></i>Inventaire
+        </button>
+        <button type="button" class="btn btn-primary" data-remote-modal="{{ path('app_inventory_item_form', {id: item.id}) }}">
+            <i class="bi bi-pencil me-1"></i>Modifier
+        </button>
+        <button
+            type="button"
+            class="btn btn-outline-secondary"
+            data-confirm-url="{{ path('app_inventory_item_archive', {id: item.id}) }}"
+            data-confirm-method="POST"
+            data-token="{{ csrf_token('archive_inventory_item_' ~ item.id) }}"
+            data-confirm-message="Changer l etat archive de ce materiel ?"
+            title="Archiver"
+        >
+            <i class="bi bi-archive"></i>
+        </button>
+    {% endif %}
+    {% if is_granted('INVENTORY_ITEM_DELETE', item) %}
+        <button
+            type="button"
+            class="btn btn-outline-danger"
+            data-confirm-url="{{ path('app_inventory_item_delete', {id: item.id}) }}"
+            data-confirm-method="DELETE"
+            data-token="{{ csrf_token('delete_inventory_item_' ~ item.id) }}"
+            data-confirm-message="Supprimer ce materiel ?"
+            title="Supprimer"
+        >
+            <i class="bi bi-trash"></i>
+        </button>
+    {% endif %}
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+</div>

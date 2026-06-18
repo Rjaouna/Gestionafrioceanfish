@@ -8,6 +8,7 @@
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><rect width=%22128%22 height=%22128%22 rx=%2224%22 fill=%22%230d6efd%22/><path d=%22M37 58h54v48H37zM47 58V42a17 17 0 0134 0v16%22 fill=%22none%22 stroke=%22white%22 stroke-width=%2210%22/><circle cx=%2264%22 cy=%2280%22 r=%226%22 fill=%22white%22/></svg>">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+        <link href="{{ asset('styles/app.css') }}" rel="stylesheet">
         {% block stylesheets %}{% endblock %}
         {% block javascripts %}
             {% block importmap %}{{ importmap('app') }}{% endblock %}
@@ -45,6 +46,138 @@
             <div id="ajax-alerts" class="position-fixed top-0 end-0 p-3 ajax-alerts" aria-live="polite"></div>
             {% block guest_body %}{% endblock %}
         {% endif %}
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            (() => {
+                if (window.bootstrap?.Modal) return;
+
+                const modalInstances = new WeakMap();
+                const offcanvasInstances = new WeakMap();
+
+                const dispatch = (element, name) => element.dispatchEvent(new CustomEvent(name, {bubbles: true}));
+
+                class ModalFallback {
+                    constructor(element) {
+                        this.element = element;
+                    }
+
+                    show() {
+                        dispatch(this.element, 'show.bs.modal');
+                        this.element.style.display = 'block';
+                        this.element.removeAttribute('aria-hidden');
+                        this.element.setAttribute('aria-modal', 'true');
+                        this.element.setAttribute('role', 'dialog');
+                        this.element.classList.add('show');
+                        document.body.classList.add('modal-open');
+
+                        if (!this.element.__bootstrapFallbackBackdrop) {
+                            const backdrop = document.createElement('div');
+                            backdrop.className = 'modal-backdrop fade show';
+                            backdrop.addEventListener('click', () => this.hide());
+                            this.element.__bootstrapFallbackBackdrop = backdrop;
+                        }
+
+                        document.body.appendChild(this.element.__bootstrapFallbackBackdrop);
+                        dispatch(this.element, 'shown.bs.modal');
+                    }
+
+                    hide() {
+                        dispatch(this.element, 'hide.bs.modal');
+                        this.element.classList.remove('show');
+                        this.element.style.display = 'none';
+                        this.element.setAttribute('aria-hidden', 'true');
+                        this.element.removeAttribute('aria-modal');
+                        document.body.classList.remove('modal-open');
+                        this.element.__bootstrapFallbackBackdrop?.remove();
+                        dispatch(this.element, 'hidden.bs.modal');
+                    }
+
+                    static getOrCreateInstance(element) {
+                        if (!modalInstances.has(element)) modalInstances.set(element, new ModalFallback(element));
+                        return modalInstances.get(element);
+                    }
+
+                    static getInstance(element) {
+                        return modalInstances.get(element) || null;
+                    }
+                }
+
+                class OffcanvasFallback {
+                    constructor(element) {
+                        this.element = element;
+                    }
+
+                    show() {
+                        this.element.classList.add('show');
+                    }
+
+                    hide() {
+                        this.element.classList.remove('show');
+                        dispatch(this.element, 'hidden.bs.offcanvas');
+                    }
+
+                    static getOrCreateInstance(element) {
+                        if (!offcanvasInstances.has(element)) offcanvasInstances.set(element, new OffcanvasFallback(element));
+                        return offcanvasInstances.get(element);
+                    }
+                }
+
+                class AlertFallback {
+                    constructor(element) {
+                        this.element = element;
+                    }
+
+                    close() {
+                        this.element.remove();
+                    }
+
+                    static getOrCreateInstance(element) {
+                        return new AlertFallback(element);
+                    }
+                }
+
+                window.bootstrap = {
+                    ...(window.bootstrap || {}),
+                    Modal: ModalFallback,
+                    Offcanvas: OffcanvasFallback,
+                    Alert: AlertFallback,
+                };
+
+                document.addEventListener('click', (event) => {
+                    const modalTrigger = event.target.closest('[data-bs-toggle="modal"][data-bs-target]');
+                    if (modalTrigger) {
+                        const modal = document.querySelector(modalTrigger.dataset.bsTarget);
+                        if (modal) {
+                            event.preventDefault();
+                            ModalFallback.getOrCreateInstance(modal).show();
+                        }
+                        return;
+                    }
+
+                    const offcanvasTrigger = event.target.closest('[data-bs-toggle="offcanvas"][data-bs-target]');
+                    if (offcanvasTrigger) {
+                        const offcanvas = document.querySelector(offcanvasTrigger.dataset.bsTarget);
+                        if (offcanvas) {
+                            event.preventDefault();
+                            OffcanvasFallback.getOrCreateInstance(offcanvas).show();
+                        }
+                        return;
+                    }
+
+                    const dismiss = event.target.closest('[data-bs-dismiss]');
+                    if (!dismiss) return;
+
+                    if (dismiss.dataset.bsDismiss === 'modal') {
+                        const modal = dismiss.closest('.modal');
+                        if (modal) ModalFallback.getOrCreateInstance(modal).hide();
+                    } else if (dismiss.dataset.bsDismiss === 'offcanvas') {
+                        const offcanvas = dismiss.closest('.offcanvas');
+                        if (offcanvas) OffcanvasFallback.getOrCreateInstance(offcanvas).hide();
+                    } else if (dismiss.dataset.bsDismiss === 'alert') {
+                        dismiss.closest('.alert')?.remove();
+                    }
+                });
+            })();
+        </script>
     </body>
 </html>

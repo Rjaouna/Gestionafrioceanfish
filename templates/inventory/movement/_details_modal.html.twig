@@ -1,0 +1,62 @@
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">Mouvement #{{ movement.id }}</h2>
+        <div class="small text-secondary">{{ movement.movementDate|date('d/m/Y H:i') }}</div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="small text-secondary">Matériel</div>
+            <div class="fw-semibold">{{ movement.item.name }}</div>
+            <div>{{ movement.item.reference }}</div>
+        </div>
+        <div class="col-md-3">
+            <div class="small text-secondary">Type</div>
+            <span class="badge text-bg-light border">{{ movement.typeLabel }}</span>
+        </div>
+        <div class="col-md-3">
+            <div class="small text-secondary">Quantité</div>
+            <div class="fw-semibold">{{ movement.quantity }}</div>
+        </div>
+        <div class="col-md-6">
+            <div class="small text-secondary">Origine</div>
+            <div>{{ movement.fromLocation ? movement.fromLocation.displayName : movement.fromSite.name|default('Non renseignée') }}</div>
+        </div>
+        <div class="col-md-6">
+            <div class="small text-secondary">Destination</div>
+            <div>{{ movement.toLocation ? movement.toLocation.displayName : movement.toSite.name|default('Inchangée') }}</div>
+        </div>
+        <div class="col-md-6">
+            <div class="small text-secondary">Responsable concerné</div>
+            <div>{{ movement.responsibleUser ? movement.responsibleUser.displayName : 'Aucun' }}</div>
+        </div>
+        <div class="col-md-6">
+            <div class="small text-secondary">Créé par</div>
+            <div>{{ movement.createdBy ? movement.createdBy.displayName : 'Non renseigné' }}</div>
+        </div>
+        <div class="col-12">
+            <div class="small text-secondary">Motif</div>
+            <div>{{ movement.reason ?: 'Sans motif' }}</div>
+        </div>
+        {% if movement.notes %}
+            <div class="col-12">
+                <div class="small text-secondary">Notes</div>
+                <div class="text-break">{{ movement.notes|nl2br }}</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+<div class="modal-footer">
+    {% if is_granted('INVENTORY_ITEM_EDIT', movement.item) %}
+        <button
+            type="button"
+            class="btn btn-primary"
+            data-remote-modal="{{ path('app_inventory_movement_correct', {id: movement.id}) }}"
+        >
+            <i class="bi bi-arrow-counterclockwise me-2"></i>Créer une correction
+        </button>
+    {% endif %}
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+</div>

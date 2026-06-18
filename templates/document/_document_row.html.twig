@@ -10,114 +10,130 @@
     {% set status_icon = 'bi-exclamation-triangle' %}
 {% endif %}
 
+{% set file_name = document.originalFileName|default('') %}
+{% set file_name_lower = file_name|lower %}
+{% set mime = document.mimeType|default('')|lower %}
+{% set has_file = document.fileName is not empty and file_name is not empty %}
+{% set file_icon = 'bi-file-earmark' %}
+{% set file_tone = 'secondary' %}
+{% set file_kind = 'Fichier' %}
+{% if has_file %}
+    {% if mime == 'application/pdf' or file_name_lower ends with '.pdf' %}
+        {% set file_icon = 'bi-file-earmark-pdf-fill' %}
+        {% set file_tone = 'danger' %}
+        {% set file_kind = 'PDF' %}
+    {% elseif 'spreadsheet' in mime or 'excel' in mime or file_name_lower ends with '.xls' or file_name_lower ends with '.xlsx' or file_name_lower ends with '.csv' %}
+        {% set file_icon = 'bi-file-earmark-excel-fill' %}
+        {% set file_tone = 'success' %}
+        {% set file_kind = 'Excel' %}
+    {% elseif 'word' in mime or file_name_lower ends with '.doc' or file_name_lower ends with '.docx' %}
+        {% set file_icon = 'bi-file-earmark-word-fill' %}
+        {% set file_tone = 'primary' %}
+        {% set file_kind = 'Word' %}
+    {% elseif 'powerpoint' in mime or file_name_lower ends with '.ppt' or file_name_lower ends with '.pptx' %}
+        {% set file_icon = 'bi-file-earmark-ppt-fill' %}
+        {% set file_tone = 'warning' %}
+        {% set file_kind = 'PowerPoint' %}
+    {% elseif mime starts with 'image/' %}
+        {% set file_icon = 'bi-file-earmark-image-fill' %}
+        {% set file_tone = 'info' %}
+        {% set file_kind = 'Image' %}
+    {% elseif mime starts with 'text/' %}
+        {% set file_icon = 'bi-file-earmark-text-fill' %}
+        {% set file_tone = 'secondary' %}
+        {% set file_kind = 'Texte' %}
+    {% endif %}
+{% else %}
+    {% set file_icon = 'bi-file-earmark' %}
+    {% set file_kind = 'Aucune pièce jointe' %}
+{% endif %}
+
+{% set description = document.description|default('')|trim %}
+{% set description_short = description ? (description|length > 30 ? description|slice(0, 26) ~ '....' : description) : 'Aucun descriptif' %}
+{% set file_size_label = has_file ? (document.fileSize >= 1048576 ? (document.fileSize / 1048576)|number_format(1, ',', ' ') ~ ' Mo' : (document.fileSize / 1024)|number_format(1, ',', ' ') ~ ' Ko') : '-' %}
+{% set date_label = document.updatedAt ? document.updatedAt|date('d/m/Y H:i') : (document.createdAt ? document.createdAt|date('d/m/Y H:i') : '-') %}
+{% set author_label = document.updatedBy ? document.updatedBy.displayName : (document.createdBy ? document.createdBy.displayName : 'Système') %}
+
 <div
-    class="col-12 col-md-4 col-xl-3"
+    class="document-file-row {{ not document.active or document.status == archived_status ? 'document-file-row-muted' : '' }}"
     data-search-item
     data-search-value="{{ (document.name ~ ' ' ~ document.description ~ ' ' ~ document.category ~ ' ' ~ document.internalReference ~ ' ' ~ document.issuer ~ ' ' ~ document.language ~ ' ' ~ document.status ~ ' ' ~ document.tags ~ ' ' ~ document.confidentialityLevel ~ ' ' ~ document.version ~ ' ' ~ document.mimeType ~ ' ' ~ document.originalFileName ~ ' ' ~ document.createdBy.displayName|default(''))|lower }}"
 >
-    {% embed 'components/_entity_card.html.twig' with {
-        title: document.name,
-        title_remote_url: is_granted('DOCUMENT_VIEW', document) ? path('app_document_view', {id: document.id}) : null,
-        subtitle: document.originalFileName,
-        icon: 'bi-file-earmark-text',
-        icon_container_class: 'rounded-3 bg-primary-subtle text-primary fs-3 module-mark',
-        status_label: document.statusLabel,
-        status_class: document.statusBadgeClass,
-        status_icon: status_icon,
-        muted: not document.active or document.status == archived_status,
-        compact: false,
-        created_at: document.createdAt,
-        updated_at: document.updatedAt
-    } %}
-        {% block top_actions %}
-            {% if is_granted('DOCUMENT_EDIT', document) %}
-                <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_document_form', {id: document.id}) }}">
-                    <i class="bi bi-pencil"></i>
-                </button>
-            {% endif %}
-            {% if is_granted('DOCUMENT_DELETE', document) %}
-                <button class="btn btn-outline-danger btn-sm" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_document_delete', {id: document.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_document_' ~ document.id) }}" data-confirm-message="Supprimer définitivement ce document et son fichier ?">
-                    <i class="bi bi-trash"></i>
-                </button>
-            {% endif %}
-        {% endblock %}
-
-        {% block body %}
-            <div class="d-grid gap-2 small">
-                {% if document.category %}
-                    <div class="app-card-info-row">
-                        <span class="text-secondary"><i class="bi bi-tag me-1"></i>Catégorie</span>
-                        <span class="text-end">{{ document.category }}</span>
-                    </div>
+    <div class="document-browser-col-name document-file-name-cell">
+        <span class="document-file-list-icon document-file-list-icon-{{ file_tone }}">
+            <i class="bi {{ file_icon }}"></i>
+        </span>
+        <div class="min-w-0">
+            <a
+                class="document-file-name"
+                href="{{ is_granted('DOCUMENT_VIEW', document) ? path('app_document_view', {id: document.id}) : '#' }}"
+                {% if is_granted('DOCUMENT_VIEW', document) %}
+                    data-remote-modal="{{ path('app_document_view', {id: document.id}) }}"
                 {% endif %}
-                {% if document.internalReference %}
-                    <div class="app-card-info-row">
-                        <span class="text-secondary"><i class="bi bi-hash me-1"></i>Référence</span>
-                        <span class="text-end">{{ document.internalReference }}</span>
-                    </div>
-                {% endif %}
-                {% if document.documentDate %}
-                    <div class="app-card-info-row">
-                        <span class="text-secondary"><i class="bi bi-calendar-event me-1"></i>Date</span>
-                        <span>{{ document.documentDate|date('d/m/Y') }}</span>
-                    </div>
-                {% endif %}
-                {% if document.issuer %}
-                    <div class="app-card-info-row">
-                        <span class="text-secondary"><i class="bi bi-building me-1"></i>Émetteur</span>
-                        <span class="text-end">{{ document.issuer }}</span>
-                    </div>
-                {% endif %}
-                {% if document.language or document.version %}
-                    <div class="app-card-info-row">
-                        <span class="text-secondary"><i class="bi bi-translate me-1"></i>Langue / version</span>
-                        <span class="text-end">{{ [document.language, document.version]|filter(v => v is not empty)|join(' · ') }}</span>
-                    </div>
-                {% endif %}
-                {% if document.expiresAt %}
-                    <div class="app-card-info-row">
-                        <span class="text-secondary"><i class="bi bi-hourglass-split me-1"></i>Expiration</span>
-                        <span>{{ document.expiresAt|date('d/m/Y') }}</span>
-                    </div>
-                {% endif %}
-                {% if document.confidentialityLabel %}
-                    <div>
-                        <span class="badge {{ document.confidentialityBadgeClass }}">{{ document.confidentialityLabel }}</span>
-                    </div>
-                {% endif %}
-                {% if document.tagList is not empty %}
-                    <div class="d-flex flex-wrap gap-1">
-                        {% for tag in document.tagList|slice(0, 5) %}
-                            <span class="badge rounded-pill text-bg-light border">{{ tag }}</span>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+                title="{{ document.name }}"
+            >
+                {{ document.name }}
+            </a>
+            <div class="document-file-description" title="{{ description ?: 'Aucun descriptif' }}">
+                {{ description_short }}
             </div>
-        {% endblock %}
+        </div>
+    </div>
 
-        {% block actions %}
-            <div class="app-card-actions-row">
-                {% if is_granted('DOCUMENT_DOWNLOAD', document) %}
-                    <a class="btn btn-primary btn-sm flex-grow-1" href="{{ path('app_document_download', {id: document.id}) }}">
-                        <i class="bi bi-download me-1"></i>Télécharger
-                    </a>
-                {% endif %}
-                {% if is_granted('DOCUMENT_EMAIL', document) %}
-                    <button class="btn btn-outline-primary btn-sm" title="Envoyer par e-mail" aria-label="Envoyer par e-mail" data-remote-modal="{{ path('app_document_email_modal', {id: document.id}) }}">
-                        <i class="bi bi-envelope"></i>
-                    </button>
-                {% endif %}
-                {% if is_granted('DOCUMENT_SHARE', document) %}
-                    <button class="btn btn-outline-success btn-sm" title="Partager" aria-label="Partager" data-remote-modal="{{ path('app_document_share_modal', {id: document.id}) }}">
-                        <i class="bi bi-share"></i>
-                    </button>
-                {% endif %}
-                {% if is_granted('DOCUMENT_ARCHIVE', document) %}
-                    <button class="btn btn-outline-secondary btn-sm" title="{{ document.active ? 'Archiver' : 'Désarchiver' }}" aria-label="{{ document.active ? 'Archiver' : 'Désarchiver' }}" data-confirm-url="{{ path('app_document_archive', {id: document.id}) }}" data-confirm-method="POST" data-token="{{ csrf_token('archive_document_' ~ document.id) }}" data-confirm-message="{{ document.active ? 'Archiver ce document ?' : 'Désarchiver ce document ?' }}">
-                        <i class="bi {{ document.active ? 'bi-archive' : 'bi-arrow-counterclockwise' }}"></i>
-                    </button>
-                {% endif %}
-            </div>
-        {% endblock %}
-    {% endembed %}
+    <div class="document-browser-col-updated document-file-muted" title="{{ date_label }}">
+        <span>{{ date_label }}</span>
+        <small>{{ author_label }}</small>
+    </div>
+
+    <div class="document-browser-col-size document-file-muted">
+        <span>{{ file_size_label }}</span>
+        <small>{{ file_kind }}</small>
+    </div>
+
+    <div class="document-browser-col-status">
+        <span class="badge {{ document.statusBadgeClass }}">
+            <i class="bi {{ status_icon }} me-1"></i>{{ document.statusLabel }}
+        </span>
+        {% if document.confidentialityLabel %}
+            <span class="badge {{ document.confidentialityBadgeClass }}">{{ document.confidentialityLabel }}</span>
+        {% endif %}
+    </div>
+
+    <div class="document-browser-col-actions document-file-actions">
+        {% if is_granted('DOCUMENT_VIEW', document) %}
+            <a class="btn btn-light btn-sm" title="Voir les détails" aria-label="Voir les détails" href="{{ path('app_document_view', {id: document.id}) }}" data-remote-modal="{{ path('app_document_view', {id: document.id}) }}">
+                <i class="bi bi-eye"></i>
+            </a>
+        {% endif %}
+        {% if is_granted('DOCUMENT_EDIT', document) %}
+            <button class="btn btn-light btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_document_form', {id: document.id}) }}">
+                <i class="bi bi-pencil"></i>
+            </button>
+        {% endif %}
+        {% if has_file and is_granted('DOCUMENT_DOWNLOAD', document) %}
+            <a class="btn btn-light btn-sm" title="Télécharger" aria-label="Télécharger" href="{{ path('app_document_download', {id: document.id}) }}">
+                <i class="bi bi-download"></i>
+            </a>
+        {% endif %}
+        {% if has_file and is_granted('DOCUMENT_EMAIL', document) %}
+            <button class="btn btn-light btn-sm" title="Envoyer par e-mail" aria-label="Envoyer par e-mail" data-remote-modal="{{ path('app_document_email_modal', {id: document.id}) }}">
+                <i class="bi bi-envelope"></i>
+            </button>
+        {% endif %}
+        {% if is_granted('DOCUMENT_SHARE', document) %}
+            <button class="btn btn-light btn-sm" title="Partager" aria-label="Partager" data-remote-modal="{{ path('app_document_share_modal', {id: document.id}) }}">
+                <i class="bi bi-share"></i>
+            </button>
+        {% endif %}
+        {% if is_granted('DOCUMENT_ARCHIVE', document) %}
+            <button class="btn btn-light btn-sm" title="{{ document.active ? 'Archiver' : 'Désarchiver' }}" aria-label="{{ document.active ? 'Archiver' : 'Désarchiver' }}" data-confirm-url="{{ path('app_document_archive', {id: document.id}) }}" data-confirm-method="POST" data-token="{{ csrf_token('archive_document_' ~ document.id) }}" data-confirm-message="{{ document.active ? 'Archiver ce document ?' : 'Désarchiver ce document ?' }}">
+                <i class="bi {{ document.active ? 'bi-archive' : 'bi-arrow-counterclockwise' }}"></i>
+            </button>
+        {% endif %}
+        {% if is_granted('DOCUMENT_DELETE', document) %}
+            <button class="btn btn-light btn-sm text-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_document_delete', {id: document.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_document_' ~ document.id) }}" data-confirm-message="Supprimer définitivement ce document et son fichier ?">
+                <i class="bi bi-trash"></i>
+            </button>
+        {% endif %}
+    </div>
 </div>
