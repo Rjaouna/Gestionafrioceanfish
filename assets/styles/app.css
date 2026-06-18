@@ -2816,14 +2816,39 @@ code {
     word-break: break-word;
 }
 
+.appointment-calendar-page {
+    width: 100%;
+    max-width: none;
+}
+
+@media (min-width: 992px) {
+    .appointment-calendar-page {
+        box-sizing: border-box;
+        width: calc(100vw - 305px);
+        max-width: calc(100vw - 305px);
+        margin-right: -1.5rem;
+        margin-left: -1.5rem;
+        padding-right: 1.5rem;
+        padding-left: 1.5rem;
+    }
+}
+
 .appointment-calendar-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
     align-items: start;
+    width: 100%;
+}
+
+.appointment-calendar-main {
+    grid-column: 1 / -1;
+    min-width: 0;
+    width: 100%;
 }
 
 .appointment-calendar-shell {
+    width: 100%;
     overflow: hidden;
     border: 1px solid rgba(148, 163, 184, 0.22);
     border-radius: 1rem;
@@ -2831,9 +2856,13 @@ code {
     box-shadow: 0 1rem 2.35rem rgba(15, 23, 42, 0.07);
 }
 
+#appointmentCalendar {
+    min-height: 720px;
+}
+
 .appointment-calendar-shell .fc {
-    padding: 0.9rem;
-    font-size: 0.82rem;
+    padding: 1.1rem;
+    font-size: 0.9rem;
 }
 
 .appointment-calendar-shell .fc-toolbar-title {
@@ -2843,7 +2872,7 @@ code {
 
 .appointment-calendar-shell .fc-button {
     border-radius: 0.58rem !important;
-    font-size: 0.78rem !important;
+    font-size: 0.84rem !important;
     font-weight: 750 !important;
 }
 
@@ -3035,6 +3064,10 @@ code {
 
     .appointment-calendar-shell .fc {
         padding: 0.55rem;
+    }
+
+    #appointmentCalendar {
+        min-height: auto;
     }
 
     .appointment-calendar-shell .fc-toolbar {

@@ -1060,7 +1060,8 @@ async function initializeAppointmentCalendar() {
 
     appointmentCalendar = new window.FullCalendar.Calendar(calendarElement, {
         locale: 'fr',
-        height: 'auto',
+        height: window.matchMedia('(max-width: 767px)').matches ? 'auto' : 'calc(100vh - 230px)',
+        expandRows: true,
         initialView: window.matchMedia('(max-width: 767px)').matches ? 'listWeek' : 'timeGridWeek',
         firstDay: 1,
         nowIndicator: true,
