@@ -82,8 +82,8 @@
   "cartonStocks": [
     {
       "name": "Carton produit du Maroc",
-      "sourceSheet": "stock carton produit du maroc",
-      "description": "Stock carton divers issu du fichier Excel.",
+      "sourceSheet": "stock carton produit du maroc.",
+      "description": "Stock carton divers",
       "lines": [
         ["Carton divers", "PRODUIT DU MAROC", 3500, null, null, "item"],
         ["Carton divers", "CARTON AGADIR", 1845, null, null, "item"],
@@ -93,7 +93,7 @@
     {
       "name": "Carton Mapexel Copemar",
       "sourceSheet": "stock carton mapexel copemar",
-      "description": "Stocks cartons Derhem Seafood et El Hardoufi issus du fichier Excel.",
+      "description": "Stocks cartons Derhem Seafood et El Hardoufi.",
       "lines": [
         ["DERHEM SEAFOOD CARTON", "TROCIADO", 2400, 8.4, 20160, "item"],
         ["DERHEM SEAFOOD CARTON", "T&T", 1400, 7.2, 10080, "item"],
