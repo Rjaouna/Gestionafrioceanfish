@@ -5,11 +5,15 @@ namespace App\Service;
 use App\Entity\AppModule;
 use App\Entity\Appointment;
 use App\Entity\Expense;
+use App\Entity\InventoryItem;
 use App\Entity\Intervention;
 use App\Entity\User;
 use App\Repository\AppModuleRepository;
 use App\Repository\AppointmentRepository;
 use App\Repository\ExpenseRepository;
+use App\Repository\InventoryItemRepository;
+use App\Repository\InventoryMovementRepository;
+use App\Repository\InventoryRequestRepository;
 use App\Repository\IntervenantRepository;
 use App\Repository\InterventionRepository;
 use App\Repository\MaintenanceContractRepository;
@@ -17,6 +21,7 @@ use App\Repository\UserRepository;
 use App\Service\Appointment\AppointmentAccessService;
 use App\Service\Expense\ExpenseAccessService;
 use App\Service\Expense\ExpenseService;
+use App\Service\Inventory\InventoryAccessService;
 use App\Service\Trash\TrashService;
 
 final readonly class DashboardStatsService
@@ -35,6 +40,10 @@ final readonly class DashboardStatsService
         private AppModuleRepository $moduleRepository,
         private AppointmentRepository $appointmentRepository,
         private AppointmentAccessService $appointmentAccess,
+        private InventoryAccessService $inventoryAccess,
+        private InventoryItemRepository $inventoryItemRepository,
+        private InventoryRequestRepository $inventoryRequestRepository,
+        private InventoryMovementRepository $inventoryMovementRepository,
         private TrashService $trashService,
     ) {
     }
@@ -55,6 +64,7 @@ final readonly class DashboardStatsService
                 'contacts' => $this->contactSection($module, $user),
                 'expenses' => $this->expenseSection($module, $user),
                 'agenda' => $this->agendaSection($module, $user),
+                'inventory' => $this->inventorySection($module, $user),
                 'users' => $this->usersSection($module),
                 'modules' => $this->modulesSection($module),
                 default => null,
@@ -124,10 +134,35 @@ final readonly class DashboardStatsService
             'type_chart' => [],
             'priority_chart' => [],
         ];
+        $inventory = $hasModule('inventory') ? $this->inventoryOverview($user) : [
+            'total_items' => 0,
+            'active_items' => 0,
+            'archived_items' => 0,
+            'assigned_items' => 0,
+            'unavailable_items' => 0,
+            'maintenance_items' => 0,
+            'lost_items' => 0,
+            'pending_requests' => 0,
+            'pending_transfers' => 0,
+            'pending_inventories' => 0,
+            'recent_movements' => [],
+            'status_chart' => [],
+            'category_chart' => [],
+            'site_chart' => [],
+            'logistics_chart' => [],
+            'request_chart' => [],
+        ];
         $trash = $this->trashOverview($user);
 
-        $healthCards = $this->healthCards($agenda, $maintenance, $expenses, $passwords, $users, $hasModule);
-        $alertCount = count($maintenance['expiring_contracts']) + $passwords['pending'] + $users['inactive'] + $expenses['pending_count'] + $agenda['pending'] + $agenda['high_priority'];
+        $healthCards = $this->healthCards($agenda, $maintenance, $expenses, $passwords, $users, $inventory, $hasModule);
+        $alertCount = count($maintenance['expiring_contracts'])
+            + $passwords['pending']
+            + $users['inactive']
+            + $expenses['pending_count']
+            + $agenda['pending']
+            + $agenda['high_priority']
+            + $inventory['pending_requests']
+            + $inventory['unavailable_items'];
         $kpis = [];
 
         if ($hasModule('agenda')) {
@@ -194,6 +229,17 @@ final readonly class DashboardStatsService
             ];
         }
 
+        if ($hasModule('inventory')) {
+            $kpis[] = [
+                'label' => 'Inventaire',
+                'value' => $inventory['active_items'],
+                'icon' => 'bi-box-seam',
+                'tone' => $inventory['pending_requests'] > 0 ? 'warning' : 'primary',
+                'route' => 'app_inventory_dashboard',
+                'hint' => sprintf('%d demande%s a valider, %d a surveiller', $inventory['pending_requests'], $inventory['pending_requests'] > 1 ? 's' : '', $inventory['unavailable_items']),
+            ];
+        }
+
         if ($hasModule('passwords')) {
             $kpis[] = [
                 'label' => 'Accès',
@@ -230,20 +276,22 @@ final readonly class DashboardStatsService
         return [
             'period' => $period,
             'kpis' => $kpis,
-            'executive_kpis' => $this->executiveKpis($agenda, $maintenance, $expenses, $passwords, $documents, $contacts, $users, $hasModule),
-            'hero_metrics' => $this->heroMetrics($agenda, $maintenance, $expenses, $alertCount, count($modules)),
+            'executive_kpis' => $this->executiveKpis($agenda, $maintenance, $expenses, $passwords, $documents, $contacts, $users, $inventory, $hasModule),
+            'hero_metrics' => $this->heroMetrics($agenda, $maintenance, $expenses, $inventory, $alertCount, count($modules)),
             'health_cards' => $healthCards,
             'health_chart' => $this->healthChart($healthCards),
-            'operational_chart' => $this->operationalChart($agenda, $maintenance, $expenses, $passwords),
+            'operational_chart' => $this->operationalChart($agenda, $maintenance, $expenses, $passwords, $inventory),
             'schedule' => $this->scheduleItems($agenda['upcoming'], $maintenance['open_interventions']),
             'recent_activity' => $this->recentActivity($user, $hasModule),
             'quick_actions' => $this->quickActions($hasModule, $trash),
             'agenda_overview' => $agenda,
             'finance_overview' => $expenses,
+            'inventory_overview' => $inventory,
             'trash_overview' => $trash,
             'available' => [
                 'agenda' => $hasModule('agenda'),
                 'expenses' => $hasModule('expenses'),
+                'inventory' => $hasModule('inventory'),
                 'maintenance' => $hasModule('maintenance'),
                 'documents' => $hasModule('documents'),
                 'contacts' => $hasModule('contacts'),
@@ -260,13 +308,19 @@ final readonly class DashboardStatsService
                 'contracts_health' => $maintenance['health_chart'],
                 'expense_types' => $expenses['category_chart'],
                 'expense_status' => $expenses['status_chart'],
+                'inventory_status' => $inventory['status_chart'],
+                'inventory_categories' => $inventory['category_chart'],
+                'inventory_sites' => $inventory['site_chart'],
+                'inventory_logistics' => $inventory['logistics_chart'],
+                'inventory_requests' => $inventory['request_chart'],
             ],
             'expense_type_chart' => $expenses['category_chart'],
             'alert_count' => $alertCount,
-            'alerts' => $this->dashboardAlerts($maintenance['expiring_contracts'], $passwords['pending'], $users['inactive'], $expenses['pending_count'], $agenda['pending'], $agenda['high_priority']),
+            'alerts' => $this->dashboardAlerts($maintenance['expiring_contracts'], $passwords['pending'], $users['inactive'], $expenses['pending_count'], $agenda['pending'], $agenda['high_priority'], $inventory),
             'agenda' => $maintenance['open_interventions'],
             'sections' => $sections,
             'module_tiles' => [
+                ['label' => 'Demandes inventaire', 'value' => $inventory['pending_requests'], 'icon' => 'bi-clipboard-check', 'tone' => 'info'],
                 ['label' => 'RDV aujourd’hui', 'value' => $agenda['today'], 'icon' => 'bi-calendar2-check', 'tone' => 'primary'],
                 ['label' => 'Intervenants', 'value' => $maintenance['intervenants'], 'icon' => 'bi-person-gear', 'tone' => 'warning'],
                 ['label' => 'Contacts actifs', 'value' => $contacts['active'], 'icon' => 'bi-person-lines-fill', 'tone' => 'success'],
@@ -281,7 +335,7 @@ final readonly class DashboardStatsService
      *
      * @return list<array<string, mixed>>
      */
-    private function executiveKpis(array $agenda, array $maintenance, array $expenses, array $passwords, array $documents, array $contacts, array $users, callable $hasModule): array
+    private function executiveKpis(array $agenda, array $maintenance, array $expenses, array $passwords, array $documents, array $contacts, array $users, array $inventory, callable $hasModule): array
     {
         $items = [];
 
@@ -319,6 +373,17 @@ final readonly class DashboardStatsService
             ];
         }
 
+        if ($hasModule('inventory')) {
+            $items[] = [
+                'label' => 'Inventaire a valider',
+                'value' => $inventory['pending_requests'],
+                'hint' => sprintf('%d transport%s, %d inventaire%s, %d materiel%s actif%s', $inventory['pending_transfers'], $inventory['pending_transfers'] > 1 ? 's' : '', $inventory['pending_inventories'], $inventory['pending_inventories'] > 1 ? 's' : '', $inventory['active_items'], $inventory['active_items'] > 1 ? 's' : '', $inventory['active_items'] > 1 ? 's' : ''),
+                'icon' => 'bi-box-seam',
+                'tone' => $inventory['pending_requests'] > 0 ? 'warning' : 'primary',
+                'route' => 'app_inventory_request_index',
+            ];
+        }
+
         if ($hasModule('documents')) {
             $items[] = [
                 'label' => 'Documents utiles',
@@ -330,27 +395,7 @@ final readonly class DashboardStatsService
             ];
         }
 
-        if ($hasModule('contacts')) {
-            $items[] = [
-                'label' => 'Contacts actifs',
-                'value' => $contacts['active'],
-                'hint' => sprintf('%d contacts visibles, %d types', $contacts['total'], $contacts['types']),
-                'icon' => 'bi-person-lines-fill',
-                'tone' => 'success',
-                'route' => 'app_contact_index',
-            ];
-        }
 
-        if ($hasModule('passwords')) {
-            $items[] = [
-                'label' => 'Accès à valider',
-                'value' => $passwords['pending'],
-                'hint' => sprintf('%d accès visibles dans le coffre', $passwords['total']),
-                'icon' => 'bi-key',
-                'tone' => 'danger',
-                'route' => 'app_password_index',
-            ];
-        }
 
         if ($hasModule('users')) {
             $items[] = [
@@ -367,19 +412,19 @@ final readonly class DashboardStatsService
     }
 
     /** @return list<array<string, mixed>> */
-    private function heroMetrics(array $agenda, array $maintenance, array $expenses, int $alertCount, int $moduleCount): array
+    private function heroMetrics(array $agenda, array $maintenance, array $expenses, array $inventory, int $alertCount, int $moduleCount): array
     {
         return [
             ['label' => 'Alertes', 'value' => $alertCount, 'icon' => 'bi-bell', 'tone' => $alertCount > 0 ? 'warning' : 'success'],
             ['label' => 'RDV 7 jours', 'value' => $agenda['next_7_days'], 'icon' => 'bi-calendar-week', 'tone' => 'primary'],
             ['label' => 'Interventions ouvertes', 'value' => $maintenance['planned_interventions'] + $maintenance['running_interventions'], 'icon' => 'bi-activity', 'tone' => 'success'],
             ['label' => 'Dépenses période', 'value' => number_format($expenses['period_total'], 0, ',', ' ').' dh', 'icon' => 'bi-receipt', 'tone' => 'warning'],
-            ['label' => 'Modules accessibles', 'value' => $moduleCount, 'icon' => 'bi-grid-3x3-gap', 'tone' => 'secondary'],
+            ['label' => 'Demandes inventaire', 'value' => $inventory['pending_requests'], 'icon' => 'bi-box-seam', 'tone' => $inventory['pending_requests'] > 0 ? 'warning' : 'primary'],
         ];
     }
 
     /** @param callable(string): bool $hasModule */
-    private function healthCards(array $agenda, array $maintenance, array $expenses, array $passwords, array $users, callable $hasModule): array
+    private function healthCards(array $agenda, array $maintenance, array $expenses, array $passwords, array $users, array $inventory, callable $hasModule): array
     {
         $cards = [];
 
@@ -410,6 +455,16 @@ final readonly class DashboardStatsService
                 'caption' => sprintf('%d dépenses à valider, %d refusées', $expenses['pending_count'], $expenses['refused_count']),
                 'tone' => $expenses['pending_count'] > 0 ? 'warning' : 'success',
                 'icon' => 'bi-cash-stack',
+            ];
+        }
+
+        if ($hasModule('inventory')) {
+            $cards[] = [
+                'label' => 'Inventaire',
+                'value' => $inventory['pending_requests'] + $inventory['unavailable_items'],
+                'caption' => sprintf('%d demandes a valider, %d materiels a surveiller', $inventory['pending_requests'], $inventory['unavailable_items']),
+                'tone' => ($inventory['pending_requests'] + $inventory['unavailable_items']) > 0 ? 'warning' : 'success',
+                'icon' => 'bi-box-seam',
             ];
         }
 
@@ -448,7 +503,7 @@ final readonly class DashboardStatsService
     }
 
     /** @return list<array<string, mixed>> */
-    private function operationalChart(array $agenda, array $maintenance, array $expenses, array $passwords): array
+    private function operationalChart(array $agenda, array $maintenance, array $expenses, array $passwords, array $inventory): array
     {
         return $this->withPercentages([
             ['label' => 'RDV 7 jours', 'short_label' => 'RDV', 'value' => $agenda['next_7_days'], 'tone' => 'primary'],
@@ -505,6 +560,10 @@ final readonly class DashboardStatsService
 
         if ($hasModule('maintenance')) {
             $actions[] = ['label' => 'Suivre la maintenance', 'text' => 'Voir interventions et contrats', 'route' => 'app_maintenance_intervention_index', 'icon' => 'bi-tools', 'tone' => 'success'];
+        }
+
+        if ($hasModule('inventory')) {
+            $actions[] = ['label' => 'Valider inventaire', 'text' => 'Transports et inventaires en attente', 'route' => 'app_inventory_request_index', 'icon' => 'bi-clipboard-check', 'tone' => 'info'];
         }
 
         if ($hasModule('documents')) {
@@ -658,6 +717,24 @@ final readonly class DashboardStatsService
                     'tone' => 'primary',
                     'route' => 'app_appointment_calendar',
                     'kind' => 'RDV',
+                ];
+            }
+        }
+
+        if ($hasModule('inventory') && $this->inventoryAccess->canAccess($user)) {
+            $viewAll = $this->inventoryAccess->canViewAll($user);
+            foreach ($this->inventoryMovementRepository->recentVisible($user, $viewAll, 4) as $movement) {
+                $date = $movement->getMovementDate();
+                $item = $movement->getItem();
+                $items[] = [
+                    'title' => $item?->getReference().' - '.$item?->getName(),
+                    'meta' => sprintf('%s · %d %s', $movement->getTypeLabel(), $movement->getQuantity(), $item?->getUnit() ?? 'piece'),
+                    'date' => $date,
+                    'date_label' => $this->activityDateLabel($date),
+                    'icon' => 'bi-box-seam',
+                    'tone' => 'info',
+                    'route' => 'app_inventory_dashboard',
+                    'kind' => 'Inventaire',
                 ];
             }
         }
@@ -900,6 +977,104 @@ final readonly class DashboardStatsService
         return $this->withPercentages($items);
     }
 
+    /** @return array<string, mixed> */
+    private function inventoryOverview(User $user): array
+    {
+        if (!$this->inventoryAccess->canAccess($user)) {
+            return [
+                'total_items' => 0,
+                'active_items' => 0,
+                'archived_items' => 0,
+                'assigned_items' => 0,
+                'unavailable_items' => 0,
+                'maintenance_items' => 0,
+                'lost_items' => 0,
+                'pending_requests' => 0,
+                'pending_transfers' => 0,
+                'pending_inventories' => 0,
+                'recent_movements' => [],
+                'status_chart' => [],
+                'category_chart' => [],
+                'site_chart' => [],
+                'logistics_chart' => [],
+                'request_chart' => [],
+            ];
+        }
+
+        $viewAll = $this->inventoryAccess->canViewAll($user);
+        $active = $this->inventoryItemRepository->countVisible($user, $viewAll, ['active' => 'active']);
+        $archived = $this->inventoryItemRepository->countVisible($user, $viewAll, ['active' => 'archived']);
+        $assigned = $this->inventoryItemRepository->countVisible($user, $viewAll, ['active' => 'active', 'status' => 'assigned']);
+        $maintenance = $this->inventoryItemRepository->countVisible($user, $viewAll, ['active' => 'active', 'status' => 'maintenance']);
+        $lost = $this->inventoryItemRepository->countVisible($user, $viewAll, ['active' => 'active', 'status' => 'lost']);
+        $retired = $this->inventoryItemRepository->countVisible($user, $viewAll, ['active' => 'active', 'status' => 'retired']);
+        $pendingTransfers = $this->inventoryRequestRepository->countPendingVisibleByType($user, $viewAll, 'transfer');
+        $pendingInventories = $this->inventoryRequestRepository->countPendingVisibleByType($user, $viewAll, 'inventory');
+
+        return [
+            'total_items' => $active + $archived,
+            'active_items' => $active,
+            'archived_items' => $archived,
+            'assigned_items' => $assigned,
+            'unavailable_items' => $maintenance + $lost + $retired,
+            'maintenance_items' => $maintenance,
+            'lost_items' => $lost,
+            'pending_requests' => $pendingTransfers + $pendingInventories,
+            'pending_transfers' => $pendingTransfers,
+            'pending_inventories' => $pendingInventories,
+            'recent_movements' => $this->inventoryMovementRepository->recentVisible($user, $viewAll, 5),
+            'status_chart' => $this->inventoryChart($this->labelInventoryStatuses($this->inventoryItemRepository->groupByStatus($user, $viewAll))),
+            'category_chart' => $this->inventoryChart($this->inventoryItemRepository->groupByCategory($user, $viewAll)),
+            'site_chart' => $this->inventoryChart($this->inventoryItemRepository->groupBySite($user, $viewAll)),
+            'logistics_chart' => $this->inventoryChart($this->labelInventoryLogistics($this->inventoryItemRepository->groupByLogisticsStatus($user, $viewAll))),
+            'request_chart' => $this->withShares([
+                ['label' => 'Transports', 'short_label' => 'Transport', 'value' => $pendingTransfers, 'tone' => 'primary'],
+                ['label' => 'Inventaires', 'short_label' => 'Inventaire', 'value' => $pendingInventories, 'tone' => 'warning'],
+            ]),
+        ];
+    }
+
+    /** @param list<array{label: string, value: int}> $rows */
+    private function inventoryChart(array $rows): array
+    {
+        $tones = ['primary', 'success', 'warning', 'info', 'secondary', 'danger'];
+        $items = [];
+
+        foreach ($rows as $index => $row) {
+            $items[] = [
+                'label' => $row['label'],
+                'short_label' => mb_substr($row['label'], 0, 12),
+                'value' => $row['value'],
+                'display' => (string) $row['value'],
+                'tone' => $tones[$index % count($tones)],
+            ];
+        }
+
+        return $this->withShares($items);
+    }
+
+    /** @param list<array{label: string, value: int}> $rows */
+    private function labelInventoryStatuses(array $rows): array
+    {
+        $labels = array_flip(InventoryItem::STATUSES);
+
+        return array_map(static fn (array $row): array => [
+            'label' => $labels[$row['label']] ?? $row['label'],
+            'value' => $row['value'],
+        ], $rows);
+    }
+
+    /** @param list<array{label: string, value: int}> $rows */
+    private function labelInventoryLogistics(array $rows): array
+    {
+        $labels = array_flip(InventoryItem::LOGISTICS_STATUSES);
+
+        return array_map(static fn (array $row): array => [
+            'label' => $labels[$row['label']] ?? $row['label'],
+            'value' => $row['value'],
+        ], $rows);
+    }
+
     /** @return array{total: int, active: int, pending: int} */
     private function passwordOverview(User $user): array
     {
@@ -997,10 +1172,51 @@ final readonly class DashboardStatsService
     private function withPercentages(array $items): array
     {
         $max = max(1, ...array_map(static fn (array $item): int => $item['value'], $items));
+        $total = max(1, array_sum(array_map(static fn (array $item): int => $item['value'], $items)));
+        $offset = 0;
+        $chart = [];
 
-        return array_map(static fn (array $item): array => $item + [
-            'percent' => $item['value'] > 0 ? max(8, (int) round(($item['value'] / $max) * 100)) : 0,
-        ], $items);
+        foreach ($items as $item) {
+            $share = $item['value'] > 0 ? (int) round(($item['value'] / $total) * 100) : 0;
+            $chart[] = $item + [
+                'percent' => $item['value'] > 0 ? max(8, (int) round(($item['value'] / $max) * 100)) : 0,
+                'share' => $share,
+                'offset' => $offset,
+            ];
+            $offset += $share;
+        }
+
+        return $chart;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $items
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function withShares(array $items): array
+    {
+        if ($items === []) {
+            return [];
+        }
+
+        $max = max(1, ...array_map(static fn (array $item): int => (int) $item['value'], $items));
+        $total = max(1, array_sum(array_map(static fn (array $item): int => (int) $item['value'], $items)));
+        $offset = 0;
+        $chart = [];
+
+        foreach ($items as $item) {
+            $value = (int) $item['value'];
+            $share = $value > 0 ? (int) round(($value / $total) * 100) : 0;
+            $chart[] = $item + [
+                'percent' => $value > 0 ? max(8, (int) round(($value / $max) * 100)) : 0,
+                'share' => $share,
+                'offset' => $offset,
+            ];
+            $offset += $share;
+        }
+
+        return $chart;
     }
 
     /**
@@ -1088,7 +1304,7 @@ final readonly class DashboardStatsService
      *
      * @return list<array{title: string, text: string, icon: string, tone: string}>
      */
-    private function dashboardAlerts(array $expiringContracts, int $pendingPasswords, int $inactiveUsers, int $pendingExpenses, int $pendingAppointments, int $priorityAppointments): array
+    private function dashboardAlerts(array $expiringContracts, int $pendingPasswords, int $inactiveUsers, int $pendingExpenses, int $pendingAppointments, int $priorityAppointments, array $inventory): array
     {
         $alerts = array_map(static fn ($contract): array => [
             'title' => (string) $contract->getReference(),
@@ -1129,6 +1345,24 @@ final readonly class DashboardStatsService
                 'title' => 'Dépenses à valider',
                 'text' => sprintf('%d dépense%s en attente de validation.', $pendingExpenses, $pendingExpenses > 1 ? 's' : ''),
                 'icon' => 'bi-cash-coin',
+                'tone' => 'warning',
+            ];
+        }
+
+        if ($inventory['pending_requests'] > 0) {
+            $alerts[] = [
+                'title' => 'Inventaire a valider',
+                'text' => sprintf('%d demande%s en attente : %d transport%s, %d inventaire%s.', $inventory['pending_requests'], $inventory['pending_requests'] > 1 ? 's' : '', $inventory['pending_transfers'], $inventory['pending_transfers'] > 1 ? 's' : '', $inventory['pending_inventories'], $inventory['pending_inventories'] > 1 ? 's' : ''),
+                'icon' => 'bi-box-seam',
+                'tone' => 'info',
+            ];
+        }
+
+        if ($inventory['unavailable_items'] > 0) {
+            $alerts[] = [
+                'title' => 'Materiel a surveiller',
+                'text' => sprintf('%d materiel%s en maintenance, perdu%s ou sorti%s du parc.', $inventory['unavailable_items'], $inventory['unavailable_items'] > 1 ? 's' : '', $inventory['unavailable_items'] > 1 ? 's' : '', $inventory['unavailable_items'] > 1 ? 's' : ''),
+                'icon' => 'bi-exclamation-triangle',
                 'tone' => 'warning',
             ];
         }
@@ -1337,6 +1571,42 @@ final readonly class DashboardStatsService
             'progress' => $agenda['total'] > 0 ? min(100, (int) round(($agenda['next_7_days'] / max(1, $agenda['total'])) * 100)) : 0,
             'progress_label' => 'Charge 7 jours',
             'chart' => $agenda['status_chart'],
+            'chart_type' => 'bars',
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function inventorySection(AppModule $module, User $user): array
+    {
+        $inventory = $this->inventoryOverview($user);
+        $siteItems = array_map(static fn (array $item): array => [
+            'title' => $item['label'],
+            'text' => sprintf('%d materiel%s', $item['value'], $item['value'] > 1 ? 's' : ''),
+        ], array_slice($inventory['site_chart'], 0, 3));
+
+        return [
+            'slug' => 'inventory',
+            'name' => 'Inventaire',
+            'icon' => 'bi-box-seam',
+            'route' => $module->getRouteName(),
+            'tone' => $inventory['pending_requests'] > 0 ? 'warning' : 'primary',
+            'headline' => sprintf('%d materiel%s actif%s', $inventory['active_items'], $inventory['active_items'] > 1 ? 's' : '', $inventory['active_items'] > 1 ? 's' : ''),
+            'metrics' => [
+                ['label' => 'Materiels actifs', 'value' => $inventory['active_items'], 'icon' => 'bi-box-seam'],
+                ['label' => 'Affectes', 'value' => $inventory['assigned_items'], 'icon' => 'bi-person-check'],
+                ['label' => 'A surveiller', 'value' => $inventory['unavailable_items'], 'icon' => 'bi-exclamation-triangle'],
+                ['label' => 'Demandes', 'value' => $inventory['pending_requests'], 'icon' => 'bi-clipboard-check'],
+            ],
+            'alerts' => $inventory['pending_requests'] > 0 ? [[
+                'title' => 'Validation requise',
+                'text' => sprintf('%d demande%s inventaire/transport a traiter.', $inventory['pending_requests'], $inventory['pending_requests'] > 1 ? 's' : ''),
+                'level' => 'warning',
+            ]] : [],
+            'items_title' => 'Sites principaux',
+            'items' => $siteItems,
+            'progress' => $inventory['active_items'] > 0 ? min(100, (int) round(($inventory['unavailable_items'] / max(1, $inventory['active_items'])) * 100)) : 0,
+            'progress_label' => 'Materiel a surveiller',
+            'chart' => $inventory['status_chart'],
             'chart_type' => 'bars',
         ];
     }

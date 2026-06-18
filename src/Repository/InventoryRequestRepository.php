@@ -37,6 +37,14 @@ class InventoryRequestRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    public function countPendingVisibleByType(User $actor, bool $viewAll, string $type): int
+    {
+        return (int) $this->visibleQuery($actor, $viewAll, ['status' => 'pending', 'type' => $type])
+            ->select('COUNT(DISTINCT r.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function countPendingForItem(InventoryItem $item): int
     {
         return (int) $this->createQueryBuilder('r')

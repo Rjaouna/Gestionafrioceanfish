@@ -5,6 +5,8 @@
 {% set subtitle = subtitle|default(null) %}
 {% set progress = progress|default(0) %}
 {% set progress_label = progress_label|default('OK') %}
+{% set center_value = center_value|default(progress ~ '%') %}
+{% set center_label = center_label|default(progress_label) %}
 
 <div class="dashboard-card-chart {{ extra_classes|default('') }}">
     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -39,8 +41,8 @@
                     {% endfor %}
                 </svg>
                 <div class="dashboard-pie-center">
-                    <strong>{{ progress }}%</strong>
-                    <span>{{ progress_label }}</span>
+                    <strong>{{ center_value }}</strong>
+                    <span>{{ center_label }}</span>
                 </div>
             </div>
             <div class="dashboard-pie-legend">

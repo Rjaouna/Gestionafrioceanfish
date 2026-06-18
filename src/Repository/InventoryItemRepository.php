@@ -94,6 +94,27 @@ class InventoryItemRepository extends ServiceEntityRepository
         return array_map(static fn (array $row): array => ['label' => (string) $row['label'], 'value' => (int) $row['value']], $rows);
     }
 
+    /** @return list<array{label: string, value: int}> */
+    public function groupBySite(User $actor, bool $viewAll): array
+    {
+        $rows = $this->visibleQuery($actor, $viewAll, ['active' => 'active'])
+            ->select('COALESCE(s.name, :empty) AS label, COUNT(DISTINCT i.id) AS value')
+            ->setParameter('empty', 'Sans site')
+            ->groupBy('label')
+            ->orderBy('value', 'DESC')
+            ->setMaxResults(8)
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static fn (array $row): array => ['label' => (string) $row['label'], 'value' => (int) $row['value']], $rows);
+    }
+
+    /** @return list<array{label: string, value: int}> */
+    public function groupByLogisticsStatus(User $actor, bool $viewAll): array
+    {
+        return $this->groupVisible($actor, $viewAll, 'i.logisticsStatus');
+    }
+
     public function nextReferenceNumber(string $prefix): int
     {
         return (int) $this->createQueryBuilder('i')
