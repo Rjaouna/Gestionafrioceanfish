@@ -151,7 +151,7 @@ final class ImportBouzaniyineInventoryCommand extends Command
 
         $this->entityManager->flush();
         $io->success(sprintf(
-            'Import termine sans purge: %d materiels crees, %d materiels descriptifs mis a jour, %d sites complementaires actives, %d stocks crees, %d stocks mis a jour, %d lignes creees, %d lignes mises a jour, %d lignes total ignorees, %d anciennes lignes total supprimees. Les sites et quantites operationnels existants ont ete conserves.',
+            'Import terminé sans purge : %d matériels créés, %d matériels descriptifs mis à jour, %d sites complémentaires activés, %d stocks créés, %d stocks mis à jour, %d lignes créées, %d lignes mises à jour, %d lignes total ignorées, %d anciennes lignes total supprimées. Les sites et quantités opérationnels existants ont été conservés.',
             $itemCounts['created'],
             $itemCounts['updated'],
             count($additionalSites),
@@ -187,7 +187,7 @@ final class ImportBouzaniyineInventoryCommand extends Command
     {
         $category = $this->categoryRepository->findOneByNameInsensitive($name);
         if (!$category instanceof InventoryCategory) {
-            $category = (new InventoryCategory())->setName($name)->setDescription('Categorie creee par les fixtures inventaire.');
+            $category = (new InventoryCategory())->setName($name)->setDescription('Catégorie créée par les fixtures inventaire.');
             $this->entityManager->persist($category);
         }
 
@@ -201,7 +201,7 @@ final class ImportBouzaniyineInventoryCommand extends Command
     {
         $site = $this->siteRepository->findOneByNameInsensitive($name);
         if (!$site instanceof InventorySite) {
-            $site = (new InventorySite())->setName($name)->setDescription('Site cree par les fixtures inventaire.');
+            $site = (new InventorySite())->setName($name)->setDescription('Site créé par les fixtures inventaire.');
             $this->entityManager->persist($site);
         }
 
@@ -215,7 +215,7 @@ final class ImportBouzaniyineInventoryCommand extends Command
     {
         $location = $this->locationRepository->findOneBy(['site' => $site, 'name' => $name]);
         if (!$location instanceof InventoryLocation) {
-            $location = (new InventoryLocation())->setSite($site)->setName($name)->setDescription('Emplacement cree par les fixtures inventaire.');
+            $location = (new InventoryLocation())->setSite($site)->setName($name)->setDescription('Emplacement créé par les fixtures inventaire.');
             $this->entityManager->persist($location);
         }
 
@@ -274,7 +274,7 @@ final class ImportBouzaniyineInventoryCommand extends Command
         $unit = (string) ($row['unit'] ?? 'piece');
         $notes = ['Source Excel: '.$source];
         if ($rawQuantity !== '' && $rawQuantity !== $quantity && $rawQuantity !== trim($quantity.' '.$unit)) {
-            $notes[] = 'Quantite source: '.$rawQuantity;
+            $notes[] = 'Quantité source : '.$rawQuantity;
         }
 
         return implode("\n", $notes);

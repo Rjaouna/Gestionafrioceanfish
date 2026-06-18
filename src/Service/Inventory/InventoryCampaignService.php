@@ -122,7 +122,7 @@ final readonly class InventoryCampaignService
             throw new AccessDeniedException();
         }
         if ($line->getCountedQuantity() === null) {
-            throw new \DomainException('Renseignez une quantite comptee avant de creer un ajustement.');
+            throw new \DomainException('Renseignez une quantité comptée avant de créer un ajustement.');
         }
 
         $movement = (new InventoryMovement())
@@ -142,7 +142,7 @@ final readonly class InventoryCampaignService
         }
 
         if ($campaign->getEndDate() instanceof \DateTimeImmutable && $campaign->getEndDate() < $campaign->getStartDate()) {
-            throw new \DomainException('La date de fin doit etre apres la date de debut.');
+            throw new \DomainException('La date de fin doit être après la date de début.');
         }
     }
 }

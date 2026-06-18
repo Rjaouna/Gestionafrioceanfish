@@ -6,12 +6,12 @@
     <div class="modal-body">
         {% if source_movement|default(null) %}
             <div class="alert alert-warning">
-                Cette correction créera un nouveau mouvement sans modifier l historique du mouvement #{{ source_movement.id }}.
+                Cette correction créera un nouveau mouvement sans modifier l’historique du mouvement #{{ source_movement.id }}.
                 Vérifiez le type et la quantité proposés avant de valider.
             </div>
         {% else %}
             <div class="alert alert-info">
-                Les mouvements conservent l historique. Pour corriger une quantite apres inventaire physique, utilisez le type Ajustement.
+                Les mouvements conservent l’historique. Pour corriger une quantité après inventaire physique, utilisez le type Ajustement.
             </div>
         {% endif %}
         <div class="row g-3">

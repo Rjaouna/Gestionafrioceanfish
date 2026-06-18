@@ -22,7 +22,7 @@ final readonly class InventoryTaxonomyService
     {
         $this->assertManage($actor);
         if ($destinationSite instanceof InventorySite && $destinationSite->getId() === $site->getId()) {
-            throw new \DomainException('Selectionnez un autre site de destination.');
+            throw new \DomainException('Sélectionnez un autre site de destination.');
         }
 
         $items = $this->itemRepository->attachedToSite($site);
@@ -52,7 +52,7 @@ final readonly class InventoryTaxonomyService
     {
         $this->assertManage($actor);
         if ($destinationLocation instanceof InventoryLocation && $destinationLocation->getId() === $location->getId()) {
-            throw new \DomainException('Selectionnez un autre emplacement de destination.');
+            throw new \DomainException('Sélectionnez un autre emplacement de destination.');
         }
 
         $items = $this->itemRepository->attachedToLocation($location);

@@ -42,15 +42,15 @@ class InventoryItem
         'Neuf' => 'new',
         'Bon' => 'good',
         'Moyen' => 'fair',
-        'A reparer' => 'repair',
+        'À réparer' => 'repair',
         'Hors service' => 'out_of_order',
     ];
 
     public const STATUSES = [
         'Disponible' => 'available',
-        'Affecte' => 'assigned',
+        'Affecté' => 'assigned',
         'En maintenance' => 'maintenance',
-        'Reserve' => 'reserved',
+        'Réservé' => 'reserved',
         'Perdu' => 'lost',
         'Sorti du parc' => 'retired',
     ];
@@ -221,7 +221,7 @@ class InventoryItem
     public function setLogisticsStatus(string $logisticsStatus): static
     {
         if (!in_array($logisticsStatus, self::LOGISTICS_STATUSES, true)) {
-            throw new \DomainException('Etat logistique invalide.');
+            throw new \DomainException('État logistique invalide.');
         }
         $this->logisticsStatus = $logisticsStatus;
 

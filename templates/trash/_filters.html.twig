@@ -41,7 +41,7 @@
                 </select>
             </div>
             <div class="col-md-6 col-lg-2">
-                <label class="form-label small text-secondary" for="trashDeletedBy">Supprime par</label>
+                <label class="form-label small text-secondary" for="trashDeletedBy">Supprimé par</label>
                 <select id="trashDeletedBy" name="deletedBy" class="form-select">
                     <option value="">Tous</option>
                     {% for user in deleted_users %}
@@ -58,7 +58,7 @@
                 <input id="trashDateTo" class="form-control" type="date" name="dateTo" value="{{ filters.dateTo }}">
             </div>
             <div class="col-12 d-flex justify-content-end gap-2">
-                <a class="btn btn-outline-secondary" href="{{ path('app_trash_index') }}">Reinitialiser</a>
+                <a class="btn btn-outline-secondary" href="{{ path('app_trash_index') }}">Réinitialiser</a>
                 <button class="btn btn-primary" type="submit">
                     <i class="bi bi-funnel me-1"></i>Filtrer
                 </button>

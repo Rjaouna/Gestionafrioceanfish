@@ -1,7 +1,7 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
         <h1 class="h3 mb-1">Sites et emplacements</h1>
-        <p class="text-secondary mb-0">Organisation physique du materiel.</p>
+        <p class="text-secondary mb-0">Organisation physique du matériel.</p>
     </div>
     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createInventorySiteModal">
         <i class="bi bi-building-add me-2"></i>Nouveau site
@@ -16,7 +16,7 @@
                 <div>
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <h2 class="h5 mb-0">{{ site.name }}</h2>
-                        <span class="badge text-bg-primary">{{ site_materials }} materiel{{ site_materials > 1 ? 's' : '' }}</span>
+                        <span class="badge text-bg-primary">{{ site_materials }} matériel{{ site_materials > 1 ? 's' : '' }}</span>
                         <span class="badge text-bg-light border">{{ site.locations|length }} emplacement{{ site.locations|length > 1 ? 's' : '' }}</span>
                     </div>
                     <div class="text-secondary small mt-1">{{ site.description ?: 'Aucune description' }}</div>
@@ -36,7 +36,7 @@
                         <tr>
                             <th>Emplacement</th>
                             <th>Description</th>
-                            <th class="text-end">Materiel</th>
+                            <th class="text-end">Matériel</th>
                             <th class="text-end">Actions</th>
                         </tr>
                     </thead>
@@ -48,11 +48,11 @@
                                 <td class="text-secondary">{{ location.description ?: 'Aucune description' }}</td>
                                 <td class="text-end">
                                     <span class="badge {{ location_materials > 0 ? 'text-bg-primary' : 'text-bg-light border' }}">
-                                        {{ location_materials }} materiel{{ location_materials > 1 ? 's' : '' }}
+                                        {{ location_materials }} matériel{{ location_materials > 1 ? 's' : '' }}
                                     </span>
                                 </td>
                                 <td class="text-end">
-                                    <button type="button" class="btn btn-sm btn-outline-danger" data-remote-modal="{{ path('app_inventory_location_delete_form', {id: location.id}) }}" title="Supprimer l emplacement">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-remote-modal="{{ path('app_inventory_location_delete_form', {id: location.id}) }}" title="Supprimer l’emplacement">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </td>
@@ -85,7 +85,7 @@
             {{ form_start(site_form, {attr: {'data-ajax-form': 'true'}}) }}
                 <div class="modal-header"><h2 class="modal-title fs-5">Nouveau site</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button></div>
                 <div class="modal-body">{{ form_widget(site_form) }}</div>
-                <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button><button type="submit" class="btn btn-primary">Creer</button></div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button><button type="submit" class="btn btn-primary">Créer</button></div>
             {{ form_end(site_form) }}
         </div>
     </div>

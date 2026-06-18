@@ -57,18 +57,18 @@ final readonly class InventoryRequestService
 
         $destinationSite = $location?->getSite() ?? $site;
         if (!$destinationSite instanceof InventorySite) {
-            throw new \DomainException('Selectionnez un site ou un emplacement de destination.');
+            throw new \DomainException('Sélectionnez un site ou un emplacement de destination.');
         }
 
         if ($destinationSite->getId() === $item->getSite()?->getId()
             && (!$location instanceof InventoryLocation || $location->getId() === $item->getLocation()?->getId())) {
-            throw new \DomainException('Le materiel se trouve deja a cette destination.');
+            throw new \DomainException('Le matériel se trouve déjà à cette destination.');
         }
 
         $this->assertTransferQuantity($item, $quantity);
 
         if (!in_array($logisticsStatus, InventoryItem::LOGISTICS_STATUSES, true)) {
-            throw new \DomainException('Etat logistique invalide.');
+            throw new \DomainException('État logistique invalide.');
         }
 
         $request = (new InventoryRequest())
@@ -104,7 +104,7 @@ final readonly class InventoryRequestService
             ->setRequestedQuantity(max(1, $item->getQuantity()))
             ->setFromSite($item->getSite())
             ->setFromLocation($item->getLocation())
-            ->setReason('Demande d inventaire')
+            ->setReason('Demande d’inventaire')
             ->setNotes($notes)
             ->setCreatedBy($actor);
 
@@ -203,7 +203,7 @@ final readonly class InventoryRequestService
     {
         $countedQuantity ??= $request->getCountedQuantity() ?? $item->getQuantity();
         if ($countedQuantity < 0) {
-            throw new \DomainException('La quantite constatee ne peut pas etre negative.');
+            throw new \DomainException('La quantité constatée ne peut pas être négative.');
         }
 
         $request->setCountedQuantity($countedQuantity);
@@ -263,7 +263,7 @@ final readonly class InventoryRequestService
             ->setAcquisitionValue($item->getAcquisitionValue())
             ->setResponsibleUser($item->getResponsibleUser())
             ->setNotes(trim(sprintf(
-                "%s\n\nCree automatiquement depuis %s pour transport partiel demande #%d.",
+                "%s\n\nCréé automatiquement depuis %s pour transport partiel demande #%d.",
                 $item->getNotes() ?? '',
                 $item->getReference(),
                 $request->getId(),
@@ -282,20 +282,20 @@ final readonly class InventoryRequestService
     private function assertPending(InventoryRequest $request): void
     {
         if (!$request->isPending()) {
-            throw new \DomainException('Cette demande est deja traitee.');
+            throw new \DomainException('Cette demande est déjà traitée.');
         }
     }
 
     private function assertTransferQuantity(InventoryItem $item, int $quantity): void
     {
         if ($quantity < 1) {
-            throw new \DomainException('La quantite a transporter doit etre superieure a zero.');
+            throw new \DomainException('La quantité à transporter doit être supérieure à zéro.');
         }
         if ($quantity > $item->getQuantity()) {
-            throw new \DomainException('La quantite demandee depasse la quantite totale du materiel.');
+            throw new \DomainException('La quantité demandée dépasse la quantité totale du matériel.');
         }
         if ($quantity > $item->getAvailableQuantity()) {
-            throw new \DomainException('La quantite disponible est insuffisante pour cette demande de transport.');
+            throw new \DomainException('La quantité disponible est insuffisante pour cette demande de transport.');
         }
     }
 }

@@ -13,7 +13,7 @@
                         id="appointmentSearch"
                         type="search"
                         class="form-control border-start-0"
-                        placeholder="Reference, titre, client, lieu..."
+                        placeholder="Référence, titre, client, lieu..."
                         value="{{ filters.q|default('') }}"
                         data-appointment-search
                         data-appointment-search-url="{{ path('app_appointment_search') }}"
@@ -36,7 +36,7 @@
             </div>
 
             <div class="col-md-6 col-lg-2">
-                <label class="form-label small fw-semibold text-secondary" for="appointmentPriorityFilter">Priorite</label>
+                <label class="form-label small fw-semibold text-secondary" for="appointmentPriorityFilter">Priorité</label>
                 <select id="appointmentPriorityFilter" class="form-select" data-appointment-filter="priority">
                     <option value="">Toutes</option>
                     {% for label, value in priorities %}
@@ -76,10 +76,10 @@
             </div>
 
             <div class="col-md-6 col-lg-2">
-                <label class="form-label small fw-semibold text-secondary" for="appointmentActiveFilter">Etat</label>
+                <label class="form-label small fw-semibold text-secondary" for="appointmentActiveFilter">État</label>
                 <select id="appointmentActiveFilter" class="form-select" data-appointment-filter="active">
                     <option value="active" {{ filters.active|default('active') == 'active' ? 'selected' : '' }}>Actifs</option>
-                    <option value="archived" {{ filters.active|default('') == 'archived' ? 'selected' : '' }}>Archives</option>
+                    <option value="archived" {{ filters.active|default('') == 'archived' ? 'selected' : '' }}>Archivés</option>
                     <option value="all" {{ filters.active|default('') == 'all' ? 'selected' : '' }}>Tous</option>
                 </select>
             </div>

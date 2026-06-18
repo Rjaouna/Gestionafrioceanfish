@@ -129,13 +129,13 @@ final readonly class AppointmentParticipantService
         }
 
         if (!in_array($response, ['accepted', 'declined', 'pending'], true)) {
-            throw new \DomainException('Reponse de participation invalide.');
+            throw new \DomainException('Réponse de participation invalide.');
         }
 
         $old = $participant->getResponseStatus();
         $participant->setResponseStatus($response);
         if ($participant->getAppointment() instanceof Appointment) {
-            $this->history->add($participant->getAppointment(), 'Reponse participant', $actor, $old, $response);
+            $this->history->add($participant->getAppointment(), 'Réponse participant', $actor, $old, $response);
         }
         $this->entityManager->flush();
     }

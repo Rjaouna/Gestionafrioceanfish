@@ -17,7 +17,7 @@
         <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis">{{ item.module }}</span>
     </td>
     <td class="text-secondary small">
-        {{ item.deletedAt ? item.deletedAt|date('d/m/Y H:i') : 'Non renseigne' }}
+        {{ item.deletedAt ? item.deletedAt|date('d/m/Y H:i') : 'Non renseigné' }}
     </td>
     <td class="small">
         {{ item.deletedBy ? item.deletedBy.displayName : 'Utilisateur inconnu' }}
@@ -33,7 +33,7 @@
                 data-confirm-url="{{ path('app_trash_restore', {type: item.type, id: item.id}) }}"
                 data-confirm-method="POST"
                 data-token="{{ csrf_token('restore_trash_' ~ item.type ~ '_' ~ item.id) }}"
-                data-confirm-message="Restaurer cet element ?"
+                data-confirm-message="Restaurer cet élément ?"
             >
                 <i class="bi bi-arrow-counterclockwise me-1"></i>Restaurer
             </button>
@@ -43,7 +43,7 @@
                 data-confirm-url="{{ path('app_trash_delete_permanently', {type: item.type, id: item.id}) }}"
                 data-confirm-method="DELETE"
                 data-token="{{ csrf_token('delete_trash_' ~ item.type ~ '_' ~ item.id) }}"
-                data-confirm-message="Supprimer definitivement cet element ? Cette action est irreversible."
+                data-confirm-message="Supprimer définitivement cet élément ? Cette action est irréversible."
             >
                 <i class="bi bi-trash3 me-1"></i>Supprimer
             </button>

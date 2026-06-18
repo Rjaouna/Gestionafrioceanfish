@@ -28,11 +28,11 @@ final class InventoryItemType extends AbstractType
     {
         $builder
             ->add('name', TextType::class, [
-                'label' => 'Nom du materiel',
+                'label' => 'Nom du matériel',
                 'attr' => ['placeholder' => 'Ex. Ordinateur portable, imprimante, caisse...'],
             ])
             ->add('categoryName', TextType::class, [
-                'label' => 'Categorie',
+                'label' => 'Catégorie',
                 'mapped' => false,
                 'required' => false,
                 'data' => $options['category_name'],
@@ -65,7 +65,7 @@ final class InventoryItemType extends AbstractType
                 'choices' => InventoryItem::OWNERSHIP_TYPES,
             ])
             ->add('ownerName', TextType::class, [
-                'label' => 'Proprietaire externe',
+                'label' => 'Propriétaire externe',
                 'required' => false,
                 'attr' => ['placeholder' => 'Client, loueur ou fournisseur si besoin'],
             ])
@@ -86,19 +86,19 @@ final class InventoryItemType extends AbstractType
                 'placeholder' => 'Aucun emplacement',
             ])
             ->add('quantity', IntegerType::class, [
-                'label' => 'Quantite totale',
+                'label' => 'Quantité totale',
                 'attr' => ['min' => 0],
             ])
             ->add('availableQuantity', IntegerType::class, [
-                'label' => 'Quantite disponible',
+                'label' => 'Quantité disponible',
                 'attr' => ['min' => 0],
             ])
             ->add('unit', TextType::class, [
                 'label' => 'Unite',
-                'attr' => ['placeholder' => 'piece, lot, carton...'],
+                'attr' => ['placeholder' => 'pièce, lot, carton...'],
             ])
             ->add('serialNumber', TextType::class, [
-                'label' => 'Numero de serie',
+                'label' => 'Numéro de série',
                 'required' => false,
             ])
             ->add('brand', TextType::class, [
@@ -110,7 +110,7 @@ final class InventoryItemType extends AbstractType
                 'required' => false,
             ])
             ->add('condition', ChoiceType::class, [
-                'label' => 'Etat',
+                'label' => 'État',
                 'choices' => InventoryItem::CONDITIONS,
             ])
             ->add('status', ChoiceType::class, [
@@ -127,7 +127,7 @@ final class InventoryItemType extends AbstractType
                 'widget' => 'single_text',
             ])
             ->add('entryDate', DateType::class, [
-                'label' => 'Date d entree',
+                'label' => 'Date d’entrée',
                 'required' => false,
                 'widget' => 'single_text',
             ])
@@ -150,7 +150,7 @@ final class InventoryItemType extends AbstractType
                 'attr' => ['rows' => 3],
             ])
             ->add('file', FileType::class, [
-                'label' => 'Piece jointe',
+                'label' => 'Pièce jointe',
                 'mapped' => false,
                 'required' => false,
                 'constraints' => [
@@ -158,13 +158,13 @@ final class InventoryItemType extends AbstractType
                         maxSize: $options['max_file_size'],
                         mimeTypes: $options['allowed_mime_types'],
                         maxSizeMessage: 'Le fichier est trop volumineux.',
-                        mimeTypesMessage: 'Ce type de fichier n est pas autorise.',
+                        mimeTypesMessage: 'Ce type de fichier n’est pas autorisé.',
                     ),
                 ],
                 'attr' => ['accept' => implode(',', $options['allowed_mime_types'])],
             ])
             ->add('attachmentType', ChoiceType::class, [
-                'label' => 'Type de piece jointe',
+                'label' => 'Type de pièce jointe',
                 'mapped' => false,
                 'required' => false,
                 'choices' => [

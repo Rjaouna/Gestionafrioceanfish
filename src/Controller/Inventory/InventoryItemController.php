@@ -68,7 +68,7 @@ final class InventoryItemController extends AbstractController
         $filters = $this->filters($request);
         $result = $this->itemService->search($this->currentUser(), $filters, (int) $request->query->get('page', 1));
 
-        return $this->jsonResponder->success('Recherche mise a jour.', [
+        return $this->jsonResponder->success('Recherche mise à jour.', [
             'html' => $this->renderView('inventory/item/_table.html.twig', ['result' => $result, 'filters' => $filters]),
             'count' => $result['total'],
         ]);
@@ -85,8 +85,8 @@ final class InventoryItemController extends AbstractController
 
         if ($request->isXmlHttpRequest()) {
             return $this->render('inventory/item/_form_modal.html.twig', $parameters + [
-                'title' => 'Ajouter un materiel',
-                'submit_label' => 'Creer',
+                'title' => 'Ajouter un matériel',
+                'submit_label' => 'Créer',
                 'item' => null,
             ]);
         }
@@ -123,12 +123,12 @@ final class InventoryItemController extends AbstractController
         }
 
         if (!$request->isXmlHttpRequest()) {
-            $this->addFlash('success', 'Le materiel a ete cree.');
+            $this->addFlash('success', 'Le matériel a été créé.');
 
             return $this->redirectToRoute('app_inventory_item_index');
         }
 
-        return $this->jsonResponder->success('Le materiel a ete cree.', [
+        return $this->jsonResponder->success('Le matériel a été créé.', [
             'closeModal' => true,
             'refreshRegion' => 'inventory-items',
         ], 201);
@@ -182,7 +182,7 @@ final class InventoryItemController extends AbstractController
             2,
         );
 
-        return $this->jsonResponder->success('Contacts trouves.', [
+        return $this->jsonResponder->success('Contacts trouvés.', [
             'contacts' => array_map(static fn ($contact): array => [
                 'id' => $contact->getId(),
                 'name' => $contact->getContactPersonName() ?: $contact->getFullName(),
@@ -214,17 +214,17 @@ final class InventoryItemController extends AbstractController
         try {
             if ($field === 'quantity') {
                 $this->itemService->adjustQuantity($item, (int) $request->request->get('quantity'), $this->currentUser());
-                $message = 'La quantite a ete ajustee et tracee dans les mouvements.';
+                $message = 'La quantité a été ajustée et tracée dans les mouvements.';
             } elseif ($field === 'logistics') {
                 $this->itemService->updateLogisticsStatus($item, (string) $request->request->get('logisticsStatus'), $this->currentUser());
-                $message = 'Le suivi logistique a ete mis a jour.';
+                $message = 'Le suivi logistique a été mis à jour.';
             } elseif ($field === 'inventory') {
                 $this->requestService->requestInventory(
                     $item,
                     $this->currentUser(),
                     (string) $request->request->get('notes', ''),
                 );
-                $message = 'La demande d inventaire a ete ajoutee aux validations.';
+                $message = 'La demande d’inventaire a été ajoutée aux validations.';
             } else {
                 $site = $this->activeSite((int) $request->request->get('site'));
                 $location = $this->activeLocation((int) $request->request->get('location'));
@@ -237,7 +237,7 @@ final class InventoryItemController extends AbstractController
                     $this->currentUser(),
                     (string) $request->request->get('notes', ''),
                 );
-                $message = 'La demande de transport a ete ajoutee aux validations.';
+                $message = 'La demande de transport a été ajoutée aux validations.';
             }
         } catch (\DomainException $exception) {
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
@@ -274,7 +274,7 @@ final class InventoryItemController extends AbstractController
         );
         $phone = $contact?->getMobileNumbers()[0] ?? null;
         if (!$contact || !$phone) {
-            return $this->jsonResponder->error('Selectionnez un contact disposant d un numero de portable.', [], 422);
+            return $this->jsonResponder->error('Sélectionnez un contact disposant d’un numéro de portable.', [], 422);
         }
 
         $action = (string) ($payload['action'] ?? '');
@@ -284,17 +284,17 @@ final class InventoryItemController extends AbstractController
         if ($action === 'transport') {
             $destination = $this->activeSite((int) ($payload['destinationSiteId'] ?? 0));
             if (!$destination instanceof InventorySite || $destination->getId() === $item->getSite()?->getId()) {
-                return $this->jsonResponder->error('Selectionnez un autre site de destination.', [], 422);
+                return $this->jsonResponder->error('Sélectionnez un autre site de destination.', [], 422);
             }
         } elseif ($action !== 'inventory') {
-            return $this->jsonResponder->error('Selectionnez une action a effectuer.', [], 422);
+            return $this->jsonResponder->error('Sélectionnez une action à effectuer.', [], 422);
         }
 
         $message = $this->whatsappMessage($item, $action, $destination, $quantity);
 
         $whatsappNumber = $this->whatsappNumber($phone);
         if (strlen($whatsappNumber) < 8) {
-            return $this->jsonResponder->error('Le numero de portable du contact est invalide pour WhatsApp.', [], 422);
+            return $this->jsonResponder->error('Le numéro de portable du contact est invalide pour WhatsApp.', [], 422);
         }
 
         try {
@@ -315,7 +315,7 @@ final class InventoryItemController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('La consigne WhatsApp est prete et la demande a ete enregistree.', [
+        return $this->jsonResponder->success('La consigne WhatsApp est prête et la demande a été enregistrée.', [
             'url' => sprintf('https://wa.me/%s?text=%s', $whatsappNumber, rawurlencode($message)),
         ]);
     }
@@ -337,7 +337,7 @@ final class InventoryItemController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Le materiel a ete modifie.', [
+        return $this->jsonResponder->success('Le matériel a été modifié.', [
             'closeModal' => true,
             'refreshRegion' => 'inventory-items',
         ]);
@@ -351,7 +351,7 @@ final class InventoryItemController extends AbstractController
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'archive_inventory_item_'.$item->getId());
         $active = $this->itemService->archive($item, $this->currentUser());
 
-        return $this->jsonResponder->success($active ? 'Le materiel a ete reactive.' : 'Le materiel a ete archive.', [
+        return $this->jsonResponder->success($active ? 'Le matériel a été réactivé.' : 'Le matériel a été archivé.', [
             'closeModal' => true,
             'refreshRegion' => 'inventory-items',
         ]);
@@ -365,7 +365,7 @@ final class InventoryItemController extends AbstractController
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'delete_inventory_item_'.$item->getId());
         $movedToTrash = $this->itemService->delete($item, $this->currentUser());
 
-        return $this->jsonResponder->success($movedToTrash ? 'Le materiel a ete deplace dans la corbeille.' : 'Le materiel a ete supprime.', [
+        return $this->jsonResponder->success($movedToTrash ? 'Le matériel a été déplacé dans la corbeille.' : 'Le matériel a été supprimé.', [
             'closeModal' => true,
             'refreshRegion' => 'inventory-items',
         ]);
@@ -390,7 +390,7 @@ final class InventoryItemController extends AbstractController
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'delete_inventory_attachment_'.$attachment->getId());
         $this->itemService->deleteAttachment($attachment, $this->currentUser());
 
-        return $this->jsonResponder->success('La piece jointe a ete supprimee.', [
+        return $this->jsonResponder->success('La pièce jointe a été supprimée.', [
             'closeModal' => true,
             'refreshRegion' => 'inventory-items',
         ]);
@@ -454,19 +454,19 @@ final class InventoryItemController extends AbstractController
             'Bonjour,',
             '',
             $action === 'transport'
-                ? sprintf('Action demandee : transporter %d %s vers %s.', $quantity, $item->getUnit(), $destination?->getName())
-                : 'Action demandee : faire l inventaire de ce materiel et confirmer sa quantite et son etat.',
+                ? sprintf('Action demandée : transporter %d %s vers %s.', $quantity, $item->getUnit(), $destination?->getName())
+                : 'Action demandée : faire l’inventaire de ce matériel et confirmer sa quantité et son état.',
             '',
-            sprintf('Materiel : %s', $item->getName()),
-            sprintf('Reference : %s', $item->getReference()),
+            sprintf('Matériel : %s', $item->getName()),
+            sprintf('Référence : %s', $item->getReference()),
             $action === 'transport'
-                ? sprintf('Quantite demandee : %d %s', $quantity, $item->getUnit())
-                : sprintf('Quantite actuelle fiche : %d %s', $item->getQuantity(), $item->getUnit()),
+                ? sprintf('Quantité demandée : %d %s', $quantity, $item->getUnit())
+                : sprintf('Quantité actuelle fiche : %d %s', $item->getQuantity(), $item->getUnit()),
             $action === 'transport'
-                ? sprintf('Quantite totale fiche : %d %s', $item->getQuantity(), $item->getUnit())
-                : 'Merci de confirmer la quantite constatee sur place.',
-            sprintf('Site actuel : %s', $item->getSite()?->getName() ?? 'Non renseigne'),
-            sprintf('Emplacement actuel : %s', $item->getLocation()?->getName() ?? 'Non renseigne'),
+                ? sprintf('Quantité totale fiche : %d %s', $item->getQuantity(), $item->getUnit())
+                : 'Merci de confirmer la quantité constatée sur place.',
+            sprintf('Site actuel : %s', $item->getSite()?->getName() ?? 'Non renseigné'),
+            sprintf('Emplacement actuel : %s', $item->getLocation()?->getName() ?? 'Non renseigné'),
             sprintf('Suivi : %s', $item->getLogisticsStatusLabel()),
             sprintf('Fiche complete : %s', $this->generateUrl('app_inventory_item_view', ['id' => $item->getId()], UrlGeneratorInterface::ABSOLUTE_URL)),
         ];
@@ -503,7 +503,7 @@ final class InventoryItemController extends AbstractController
     private function assertCsrf(string $token, string $id): void
     {
         if (!$this->isCsrfTokenValid($id, $token)) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
     }
 

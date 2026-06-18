@@ -12,20 +12,20 @@
         <div class="row g-3 mb-3">
             <div class="col-md-4">
                 <div class="border rounded p-3 h-100">
-                    <div class="small text-secondary">Quantite actuelle</div>
+                    <div class="small text-secondary">Quantité actuelle</div>
                     <div class="fw-semibold">{{ request.item.quantity }} {{ request.item.unit }}</div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="border rounded p-3 h-100">
                     <div class="small text-secondary">Site actuel</div>
-                    <div class="fw-semibold">{{ request.item.site.name|default('Non renseigne') }}</div>
+                    <div class="fw-semibold">{{ request.item.site.name|default('Non renseigné') }}</div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="border rounded p-3 h-100">
                     <div class="small text-secondary">Emplacement actuel</div>
-                    <div class="fw-semibold">{{ request.item.location ? request.item.location.name : 'Non renseigne' }}</div>
+                    <div class="fw-semibold">{{ request.item.location ? request.item.location.name : 'Non renseigné' }}</div>
                 </div>
             </div>
         </div>
@@ -35,24 +35,24 @@
             <div class="alert {{ will_split ? 'alert-warning' : 'alert-info' }}">
                 {% if will_split %}
                     Validation partielle : la ligne actuelle gardera {{ request.item.quantity - request.requestedQuantity }} {{ request.item.unit }}
-                    et une nouvelle ligne sera creee avec {{ request.requestedQuantity }} {{ request.item.unit }} a destination.
+                    et une nouvelle ligne sera créée avec {{ request.requestedQuantity }} {{ request.item.unit }} à destination.
                 {% else %}
-                    Validation complete : le site et l emplacement du materiel seront mis a jour sur la ligne actuelle.
+                    Validation complète : le site et l’emplacement du matériel seront mis à jour sur la ligne actuelle.
                 {% endif %}
             </div>
             <dl class="row mb-0">
-                <dt class="col-sm-4">Quantite a transporter</dt>
+                <dt class="col-sm-4">Quantité à transporter</dt>
                 <dd class="col-sm-8">{{ request.requestedQuantity }} {{ request.item.unit }}</dd>
-                <dt class="col-sm-4">Depart demande</dt>
-                <dd class="col-sm-8">{{ request.fromLocation ? request.fromLocation.displayName : request.fromSite.name|default('Non renseigne') }}</dd>
+                <dt class="col-sm-4">Départ demandé</dt>
+                <dd class="col-sm-8">{{ request.fromLocation ? request.fromLocation.displayName : request.fromSite.name|default('Non renseigné') }}</dd>
                 <dt class="col-sm-4">Destination</dt>
-                <dd class="col-sm-8">{{ request.toLocation ? request.toLocation.displayName : request.toSite.name|default('Non renseigne') }}</dd>
+                <dd class="col-sm-8">{{ request.toLocation ? request.toLocation.displayName : request.toSite.name|default('Non renseigné') }}</dd>
             </dl>
         {% else %}
             <div class="alert alert-info">
-                Entrez la quantite constatee. Si elle est differente de la quantite actuelle, un mouvement d ajustement sera cree automatiquement.
+                Entrez la quantité constatée. Si elle est différente de la quantité actuelle, un mouvement d’ajustement sera créé automatiquement.
             </div>
-            <label class="form-label fw-semibold" for="inventory-counted-quantity">Quantite constatee</label>
+            <label class="form-label fw-semibold" for="inventory-counted-quantity">Quantité constatée</label>
             <input
                 id="inventory-counted-quantity"
                 class="form-control"

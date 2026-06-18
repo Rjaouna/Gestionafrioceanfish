@@ -135,7 +135,7 @@ final readonly class InventoryItemService
             throw new AccessDeniedException();
         }
         if ($quantity < 0) {
-            throw new \DomainException('La quantite ne peut pas etre negative.');
+            throw new \DomainException('La quantité ne peut pas être négative.');
         }
 
         return $this->movementService->create(
@@ -143,7 +143,7 @@ final readonly class InventoryItemService
                 ->setItem($item)
                 ->setMovementType('adjustment')
                 ->setQuantity($quantity)
-                ->setReason('Ajustement rapide depuis la liste du materiel'),
+                ->setReason('Ajustement rapide depuis la liste du matériel'),
             $actor,
         );
     }
@@ -159,13 +159,13 @@ final readonly class InventoryItemService
             throw new AccessDeniedException();
         }
         if (!$site instanceof InventorySite && !$location instanceof InventoryLocation) {
-            throw new \DomainException('Selectionnez un site ou un emplacement de destination.');
+            throw new \DomainException('Sélectionnez un site ou un emplacement de destination.');
         }
 
         $destinationSite = $location?->getSite() ?? $site;
         if ($destinationSite?->getId() === $item->getSite()?->getId()
             && (!$location instanceof InventoryLocation || $location->getId() === $item->getLocation()?->getId())) {
-            throw new \DomainException('Le materiel se trouve deja a cette destination.');
+            throw new \DomainException('Le matériel se trouve déjà à cette destination.');
         }
 
         $movement = $this->movementService->create(
@@ -175,7 +175,7 @@ final readonly class InventoryItemService
                 ->setQuantity(max(1, $item->getQuantity()))
                 ->setToSite($destinationSite)
                 ->setToLocation($location)
-                ->setReason('Deplacement rapide du materiel'),
+                ->setReason('Déplacement rapide du matériel'),
             $actor,
         );
         $item->setLogisticsStatus($logisticsStatus);
@@ -201,11 +201,11 @@ final readonly class InventoryItemService
         }
 
         if ($item->getQuantity() < 0) {
-            throw new \DomainException('La quantite ne peut pas etre negative.');
+            throw new \DomainException('La quantité ne peut pas être négative.');
         }
 
         if ($item->getAvailableQuantity() > $item->getQuantity()) {
-            throw new \DomainException('La quantite disponible ne peut pas depasser la quantite totale.');
+            throw new \DomainException('La quantité disponible ne peut pas dépasser la quantité totale.');
         }
     }
 

@@ -30,11 +30,11 @@ final class InventoryCartonStockLineType extends AbstractType
                 'choice_label' => 'name',
                 'query_builder' => static fn (InventoryCartonStockRepository $repository) => $repository->createQueryBuilder('s')->andWhere('s.isActive = true')->orderBy('s.name', 'ASC'),
                 'label' => 'Stock carton',
-                'placeholder' => 'Selectionner un stock',
+                'placeholder' => 'Sélectionner un stock',
             ])
             ->add('groupName', TextType::class, ['label' => 'Groupe / client', 'required' => false])
-            ->add('reference', TextType::class, ['label' => 'Reference'])
-            ->add('quantity', IntegerType::class, ['label' => 'Quantite', 'required' => false])
+            ->add('reference', TextType::class, ['label' => 'Référence'])
+            ->add('quantity', IntegerType::class, ['label' => 'Quantité', 'required' => false])
             ->add('unitPrice', NumberType::class, ['label' => 'Prix unitaire', 'required' => false, 'scale' => 3, 'html5' => true])
             ->add('totalAmount', NumberType::class, ['label' => 'Total', 'required' => false, 'scale' => 3, 'html5' => true])
             ->add('lineType', ChoiceType::class, [

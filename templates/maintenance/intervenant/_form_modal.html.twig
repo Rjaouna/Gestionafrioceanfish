@@ -30,9 +30,9 @@
                                     <span class="small text-secondary">{{ contact.type }}</span>
                                 </div>
                                 <div class="small text-secondary">
-                                    {{ contact.contactPersonName ?: 'Contact non renseignÃ©' }}
-                                    {% if contact.email %} Â· {{ contact.email }}{% endif %}
-                                    {% if contact_phone %} Â· {{ contact_phone }}{% endif %}
+                                    {{ contact.contactPersonName ?: 'Contact non renseigné' }}
+                                    {% if contact.email %} · {{ contact.email }}{% endif %}
+                                    {% if contact_phone %} · {{ contact_phone }}{% endif %}
                                 </div>
                             </button>
                         {% else %}

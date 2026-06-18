@@ -29,10 +29,10 @@ final readonly class InventoryDashboardService
 
         return [
             'cards' => [
-                ['label' => 'Materiels actifs', 'value' => $active, 'icon' => 'bi-box-seam', 'tone' => 'primary'],
-                ['label' => 'Affectes', 'value' => $assigned, 'icon' => 'bi-person-check', 'tone' => 'info'],
+                ['label' => 'Matériels actifs', 'value' => $active, 'icon' => 'bi-box-seam', 'tone' => 'primary'],
+                ['label' => 'Affectés', 'value' => $assigned, 'icon' => 'bi-person-check', 'tone' => 'info'],
                 ['label' => 'A surveiller', 'value' => $unavailable, 'icon' => 'bi-exclamation-triangle', 'tone' => $unavailable > 0 ? 'warning' : 'success'],
-                ['label' => 'Archives', 'value' => $archived, 'icon' => 'bi-archive', 'tone' => 'secondary'],
+                ['label' => 'Archivés', 'value' => $archived, 'icon' => 'bi-archive', 'tone' => 'secondary'],
             ],
             'status_chart' => $this->chart($this->labelStatuses($this->itemRepository->groupByStatus($actor, $viewAll))),
             'category_chart' => $this->chart($this->itemRepository->groupByCategory($actor, $viewAll)),

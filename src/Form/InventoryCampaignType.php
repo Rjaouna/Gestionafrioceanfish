@@ -29,12 +29,12 @@ final class InventoryCampaignType extends AbstractType
                 'class' => InventorySite::class,
                 'choice_label' => 'name',
                 'query_builder' => static fn (InventorySiteRepository $repository) => $repository->createQueryBuilder('s')->andWhere('s.isActive = true')->orderBy('s.name', 'ASC'),
-                'label' => 'Site controle',
+                'label' => 'Site contrôlé',
                 'required' => false,
                 'placeholder' => 'Tous les sites visibles',
             ])
             ->add('startDate', DateType::class, [
-                'label' => 'Date de debut',
+                'label' => 'Date de début',
                 'widget' => 'single_text',
             ])
             ->add('endDate', DateType::class, [

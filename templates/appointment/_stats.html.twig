@@ -1,10 +1,10 @@
 {% set cards = [
-    {label: "Aujourd'hui", value: stats.today|default(0), icon: 'bi-calendar-day', tone: 'primary'},
+    {label: "Aujourd’hui", value: stats.today|default(0), icon: 'bi-calendar-day', tone: 'primary'},
     {label: 'Cette semaine', value: stats.week|default(0), icon: 'bi-calendar-week', tone: 'success'},
     {label: 'Ce mois', value: stats.month|default(0), icon: 'bi-calendar3', tone: 'info'},
     {label: 'En attente', value: stats.pending|default(0), icon: 'bi-hourglass-split', tone: 'warning'},
     {label: 'Urgents', value: stats.urgent|default(0), icon: 'bi-exclamation-triangle', tone: 'danger'},
-    {label: 'Annules', value: stats.cancelled|default(0), icon: 'bi-x-circle', tone: 'secondary'}
+    {label: 'Annulés', value: stats.cancelled|default(0), icon: 'bi-x-circle', tone: 'secondary'}
 ] %}
 
 <div class="dashboard-kpi-strip mb-4">

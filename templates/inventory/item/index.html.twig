@@ -1,15 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Materiel{% endblock %}
+{% block title %}Matériel{% endblock %}
 
 {% block body %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
-        <h1 class="h3 mb-1">Materiel</h1>
-        <p class="text-secondary mb-0" data-ajax-count-region="inventory-items">{{ result.total }} element{{ result.total > 1 ? 's' : '' }} visible{{ result.total > 1 ? 's' : '' }}.</p>
+        <h1 class="h3 mb-1">Matériel</h1>
+        <p class="text-secondary mb-0" data-ajax-count-region="inventory-items">{{ result.total }} élément{{ result.total > 1 ? 's' : '' }} visible{{ result.total > 1 ? 's' : '' }}.</p>
     </div>
     <button type="button" class="btn btn-primary" data-remote-modal="{{ path('app_inventory_item_new') }}">
-        <i class="bi bi-plus-circle me-2"></i>Ajouter un materiel
+        <i class="bi bi-plus-circle me-2"></i>Ajouter un matériel
     </button>
 </div>
 
@@ -20,7 +20,7 @@
                 <label class="form-label" for="inventory-search">Recherche</label>
                 <div class="input-group">
                     <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                    <input id="inventory-search" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Reference, nom, marque, serie...">
+                    <input id="inventory-search" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Référence, nom, marque, série...">
                 </div>
             </div>
             <div class="col-md-4 col-lg-3">
@@ -42,7 +42,7 @@
                 </select>
             </div>
             <div class="col-md-3 col-lg-2">
-                <label class="form-label" for="inventory-condition">Etat</label>
+                <label class="form-label" for="inventory-condition">État</label>
                 <select id="inventory-condition" class="form-select" name="condition">
                     <option value="">Tous</option>
                     {% for label, value in constant('App\\Entity\\InventoryItem::CONDITIONS') %}
@@ -54,7 +54,7 @@
                 <label class="form-label" for="inventory-active">Affichage</label>
                 <select id="inventory-active" class="form-select" name="active">
                     <option value="active" {{ filters.active == 'active' ? 'selected' : '' }}>Actifs</option>
-                    <option value="archived" {{ filters.active == 'archived' ? 'selected' : '' }}>Archives</option>
+                    <option value="archived" {{ filters.active == 'archived' ? 'selected' : '' }}>Archivés</option>
                     <option value="all" {{ filters.active == 'all' ? 'selected' : '' }}>Tous</option>
                 </select>
             </div>

@@ -47,7 +47,7 @@
                         </select>
                     </div>
                     <div class="col-lg-3">
-                        <label class="form-label small fw-semibold text-secondary" for="calendarPriorityFilter">Priorite</label>
+                        <label class="form-label small fw-semibold text-secondary" for="calendarPriorityFilter">Priorité</label>
                         <select id="calendarPriorityFilter" class="form-select" data-calendar-filter="priority">
                             <option value="">Toutes</option>
                             {% for label, value in priorities %}
@@ -129,7 +129,7 @@
                 <div class="modal-header">
                     <div>
                         <h2 class="modal-title h5 mb-1">Nouveau rendez-vous</h2>
-                        <p class="text-secondary small mb-0" data-appointment-selected-slot>Selectionnez un creneau dans le calendrier.</p>
+                        <p class="text-secondary small mb-0" data-appointment-selected-slot>Sélectionnez un créneau dans le calendrier.</p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                 </div>
@@ -170,7 +170,7 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="quickAppointmentPriority">Priorite</label>
+                            <label class="form-label fw-semibold" for="quickAppointmentPriority">Priorité</label>
                             <select class="form-select" id="quickAppointmentPriority" name="priority">
                                 {% for label, value in priorities %}
                                     <option value="{{ value }}" {{ value == 'normal' ? 'selected' : '' }}>{{ label }}</option>
@@ -198,7 +198,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-calendar-plus me-2"></i>Creer
+                        <i class="bi bi-calendar-plus me-2"></i>Créer
                     </button>
                 </div>
             </form>

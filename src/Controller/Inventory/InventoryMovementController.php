@@ -124,7 +124,7 @@ final class InventoryMovementController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Le mouvement de correction a ete enregistre.', [
+        return $this->jsonResponder->success('Le mouvement de correction a été enregistré.', [
             'closeModal' => true,
             'refreshRegion' => 'inventory-movements',
         ], 201);
@@ -148,7 +148,7 @@ final class InventoryMovementController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Le mouvement a ete enregistre.', [
+        return $this->jsonResponder->success('Le mouvement a été enregistré.', [
             'closeModal' => true,
             'refreshRegion' => 'inventory-movements',
         ], 201);

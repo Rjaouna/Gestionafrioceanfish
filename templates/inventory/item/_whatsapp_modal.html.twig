@@ -29,12 +29,12 @@
                 <div class="fw-semibold">{{ item.name }}</div>
                 <div class="small text-secondary mb-3">{{ item.reference }} · {{ item.quantity }} {{ item.unit }}</div>
 
-                <label class="form-label fw-semibold">Action demandee</label>
+                <label class="form-label fw-semibold">Action demandée</label>
                 <div class="btn-group w-100 mb-3" role="group">
                     <input class="btn-check" type="radio" name="action" id="inventory-action-transport" value="transport" checked>
                     <label class="btn btn-outline-primary" for="inventory-action-transport"><i class="bi bi-truck me-1"></i>Transporter</label>
                     <input class="btn-check" type="radio" name="action" id="inventory-action-count" value="inventory">
-                    <label class="btn btn-outline-primary" for="inventory-action-count"><i class="bi bi-clipboard-check me-1"></i>Faire l inventaire</label>
+                    <label class="btn btn-outline-primary" for="inventory-action-count"><i class="bi bi-clipboard-check me-1"></i>Faire l’inventaire</label>
                 </div>
 
                 <div class="mb-3" data-inventory-whatsapp-destination>
@@ -51,20 +51,20 @@
                             </select>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label fw-semibold" for="inventory-whatsapp-quantity">Quantite</label>
+                            <label class="form-label fw-semibold" for="inventory-whatsapp-quantity">Quantité</label>
                             <input id="inventory-whatsapp-quantity" class="form-control" type="number" name="quantity" min="1" max="{{ item.availableQuantity }}" value="{{ item.availableQuantity > 0 ? item.availableQuantity : item.quantity }}">
                         </div>
                     </div>
                 </div>
 
                 <label class="form-label fw-semibold" for="inventory-whatsapp-notes">Commentaire</label>
-                <textarea id="inventory-whatsapp-notes" class="form-control mb-3" name="notes" rows="2" placeholder="Facultatif, sera conserve dans la demande"></textarea>
+                <textarea id="inventory-whatsapp-notes" class="form-control mb-3" name="notes" rows="2" placeholder="Facultatif, sera conservé dans la demande"></textarea>
 
-                <label class="form-label fw-semibold" for="inventory-whatsapp-contact">Contact a prevenir</label>
-                <input id="inventory-whatsapp-contact" class="form-control" type="search" placeholder="Saisir un nom ou un numero..." autocomplete="off" data-inventory-contact-search>
+                <label class="form-label fw-semibold" for="inventory-whatsapp-contact">Contact à prévenir</label>
+                <input id="inventory-whatsapp-contact" class="form-control" type="search" placeholder="Saisir un nom ou un numéro..." autocomplete="off" data-inventory-contact-search>
                 <input type="hidden" name="contactId" data-inventory-contact-id>
                 <div class="list-group mt-2" data-inventory-contact-results></div>
-                <div class="small text-secondary mt-2" data-inventory-contact-selection>Aucun contact selectionne.</div>
+                <div class="small text-secondary mt-2" data-inventory-contact-selection>Aucun contact sélectionné.</div>
             </div>
         </div>
     </form>

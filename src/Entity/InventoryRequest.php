@@ -34,8 +34,8 @@ class InventoryRequest
 
     public const STATUSES = [
         'En attente' => 'pending',
-        'Validee' => 'validated',
-        'Annulee' => 'canceled',
+        'Validée' => 'validated',
+        'Annulée' => 'canceled',
     ];
 
     #[ORM\Id]

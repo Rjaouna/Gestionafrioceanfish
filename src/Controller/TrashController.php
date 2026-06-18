@@ -56,7 +56,7 @@ final class TrashController extends AbstractController
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'restore_trash_'.$type.'_'.$id);
         $this->trashService->restore($this->trashService->findTrashItem($type, $id), $this->currentUser());
 
-        return $this->jsonResponder->success('L element a ete restaure avec succes.', ['reload' => true]);
+        return $this->jsonResponder->success('L’élément a été restauré avec succès.', ['reload' => true]);
     }
 
     #[Route('/{type}/{id}', name: 'app_trash_delete_permanently', requirements: ['id' => '\d+'], methods: ['DELETE'])]
@@ -67,7 +67,7 @@ final class TrashController extends AbstractController
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'delete_trash_'.$type.'_'.$id);
         $this->trashService->deletePermanently($this->trashService->findTrashItem($type, $id), $this->currentUser());
 
-        return $this->jsonResponder->success('L element a ete supprime definitivement.', ['reload' => true]);
+        return $this->jsonResponder->success('L’élément a été supprimé définitivement.', ['reload' => true]);
     }
 
     private function currentUser(): User
@@ -81,7 +81,7 @@ final class TrashController extends AbstractController
     private function assertCsrf(string $token, string $id): void
     {
         if (!$this->isCsrfTokenValid($id, $token)) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
     }
 }

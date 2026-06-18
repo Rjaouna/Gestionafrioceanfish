@@ -19,7 +19,7 @@
         <button class="btn btn-link p-0 text-start fw-semibold" type="button" data-remote-modal="{{ path('app_appointment_view', {id: appointment.id}) }}">
             {{ appointment.title }}
         </button>
-        <div class="small text-secondary text-truncate" style="max-width: 260px;">{{ appointment.customerName ?: appointment.location ?: 'Aucun contact renseigne' }}</div>
+        <div class="small text-secondary text-truncate" style="max-width: 260px;">{{ appointment.customerName ?: appointment.location ?: 'Aucun contact renseigné' }}</div>
     </td>
     <td class="text-nowrap">
         <span class="fw-semibold">{{ appointment.startAt ? appointment.startAt|date('d/m/Y') : '-' }}</span>

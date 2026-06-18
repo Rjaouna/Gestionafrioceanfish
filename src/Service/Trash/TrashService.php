@@ -32,7 +32,7 @@ final readonly class TrashService
         'intervention' => ['class' => Intervention::class, 'label' => 'Intervention', 'module' => 'Maintenance', 'icon' => 'bi-tools'],
         'intervenant' => ['class' => Intervenant::class, 'label' => 'Intervenant', 'module' => 'Maintenance', 'icon' => 'bi-person-gear'],
         'appointment' => ['class' => Appointment::class, 'label' => 'Rendez-vous', 'module' => 'Agenda - RDV', 'icon' => 'bi-calendar-check'],
-        'inventory-item' => ['class' => InventoryItem::class, 'label' => 'Materiel', 'module' => 'Inventaire', 'icon' => 'bi-box-seam'],
+        'inventory-item' => ['class' => InventoryItem::class, 'label' => 'Matériel', 'module' => 'Inventaire', 'icon' => 'bi-box-seam'],
     ];
 
     public function __construct(

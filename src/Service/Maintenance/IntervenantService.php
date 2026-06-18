@@ -125,15 +125,15 @@ final readonly class IntervenantService
 
         foreach ($this->repository->findDuplicateCandidates($intervenant->getId()) as $candidate) {
             if ($email !== '' && $email === $this->normalizeText($candidate->getEmail())) {
-                throw new \DomainException('Un intervenant existe dÃ©jÃ  avec cet e-mail.');
+                throw new \DomainException('Un intervenant existe déjà avec cet e-mail.');
             }
 
             if ($phone !== '' && $phone === $this->normalizePhone($candidate->getPhone())) {
-                throw new \DomainException('Un intervenant existe dÃ©jÃ  avec ce numÃ©ro de tÃ©lÃ©phone.');
+                throw new \DomainException('Un intervenant existe déjà avec ce numéro de téléphone.');
             }
 
             if ($companyName !== '' && $companyName === $this->normalizeText($candidate->getCompanyName())) {
-                throw new \DomainException('Un intervenant existe dÃ©jÃ  avec ce nom de boite.');
+                throw new \DomainException('Un intervenant existe déjà avec ce nom de boîte.');
             }
         }
     }

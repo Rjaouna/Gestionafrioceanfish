@@ -18,7 +18,7 @@ final class IntervenantType extends AbstractType
     {
         $builder
             ->add('companyName', TextType::class, [
-                'label' => 'Nom de la boite',
+                'label' => 'Nom de la boîte',
                 'required' => false,
                 'attr' => [
                     'placeholder' => 'Ex. ABC Maintenance',

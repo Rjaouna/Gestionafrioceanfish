@@ -48,8 +48,8 @@ final class InventoryMovementType extends AbstractType
 
                     return $query;
                 },
-                'label' => 'Materiel',
-                'placeholder' => 'Selectionner un materiel',
+                'label' => 'Matériel',
+                'placeholder' => 'Sélectionner un matériel',
                 'disabled' => $options['item_locked'],
             ])
             ->add('movementType', ChoiceType::class, [
@@ -57,7 +57,7 @@ final class InventoryMovementType extends AbstractType
                 'choices' => InventoryMovement::TYPES,
             ])
             ->add('quantity', IntegerType::class, [
-                'label' => 'Quantite',
+                'label' => 'Quantité',
                 'attr' => ['min' => 0],
             ])
             ->add('toSite', EntityType::class, [

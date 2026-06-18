@@ -43,13 +43,13 @@ final class MaintenanceShareController extends AbstractController
         $item = $this->shareService->resolve($type, $id);
         $payload = $request->toArray();
         if (!$this->isCsrfTokenValid('share_maintenance_'.$type.'_'.$id, (string) ($payload['token'] ?? ''))) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
 
         $items = is_array($payload['shares'] ?? null) ? $payload['shares'] : [];
         $this->shareService->synchronize($item, $items, $this->currentUser());
 
-        return $this->jsonResponder->success('Les partages maintenance ont ete enregistres.', ['reload' => true]);
+        return $this->jsonResponder->success('Les partages maintenance ont été enregistrés.', ['reload' => true]);
     }
 
     private function currentUser(): User

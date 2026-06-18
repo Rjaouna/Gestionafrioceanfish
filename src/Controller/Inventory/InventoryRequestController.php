@@ -81,7 +81,7 @@ final class InventoryRequestController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('La demande a ete validee.', [
+        return $this->jsonResponder->success('La demande a été validée.', [
             'closeModal' => true,
             'refreshRegion' => 'inventory-requests',
         ]);
@@ -100,7 +100,7 @@ final class InventoryRequestController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('La demande a ete annulee sans modifier le materiel.', [
+        return $this->jsonResponder->success('La demande a été annulée sans modifier le matériel.', [
             'refreshRegion' => 'inventory-requests',
         ]);
     }
@@ -118,7 +118,7 @@ final class InventoryRequestController extends AbstractController
     private function assertCsrf(string $token, string $id): void
     {
         if (!$this->isCsrfTokenValid($id, $token)) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
     }
 

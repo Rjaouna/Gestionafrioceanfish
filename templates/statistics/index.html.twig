@@ -40,13 +40,13 @@
                             </span>
                             <div class="min-w-0">
                                 <h2 class="h5 mb-1 text-truncate">Dépenses par type</h2>
-                                <p class="small text-secondary mb-0">Sommes TTC par categorie de depense.</p>
+                                <p class="small text-secondary mb-0">Sommes TTC par catégorie de dépense.</p>
                             </div>
                         </div>
 
                         {% include 'components/_dashboard_chart.html.twig' with {
                             title: 'Montants',
-                            subtitle: 'Types de depenses',
+                            subtitle: 'Types de dépenses',
                             chart: dashboard.expense_type_chart,
                             chart_type: 'bars',
                             tone: 'warning',

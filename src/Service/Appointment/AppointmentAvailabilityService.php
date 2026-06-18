@@ -15,11 +15,11 @@ final readonly class AppointmentAvailabilityService
     public function assertRange(?\DateTimeImmutable $startAt, ?\DateTimeImmutable $endAt): void
     {
         if (!$startAt instanceof \DateTimeImmutable || !$endAt instanceof \DateTimeImmutable) {
-            throw new \DomainException('Selectionnez une date de debut et une date de fin.');
+            throw new \DomainException('Sélectionnez une date de début et une date de fin.');
         }
 
         if ($endAt <= $startAt) {
-            throw new \DomainException('La date de fin doit etre apres la date de debut.');
+            throw new \DomainException('La date de fin doit être après la date de début.');
         }
     }
 
@@ -34,7 +34,7 @@ final readonly class AppointmentAvailabilityService
 
             $appointment = $conflicts[0]->getAppointment();
             $label = $appointment?->getReference() ? sprintf('%s - %s', $appointment->getReference(), $appointment->getTitle()) : 'un autre rendez-vous';
-            throw new \DomainException(sprintf('%s a deja %s sur ce creneau.', $user->getDisplayName(), $label));
+            throw new \DomainException(sprintf('%s a déjà %s sur ce créneau.', $user->getDisplayName(), $label));
         }
     }
 

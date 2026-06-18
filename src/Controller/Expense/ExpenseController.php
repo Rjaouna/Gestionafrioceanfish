@@ -211,7 +211,7 @@ final class ExpenseController extends AbstractController
         $this->assertCsrfFromJson($request, 'reactivate_expense_'.$expense->getId());
         $this->workflow->reactivate($expense, $this->currentUser());
 
-        return $this->jsonResponder->success('La dÃ©pense a Ã©tÃ© rÃ©activÃ©e en brouillon.', ['reload' => true]);
+        return $this->jsonResponder->success('La dépense a été réactivée en brouillon.', ['reload' => true]);
     }
 
     #[Route('/{id}/archive', name: 'app_expense_archive', requirements: ['id' => '\d+'], methods: ['POST'])]
@@ -234,7 +234,7 @@ final class ExpenseController extends AbstractController
         $this->assertCsrfFromJson($request, 'delete_expense_'.$expense->getId());
         $movedToTrash = $this->expenseService->delete($expense, $this->currentUser());
         if ($movedToTrash) {
-            return $this->jsonResponder->success('La depense a ete deplacee dans la corbeille.', ['reload' => true]);
+            return $this->jsonResponder->success('La dépense a été déplacée dans la corbeille.', ['reload' => true]);
         }
 
         return $this->jsonResponder->success('La dépense a été supprimée.', ['reload' => true]);

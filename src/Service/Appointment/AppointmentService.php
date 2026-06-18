@@ -75,7 +75,7 @@ final readonly class AppointmentService
 
         $this->entityManager->persist($appointment);
         $this->participants->syncParticipants($appointment, $participantUsers, $actor, false);
-        $this->history->add($appointment, 'Creation rendez-vous', $actor, null, $appointment->getReference());
+        $this->history->add($appointment, 'Création rendez-vous', $actor, null, $appointment->getReference());
         $this->entityManager->flush();
 
         return $appointment;
@@ -109,7 +109,7 @@ final readonly class AppointmentService
 
         $old = $this->dateRangeLabel($appointment);
         $appointment->setStartAt($startAt)->setEndAt($endAt);
-        $this->history->add($appointment, 'Deplacement rendez-vous', $actor, $old, $this->dateRangeLabel($appointment));
+        $this->history->add($appointment, 'Déplacement rendez-vous', $actor, $old, $this->dateRangeLabel($appointment));
         $this->notification->notifyScheduleChanged($appointment);
         $this->entityManager->flush();
     }
@@ -169,7 +169,7 @@ final readonly class AppointmentService
         }
 
         if (!$this->access->isSuperAdmin($actor)) {
-            $this->history->add($appointment, 'Deplacement corbeille', $actor);
+            $this->history->add($appointment, 'Déplacement corbeille', $actor);
             $this->trashService->moveToTrash($appointment, $actor);
 
             return true;

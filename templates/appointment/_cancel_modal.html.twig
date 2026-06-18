@@ -5,7 +5,7 @@
 <form data-appointment-cancel-form data-url="{{ path('app_appointment_cancel', {id: appointment.id}) }}" data-token="{{ csrf_token('appointment_calendar') }}">
     <div class="modal-body">
         <label class="form-label fw-semibold" for="appointmentCancelReason">Motif</label>
-        <textarea class="form-control" id="appointmentCancelReason" name="reason" rows="4" placeholder="Motif d'annulation..."></textarea>
+        <textarea class="form-control" id="appointmentCancelReason" name="reason" rows="4" placeholder="Motif d’annulation..."></textarea>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>

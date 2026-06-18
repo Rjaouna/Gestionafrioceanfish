@@ -82,7 +82,7 @@ final class InventoryTaxonomyController extends AbstractController
         $this->entityManager->persist($site);
         $this->entityManager->flush();
 
-        return $this->jsonResponder->success('Le site a ete cree.', [
+        return $this->jsonResponder->success('Le site a été créé.', [
             'closeModal' => true,
             'refreshRegion' => 'inventory-taxonomy',
         ], 201);
@@ -107,7 +107,7 @@ final class InventoryTaxonomyController extends AbstractController
         $this->entityManager->persist($location);
         $this->entityManager->flush();
 
-        return $this->jsonResponder->success('L emplacement a ete cree.', [
+        return $this->jsonResponder->success('L’emplacement a été créé.', [
             'closeModal' => true,
             'refreshRegion' => 'inventory-taxonomy',
         ], 201);
@@ -160,10 +160,10 @@ final class InventoryTaxonomyController extends AbstractController
         }
 
         return $this->jsonResponder->success(sprintf(
-            'Le site a ete supprime. %d materiel%s %s.',
+            'Le site a été supprimé. %d matériel%s %s.',
             $movedItems,
             $movedItems > 1 ? 's' : '',
-            $destination instanceof InventorySite ? 'ont ete rattaches au site selectionne' : 'ont ete detaches du site',
+            $destination instanceof InventorySite ? 'ont été rattachés au site sélectionné' : 'ont été détachés du site',
         ), [
             'closeModal' => true,
             'refreshRegion' => 'inventory-taxonomy',
@@ -201,10 +201,10 @@ final class InventoryTaxonomyController extends AbstractController
         }
 
         return $this->jsonResponder->success(sprintf(
-            'L emplacement a ete supprime. %d materiel%s %s.',
+            'L’emplacement a été supprimé. %d matériel%s %s.',
             $movedItems,
             $movedItems > 1 ? 's' : '',
-            $destination instanceof InventoryLocation ? 'ont ete rattaches a l emplacement selectionne' : 'gardent leur site sans emplacement',
+            $destination instanceof InventoryLocation ? 'ont été rattachés à l’emplacement sélectionné' : 'gardent leur site sans emplacement',
         ), [
             'closeModal' => true,
             'refreshRegion' => 'inventory-taxonomy',
@@ -240,7 +240,7 @@ final class InventoryTaxonomyController extends AbstractController
     private function assertCsrf(string $token, string $id): void
     {
         if (!$this->isCsrfTokenValid($id, $token)) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
     }
 

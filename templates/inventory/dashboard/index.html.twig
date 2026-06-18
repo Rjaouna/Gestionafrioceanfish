@@ -1,22 +1,22 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Inventaire du materiel{% endblock %}
+{% block title %}Inventaire du matériel{% endblock %}
 
 {% block body %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
-        <h1 class="h3 mb-1">Inventaire du materiel</h1>
-        <p class="text-secondary mb-0">Vue d ensemble du parc, des mouvements et des controles physiques.</p>
+        <h1 class="h3 mb-1">Inventaire du matériel</h1>
+        <p class="text-secondary mb-0">Vue d’ensemble du parc, des mouvements et des contrôles physiques.</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
         <a class="btn btn-outline-primary" href="{{ path('app_inventory_request_index') }}">
-            <i class="bi bi-inbox me-2"></i>Demandes a valider
+            <i class="bi bi-inbox me-2"></i>Demandes à valider
         </a>
         <a class="btn btn-outline-primary" href="{{ path('app_inventory_carton_stock_index') }}">
             <i class="bi bi-boxes me-2"></i>Stocks cartons
         </a>
         <a class="btn btn-primary" href="{{ path('app_inventory_item_new') }}">
-            <i class="bi bi-plus-circle me-2"></i>Ajouter un materiel
+            <i class="bi bi-plus-circle me-2"></i>Ajouter un matériel
         </a>
     </div>
 </div>
@@ -44,7 +44,7 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 {% include 'components/_dashboard_chart.html.twig' with {
-                    title: 'Repartition par statut',
+                    title: 'Répartition par statut',
                     chart: dashboard.status_chart,
                     chart_type: 'bars',
                     tone: 'primary'
@@ -56,7 +56,7 @@
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 {% include 'components/_dashboard_chart.html.twig' with {
-                    title: 'Repartition par categorie',
+                    title: 'Répartition par catégorie',
                     chart: dashboard.category_chart,
                     chart_type: 'bars',
                     tone: 'success'
@@ -80,8 +80,8 @@
                 <table class="table align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>Reference</th>
-                            <th>Materiel</th>
+                            <th>Référence</th>
+                            <th>Matériel</th>
                             <th>Statut</th>
                             <th>Site</th>
                             <th class="text-end">Dispo</th>
@@ -96,11 +96,11 @@
                                     <div class="small text-secondary">{% if item.dimensions %}{{ item.dimensions }}{% endif %}{% if item.color %}{{ item.dimensions ? ' · ' : '' }}{{ item.color }}{% endif %}</div>
                                 </td>
                                 <td><span class="badge text-bg-light border">{{ item.statusLabel }}</span></td>
-                                <td class="text-secondary">{{ item.location ? item.location.displayName : item.site.name|default('Non renseigne') }}</td>
+                                <td class="text-secondary">{{ item.location ? item.location.displayName : item.site.name|default('Non renseigné') }}</td>
                                 <td class="text-end">{{ item.availableQuantity }}/{{ item.quantity }}</td>
                             </tr>
                         {% else %}
-                            <tr><td colspan="5" class="text-center text-secondary py-4">Aucun materiel pour le moment.</td></tr>
+                            <tr><td colspan="5" class="text-center text-secondary py-4">Aucun matériel pour le moment.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -128,7 +128,7 @@
                         </div>
                     </div>
                 {% else %}
-                    <div class="list-group-item text-center text-secondary py-4">Aucun mouvement enregistre.</div>
+                    <div class="list-group-item text-center text-secondary py-4">Aucun mouvement enregistré.</div>
                 {% endfor %}
             </div>
         </div>

@@ -31,9 +31,9 @@ final class InventoryCartonStockController extends AbstractController
 
     private const LINE_QUICK_FIELDS = [
         'groupName' => 'Groupe / client',
-        'reference' => 'Reference',
+        'reference' => 'Référence',
         'lineType' => 'Type de ligne',
-        'quantity' => 'Quantite',
+        'quantity' => 'Quantité',
         'unitPrice' => 'Prix unitaire',
         'totalAmount' => 'Total',
         'notes' => 'Notes',
@@ -78,7 +78,7 @@ final class InventoryCartonStockController extends AbstractController
         return $this->render('inventory/carton_stock/_stock_form_modal.html.twig', [
             'form' => $this->buildStockForm(new InventoryCartonStock(), 'app_inventory_carton_stock_create'),
             'title' => 'Nouveau stock carton',
-            'submit_label' => 'Creer',
+            'submit_label' => 'Créer',
             'stock' => null,
         ]);
     }
@@ -97,7 +97,7 @@ final class InventoryCartonStockController extends AbstractController
 
         $this->stockService->createStock($stock, $this->currentUser());
 
-        return $this->jsonResponder->success('Le stock carton a ete cree.', [
+        return $this->jsonResponder->success('Le stock carton a été créé.', [
             'closeModal' => true,
             'refreshRegion' => 'carton-stocks',
         ], 201);
@@ -145,7 +145,7 @@ final class InventoryCartonStockController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Le champ stock carton a ete modifie.', [
+        return $this->jsonResponder->success('Le champ stock carton a été modifié.', [
             'closeModal' => true,
             'refreshRegion' => 'carton-stocks',
         ]);
@@ -164,7 +164,7 @@ final class InventoryCartonStockController extends AbstractController
 
         $this->stockService->updateStock($stock, $this->currentUser());
 
-        return $this->jsonResponder->success('Le stock carton a ete modifie.', [
+        return $this->jsonResponder->success('Le stock carton a été modifié.', [
             'closeModal' => true,
             'refreshRegion' => 'carton-stocks',
         ]);
@@ -178,7 +178,7 @@ final class InventoryCartonStockController extends AbstractController
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'delete_inventory_carton_stock_'.$stock->getId());
         $this->stockService->deleteStock($stock, $this->currentUser());
 
-        return $this->jsonResponder->success('Le stock carton a ete supprime.', [
+        return $this->jsonResponder->success('Le stock carton a été supprimé.', [
             'refreshRegion' => 'carton-stocks',
         ]);
     }
@@ -199,7 +199,7 @@ final class InventoryCartonStockController extends AbstractController
         return $this->render('inventory/carton_stock/_line_form_modal.html.twig', [
             'form' => $this->buildLineForm($line, 'app_inventory_carton_line_create'),
             'title' => 'Ajouter une ligne de stock',
-            'submit_label' => 'Creer',
+            'submit_label' => 'Créer',
             'line' => null,
         ]);
     }
@@ -222,7 +222,7 @@ final class InventoryCartonStockController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('La ligne de stock a ete creee.', [
+        return $this->jsonResponder->success('La ligne de stock a été créée.', [
             'closeModal' => true,
             'refreshRegion' => 'carton-stocks',
         ], 201);
@@ -265,7 +265,7 @@ final class InventoryCartonStockController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Le champ de la ligne carton a ete modifie.', [
+        return $this->jsonResponder->success('Le champ de la ligne carton a été modifié.', [
             'closeModal' => true,
             'refreshRegion' => 'carton-stocks',
         ]);
@@ -288,7 +288,7 @@ final class InventoryCartonStockController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('La ligne de stock a ete modifiee.', [
+        return $this->jsonResponder->success('La ligne de stock a été modifiée.', [
             'closeModal' => true,
             'refreshRegion' => 'carton-stocks',
         ]);
@@ -302,7 +302,7 @@ final class InventoryCartonStockController extends AbstractController
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'delete_inventory_carton_line_'.$line->getId());
         $this->stockService->deleteLine($line, $this->currentUser());
 
-        return $this->jsonResponder->success('La ligne de stock a ete supprimee.', [
+        return $this->jsonResponder->success('La ligne de stock a été supprimée.', [
             'refreshRegion' => 'carton-stocks',
         ]);
     }
@@ -326,7 +326,7 @@ final class InventoryCartonStockController extends AbstractController
     private function assertCsrf(string $token, string $id): void
     {
         if (!$this->isCsrfTokenValid($id, $token)) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
     }
 

@@ -65,7 +65,7 @@ final class AppointmentParticipantController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Le participant a ete ajoute.', ['reload' => true]);
+        return $this->jsonResponder->success('Le participant a été ajouté.', ['reload' => true]);
     }
 
     #[Route('/{participantId}', name: 'app_appointment_participant_remove', requirements: ['participantId' => '\d+'], methods: ['DELETE'])]
@@ -76,7 +76,7 @@ final class AppointmentParticipantController extends AbstractController
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'participant_appointment_'.$appointment->getId());
         $this->participantService->removeParticipant($appointment, $participantId, $this->currentUser());
 
-        return $this->jsonResponder->success('Le participant a ete retire.', ['reload' => true]);
+        return $this->jsonResponder->success('Le participant a été retiré.', ['reload' => true]);
     }
 
     #[Route('/{participantId}/response', name: 'app_appointment_participant_response', requirements: ['participantId' => '\d+'], methods: ['POST'])]
@@ -92,13 +92,13 @@ final class AppointmentParticipantController extends AbstractController
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'participant_response_'.$appointment->getId());
         $this->participantService->respond($participant, $this->currentUser(), (string) ($payload['response'] ?? ''));
 
-        return $this->jsonResponder->success('Votre reponse a ete enregistree.', ['reload' => true]);
+        return $this->jsonResponder->success('Votre réponse a été enregistrée.', ['reload' => true]);
     }
 
     private function assertCsrf(string $token, string $id): void
     {
         if (!$this->isCsrfTokenValid($id, $token)) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
     }
 

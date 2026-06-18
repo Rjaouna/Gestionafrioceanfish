@@ -2,7 +2,7 @@
     <div class="modal-header">
         <div>
             <h2 class="modal-title fs-5">Supprimer le site {{ site.name }}</h2>
-            <div class="small text-secondary">{{ item_count }} materiel{{ item_count > 1 ? 's' : '' }} attache{{ item_count > 1 ? 's' : '' }}</div>
+            <div class="small text-secondary">{{ item_count }} matériel{{ item_count > 1 ? 's' : '' }} attaché{{ item_count > 1 ? 's' : '' }}</div>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
     </div>
@@ -12,23 +12,23 @@
         <div class="alert {{ item_count > 0 ? 'alert-warning' : 'alert-danger' }}">
             <div class="fw-semibold">Cette action supprimera aussi les emplacements de ce site.</div>
             {% if item_count > 0 %}
-                Le site est utilise par du materiel. Choisissez un site de destination, ou laissez vide pour detacher le materiel du site.
+                Le site est utilisé par du matériel. Choisissez un site de destination, ou laissez vide pour détacher le matériel du site.
             {% else %}
-                Aucun materiel n est attache a ce site, il peut etre supprime directement.
+                Aucun matériel n’est attaché à ce site, il peut être supprimé directement.
             {% endif %}
         </div>
 
         {% if item_count > 0 %}
-            <label class="form-label fw-semibold" for="inventory-site-destination">Rattacher le materiel vers</label>
+            <label class="form-label fw-semibold" for="inventory-site-destination">Rattacher le matériel vers</label>
             <select id="inventory-site-destination" class="form-select" name="destinationSite">
-                <option value="">Detacher le materiel du site</option>
+                <option value="">Détacher le matériel du site</option>
                 {% for destination in destination_sites %}
                     <option value="{{ destination.id }}">{{ destination.name }}</option>
                 {% endfor %}
             </select>
 
             <div class="border rounded p-3 mt-3">
-                <div class="fw-semibold mb-2">Materiel concerne</div>
+                <div class="fw-semibold mb-2">Matériel concerné</div>
                 <div class="list-group list-group-flush">
                     {% for item in items %}
                         <div class="list-group-item px-0 d-flex justify-content-between gap-3">
@@ -38,7 +38,7 @@
                     {% endfor %}
                 </div>
                 {% if item_count > items|length %}
-                    <div class="small text-secondary mt-2">+ {{ item_count - items|length }} autre{{ item_count - items|length > 1 ? 's' : '' }} materiel{{ item_count - items|length > 1 ? 's' : '' }}.</div>
+                    <div class="small text-secondary mt-2">+ {{ item_count - items|length }} autre{{ item_count - items|length > 1 ? 's' : '' }} matériel{{ item_count - items|length > 1 ? 's' : '' }}.</div>
                 {% endif %}
             </div>
         {% endif %}

@@ -73,7 +73,7 @@ final class AppointmentCalendarController extends AbstractController
             return str_contains(mb_strtolower($user->getDisplayName().' '.$user->getEmail()), $query);
         }));
 
-        return $this->jsonResponder->success('Utilisateurs trouves.', [
+        return $this->jsonResponder->success('Utilisateurs trouvés.', [
             'users' => array_map(static fn (User $user): array => [
                 'id' => $user->getId(),
                 'name' => $user->getDisplayName(),

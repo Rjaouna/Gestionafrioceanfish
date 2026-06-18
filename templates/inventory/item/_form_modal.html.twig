@@ -11,8 +11,8 @@
         </datalist>
         <div class="alert alert-light border d-flex justify-content-between align-items-center">
             <div>
-                <span class="text-secondary small d-block">Reference</span>
-                <strong>{{ form.vars.data.reference ?: 'Generee automatiquement' }}</strong>
+                <span class="text-secondary small d-block">Référence</span>
+                <strong>{{ form.vars.data.reference ?: 'Générée automatiquement' }}</strong>
             </div>
             <i class="bi bi-lock text-secondary"></i>
         </div>
@@ -39,7 +39,7 @@
             <section class="border rounded p-3">
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <i class="bi bi-info-circle text-primary"></i>
-                    <h3 class="h6 mb-0">Identification et etat</h3>
+                    <h3 class="h6 mb-0">Identification et état</h3>
                 </div>
                 <div class="row g-3">
                     <div class="col-md-3">{{ form_row(form.status) }}</div>
@@ -71,7 +71,7 @@
         </div>
         {% if item and item.attachments|length > 0 %}
             <div class="border-top mt-4 pt-3">
-                <h3 class="h6">Pieces jointes</h3>
+                <h3 class="h6">Pièces jointes</h3>
                 <div class="list-group list-group-flush">
                     {% for attachment in item.attachments %}
                         <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
@@ -86,7 +86,7 @@
                                 data-confirm-url="{{ path('app_inventory_attachment_delete', {id: attachment.id}) }}"
                                 data-confirm-method="DELETE"
                                 data-token="{{ csrf_token('delete_inventory_attachment_' ~ attachment.id) }}"
-                                data-confirm-message="Supprimer cette piece jointe ?"
+                                data-confirm-message="Supprimer cette pièce jointe ?"
                             >
                                 <i class="bi bi-trash"></i>
                             </button>

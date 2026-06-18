@@ -25,7 +25,7 @@ class InventoryMovement
     use TimestampableUserTrait;
 
     public const TYPES = [
-        'Entree' => 'entry',
+        'Entrée' => 'entry',
         'Transfert' => 'transfer',
         'Affectation' => 'assignment',
         'Retour' => 'return',

@@ -154,7 +154,7 @@ final class MaintenanceContractController extends AbstractController
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'delete_maintenance_contract_'.$contract->getId());
         $movedToTrash = $this->contractService->delete($contract, $this->currentUser());
         if ($movedToTrash) {
-            return $this->jsonResponder->success('Le contrat a ete deplace dans la corbeille.', ['reload' => true]);
+            return $this->jsonResponder->success('Le contrat a été déplacé dans la corbeille.', ['reload' => true]);
         }
 
         return $this->jsonResponder->success('Le contrat a été supprimé.', ['reload' => true]);

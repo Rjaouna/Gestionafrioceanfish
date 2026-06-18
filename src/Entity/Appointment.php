@@ -29,21 +29,21 @@ class Appointment
     use TimestampableUserTrait;
 
     public const STATUS_CHOICES = [
-        'Planifie' => 'planned',
-        'Confirme' => 'confirmed',
+        'Planifié' => 'planned',
+        'Confirmé' => 'confirmed',
         'En attente' => 'pending',
-        'Termine' => 'completed',
-        'Annule' => 'cancelled',
-        'Reporte' => 'postponed',
+        'Terminé' => 'completed',
+        'Annulé' => 'cancelled',
+        'Reporté' => 'postponed',
     ];
 
     public const STATUS_LABELS = [
-        'planned' => 'Planifie',
-        'confirmed' => 'Confirme',
+        'planned' => 'Planifié',
+        'confirmed' => 'Confirmé',
         'pending' => 'En attente',
-        'completed' => 'Termine',
-        'cancelled' => 'Annule',
-        'postponed' => 'Reporte',
+        'completed' => 'Terminé',
+        'cancelled' => 'Annulé',
+        'postponed' => 'Reporté',
     ];
 
     public const PRIORITY_CHOICES = [
@@ -126,7 +126,7 @@ class Appointment
 
     #[ORM\Column]
     #[Assert\NotNull]
-    #[Assert\GreaterThan(propertyPath: 'startAt', message: 'La fin doit etre apres le debut.')]
+    #[Assert\GreaterThan(propertyPath: 'startAt', message: 'La fin doit être après le début.')]
     private ?\DateTimeImmutable $endAt = null;
 
     #[ORM\Column(options: ['default' => false])]

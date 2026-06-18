@@ -17,16 +17,16 @@ final class InventoryCampaignLineType extends AbstractType
     {
         $builder
             ->add('countedQuantity', IntegerType::class, [
-                'label' => 'Quantite comptee',
+                'label' => 'Quantité comptée',
                 'required' => false,
                 'attr' => ['min' => 0],
             ])
             ->add('countedLocation', TextType::class, [
-                'label' => 'Emplacement constate',
+                'label' => 'Emplacement constaté',
                 'required' => false,
             ])
             ->add('checkStatus', ChoiceType::class, [
-                'label' => 'Statut de controle',
+                'label' => 'Statut de contrôle',
                 'choices' => InventoryCampaignLine::CHECK_STATUSES,
             ])
             ->add('comment', TextareaType::class, [

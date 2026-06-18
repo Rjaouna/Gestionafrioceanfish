@@ -54,7 +54,7 @@ final readonly class InventoryMovementService
     private function prepare(InventoryMovement $movement, InventoryItem $item): void
     {
         if ($movement->getMovementType() !== 'adjustment' && $movement->getQuantity() < 1) {
-            throw new \DomainException('La quantite du mouvement doit etre superieure a zero.');
+            throw new \DomainException('La quantité du mouvement doit être supérieure à zéro.');
         }
 
         if ($movement->getFromSite() === null) {
@@ -103,7 +103,7 @@ final readonly class InventoryMovementService
     private function applyOutgoing(InventoryItem $item, int $quantity, string $status, ?User $responsibleUser): void
     {
         if ($item->getAvailableQuantity() < $quantity) {
-            throw new \DomainException('La quantite disponible est insuffisante pour ce mouvement.');
+            throw new \DomainException('La quantité disponible est insuffisante pour ce mouvement.');
         }
 
         $item->setAvailableQuantity($item->getAvailableQuantity() - $quantity)->setStatus($status);
@@ -133,7 +133,7 @@ final readonly class InventoryMovementService
     private function applyRetirement(InventoryItem $item, int $quantity): void
     {
         if ($quantity > $item->getQuantity()) {
-            throw new \DomainException('La sortie depasse la quantite totale.');
+            throw new \DomainException('La sortie dépasse la quantité totale.');
         }
 
         $item

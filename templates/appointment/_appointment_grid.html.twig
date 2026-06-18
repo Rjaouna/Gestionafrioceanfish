@@ -3,12 +3,12 @@
         <table class="table align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Reference</th>
+                    <th>Référence</th>
                     <th>Rendez-vous</th>
                     <th>Date</th>
                     <th>Type</th>
                     <th>Statut</th>
-                    <th>Priorite</th>
+                    <th>Priorité</th>
                     <th>Participants</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -22,7 +22,7 @@
                             <div class="dashboard-empty">
                                 <div>
                                     <i class="bi bi-calendar-x"></i>
-                                    <p class="mb-0 mt-2">Aucun rendez-vous trouve.</p>
+                                    <p class="mb-0 mt-2">Aucun rendez-vous trouvé.</p>
                                 </div>
                             </div>
                         </td>
@@ -34,7 +34,7 @@
     {% if pagination.pages|default(1) > 1 %}
         <div class="card-footer bg-white d-flex justify-content-between align-items-center">
             <button class="btn btn-outline-secondary btn-sm" type="button" data-appointment-page="{{ pagination.page - 1 }}" {{ pagination.page <= 1 ? 'disabled' : '' }}>
-                <i class="bi bi-chevron-left me-1"></i>Precedent
+                <i class="bi bi-chevron-left me-1"></i>Précédent
             </button>
             <span class="small text-secondary">Page {{ pagination.page }} / {{ pagination.pages }}</span>
             <button class="btn btn-outline-secondary btn-sm" type="button" data-appointment-page="{{ pagination.page + 1 }}" {{ pagination.page >= pagination.pages ? 'disabled' : '' }}>

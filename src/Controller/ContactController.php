@@ -103,7 +103,7 @@ final class ContactController extends AbstractController
 
         $movedToTrash = $this->contactService->delete($contact, $this->currentUser());
         if ($movedToTrash) {
-            return $this->jsonResponder->success('Le contact a ete deplace dans la corbeille.', ['reload' => true]);
+            return $this->jsonResponder->success('Le contact a été déplacé dans la corbeille.', ['reload' => true]);
         }
 
         return $this->jsonResponder->success('Le contact a été supprimé.', ['reload' => true]);

@@ -249,7 +249,7 @@ final readonly class MaintenanceShareService
             $item instanceof Intervenant => 'cet intervenant',
             $item instanceof MaintenanceContract => 'ce contrat',
             $item instanceof Intervention => 'cette intervention',
-            default => 'cet element',
+            default => 'cet élément',
         };
     }
 

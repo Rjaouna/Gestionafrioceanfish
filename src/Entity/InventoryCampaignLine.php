@@ -22,9 +22,9 @@ class InventoryCampaignLine
     use TimestampableUserTrait;
 
     public const CHECK_STATUSES = [
-        'A verifier' => 'pending',
+        'À vérifier' => 'pending',
         'Conforme' => 'ok',
-        'Ecart' => 'discrepancy',
+        'Écart' => 'discrepancy',
         'Introuvable' => 'missing',
         'Nouvel emplacement' => 'relocated',
     ];

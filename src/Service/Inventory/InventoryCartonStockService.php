@@ -124,11 +124,11 @@ final readonly class InventoryCartonStockService
     private function prepareLine(InventoryCartonStockLine $line): void
     {
         if (!$line->getStock() instanceof InventoryCartonStock) {
-            throw new \DomainException('Selectionnez un stock carton.');
+            throw new \DomainException('Sélectionnez un stock carton.');
         }
 
         if (trim((string) $line->getReference()) === '') {
-            throw new \DomainException('La reference est obligatoire.');
+            throw new \DomainException('La référence est obligatoire.');
         }
 
         if ($line->getLineType() === 'item' && $line->getTotalAmount() === null && $line->getQuantity() !== null && $line->getUnitPrice() !== null) {

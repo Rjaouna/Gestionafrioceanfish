@@ -99,21 +99,21 @@ final readonly class InventoryFileService
     private function validate(UploadedFile $file): void
     {
         if (!$file->isValid()) {
-            throw new \DomainException('Le fichier envoye est invalide.');
+            throw new \DomainException('Le fichier envoyé est invalide.');
         }
 
         if ($file->getSize() !== null && $file->getSize() > self::MAX_FILE_SIZE) {
-            throw new \DomainException('Le fichier depasse la taille maximale autorisee.');
+            throw new \DomainException('Le fichier dépasse la taille maximale autorisée.');
         }
 
         $extension = mb_strtolower((string) pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
         if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
-            throw new \DomainException('Cette extension de fichier n est pas autorisee.');
+            throw new \DomainException('Cette extension de fichier n’est pas autorisée.');
         }
 
         $mimeType = $file->getMimeType();
         if (!$mimeType || !in_array($mimeType, self::ALLOWED_MIME_TYPES, true)) {
-            throw new \DomainException('Ce type de fichier n est pas autorise.');
+            throw new \DomainException('Ce type de fichier n’est pas autorisé.');
         }
     }
 
@@ -134,7 +134,7 @@ final readonly class InventoryFileService
     {
         $directory = $this->projectDir.DIRECTORY_SEPARATOR.'var'.DIRECTORY_SEPARATOR.'storage'.DIRECTORY_SEPARATOR.'inventory';
         if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-            throw new \RuntimeException('Impossible de creer le dossier prive inventaire.');
+            throw new \RuntimeException('Impossible de créer le dossier privé inventaire.');
         }
 
         return $directory;

@@ -23,10 +23,10 @@ final class InventoryLocationType extends AbstractType
                 'choice_label' => 'name',
                 'query_builder' => static fn (InventorySiteRepository $repository) => $repository->createQueryBuilder('s')->andWhere('s.isActive = true')->orderBy('s.name', 'ASC'),
                 'label' => 'Site',
-                'placeholder' => 'Selectionner un site',
+                'placeholder' => 'Sélectionner un site',
                 'disabled' => $options['site_locked'],
             ])
-            ->add('name', TextType::class, ['label' => 'Nom de l emplacement'])
+            ->add('name', TextType::class, ['label' => 'Nom de l’emplacement'])
             ->add('description', TextareaType::class, ['label' => 'Description', 'required' => false, 'attr' => ['rows' => 3]])
             ->add('isActive', CheckboxType::class, ['label' => 'Actif', 'required' => false]);
     }

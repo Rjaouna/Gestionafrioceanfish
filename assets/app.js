@@ -536,7 +536,7 @@ function importContactToIntervenant(button) {
         }
     });
 
-    showAlert('Les informations du contact ont ete importees.');
+    showAlert('Les informations du contact ont été importées.');
 }
 
 function syncMaintenanceContractType(control) {
@@ -787,7 +787,7 @@ async function refreshAjaxRegion(name, options = {}) {
         const count = document.querySelector(`[data-ajax-count-region="${CSS.escape(name)}"]`);
         if (count && Number.isFinite(Number(payload.data.count))) {
             const total = Number(payload.data.count);
-            count.textContent = `${total} element${total > 1 ? 's' : ''} visible${total > 1 ? 's' : ''}.`;
+            count.textContent = `${total} élément${total > 1 ? 's' : ''} visible${total > 1 ? 's' : ''}.`;
         }
     } finally {
         region.removeAttribute('aria-busy');
@@ -822,7 +822,7 @@ async function searchInventoryContacts(input) {
     if (!form || !results || !contactId || !selection) return;
 
     contactId.value = '';
-    selection.textContent = 'Aucun contact selectionne.';
+    selection.textContent = 'Aucun contact sélectionné.';
     if (query.length < 2) {
         results.innerHTML = '';
         return;
@@ -849,7 +849,7 @@ async function searchInventoryContacts(input) {
                 <span class="small text-secondary d-block">${escapeHtml(contact.company)} · ${escapeHtml(contact.phone || 'Sans portable')}</span>
             </button>
         `).join('')
-        : '<div class="list-group-item text-secondary small">Aucun contact avec portable trouve.</div>';
+        : '<div class="list-group-item text-secondary small">Aucun contact avec portable trouvé.</div>';
 }
 
 function loadFullCalendar() {
@@ -881,7 +881,7 @@ function updateAppointmentSearchCounters(search, count) {
     const label = document.querySelector('[data-appointment-search-label]');
     const clearButton = card?.querySelector('[data-appointment-clear-search]');
     if (counter) counter.textContent = String(count);
-    if (label) label.textContent = count > 1 ? 'resultats' : 'resultat';
+    if (label) label.textContent = count > 1 ? 'résultats' : 'résultat';
     clearButton?.classList.toggle('d-none', normalizeSearch(search.value) === '');
 }
 
@@ -1263,11 +1263,11 @@ document.addEventListener('click', async (event) => {
         const notes = form.querySelector('[name="notes"]')?.value;
         const contactId = form.querySelector('[data-inventory-contact-id]')?.value;
         if (!contactId) {
-            showAlert('Selectionnez un contact.', 'danger');
+            showAlert('Sélectionnez un contact.', 'danger');
             return;
         }
         if (action === 'transport' && !destinationSiteId) {
-            showAlert('Selectionnez un site de destination.', 'danger');
+            showAlert('Sélectionnez un site de destination.', 'danger');
             return;
         }
 

@@ -37,7 +37,7 @@ final class AppointmentType extends AbstractType
                 'choices' => Appointment::TYPE_CHOICES,
             ])
             ->add('priority', ChoiceType::class, [
-                'label' => 'Priorite',
+                'label' => 'Priorité',
                 'choices' => Appointment::PRIORITY_CHOICES,
             ])
             ->add('status', ChoiceType::class, [
@@ -45,7 +45,7 @@ final class AppointmentType extends AbstractType
                 'choices' => Appointment::STATUS_CHOICES,
             ])
             ->add('startAt', DateTimeType::class, [
-                'label' => 'Debut',
+                'label' => 'Début',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
             ])
@@ -79,7 +79,7 @@ final class AppointmentType extends AbstractType
                 'attr' => ['placeholder' => 'contact@example.com'],
             ])
             ->add('customerPhone', TelType::class, [
-                'label' => 'Telephone client',
+                'label' => 'Téléphone client',
                 'required' => false,
                 'attr' => ['placeholder' => '+33 ...'],
             ])

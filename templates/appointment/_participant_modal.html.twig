@@ -13,14 +13,14 @@
             <div class="col-lg-7">
                 <label class="form-label fw-semibold" for="appointmentParticipantUser">Utilisateur</label>
                 <select class="form-select" id="appointmentParticipantUser" name="userId" required>
-                    <option value="">Selectionner un utilisateur</option>
+                    <option value="">Sélectionner un utilisateur</option>
                     {% for user in users %}
                         <option value="{{ user.id }}">{{ user.displayName }} - {{ user.email }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="col-lg-5">
-                <label class="form-label fw-semibold" for="appointmentParticipantRole">Role</label>
+                <label class="form-label fw-semibold" for="appointmentParticipantRole">Rôle</label>
                 <select class="form-select" id="appointmentParticipantRole" name="roleInAppointment">
                     <option value="participant">Participant</option>
                     <option value="organizer">Organisateur</option>

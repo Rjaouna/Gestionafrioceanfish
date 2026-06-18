@@ -67,7 +67,7 @@ final class AppointmentController extends AbstractController
         $filters = $this->filters($request);
         $result = $this->appointmentService->search($this->currentUser(), $filters, max(1, $request->query->getInt('page', 1)));
 
-        return $this->jsonResponder->success('Recherche mise a jour.', [
+        return $this->jsonResponder->success('Recherche mise à jour.', [
             'html' => $this->renderView('appointment/_appointment_grid.html.twig', [
                 'appointments' => $result['items'],
                 'pagination' => $result,
@@ -96,7 +96,7 @@ final class AppointmentController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Le rendez-vous a ete cree.', ['reload' => true], 201);
+        return $this->jsonResponder->success('Le rendez-vous a été créé.', ['reload' => true], 201);
     }
 
     #[Route('/quick-create', name: 'app_appointment_quick_create', methods: ['POST'])]
@@ -132,10 +132,10 @@ final class AppointmentController extends AbstractController
         } catch (\DomainException $exception) {
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         } catch (\Exception) {
-            return $this->jsonResponder->error('Le creneau selectionne est invalide.', [], 422);
+            return $this->jsonResponder->error('Le créneau sélectionné est invalide.', [], 422);
         }
 
-        return $this->jsonResponder->success('Le rendez-vous a ete cree.', [
+        return $this->jsonResponder->success('Le rendez-vous a été créé.', [
             'event' => $this->appointmentService->toCalendarEvent($appointment),
         ], 201);
     }
@@ -186,7 +186,7 @@ final class AppointmentController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Le rendez-vous a ete modifie.', ['reload' => true]);
+        return $this->jsonResponder->success('Le rendez-vous a été modifié.', ['reload' => true]);
     }
 
     #[Route('/{id}/move', name: 'app_appointment_move', requirements: ['id' => '\d+'], methods: ['POST'])]
@@ -201,10 +201,10 @@ final class AppointmentController extends AbstractController
         } catch (\DomainException $exception) {
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         } catch (\Exception) {
-            return $this->jsonResponder->error('Le nouveau creneau est invalide.', [], 422);
+            return $this->jsonResponder->error('Le nouveau créneau est invalide.', [], 422);
         }
 
-        return $this->jsonResponder->success('Le rendez-vous a ete deplace.');
+        return $this->jsonResponder->success('Le rendez-vous a été déplacé.');
     }
 
     #[Route('/{id}/resize', name: 'app_appointment_resize', requirements: ['id' => '\d+'], methods: ['POST'])]
@@ -219,10 +219,10 @@ final class AppointmentController extends AbstractController
         } catch (\DomainException $exception) {
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         } catch (\Exception) {
-            return $this->jsonResponder->error('La nouvelle duree est invalide.', [], 422);
+            return $this->jsonResponder->error('La nouvelle durée est invalide.', [], 422);
         }
 
-        return $this->jsonResponder->success('La duree du rendez-vous a ete mise a jour.');
+        return $this->jsonResponder->success('La durée du rendez-vous a été mise à jour.');
     }
 
     #[Route('/{id}/status', name: 'app_appointment_status', requirements: ['id' => '\d+'], methods: ['POST'])]
@@ -238,7 +238,7 @@ final class AppointmentController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Le statut a ete mis a jour.', ['reload' => true]);
+        return $this->jsonResponder->success('Le statut a été mis à jour.', ['reload' => true]);
     }
 
     #[Route('/{id}/cancel', name: 'app_appointment_cancel', requirements: ['id' => '\d+'], methods: ['POST'])]
@@ -250,7 +250,7 @@ final class AppointmentController extends AbstractController
 
         $this->appointmentService->cancel($appointment, $this->currentUser(), (string) ($payload['reason'] ?? ''));
 
-        return $this->jsonResponder->success('Le rendez-vous a ete annule.', ['reload' => true]);
+        return $this->jsonResponder->success('Le rendez-vous a été annulé.', ['reload' => true]);
     }
 
     #[Route('/{id}', name: 'app_appointment_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
@@ -262,7 +262,7 @@ final class AppointmentController extends AbstractController
 
         $movedToTrash = $this->appointmentService->delete($appointment, $this->currentUser());
 
-        return $this->jsonResponder->success($movedToTrash ? 'Le rendez-vous a ete deplace dans la corbeille.' : 'Le rendez-vous a ete supprime.', ['reload' => true]);
+        return $this->jsonResponder->success($movedToTrash ? 'Le rendez-vous a été déplacé dans la corbeille.' : 'Le rendez-vous a été supprimé.', ['reload' => true]);
     }
 
     /** @param array<string, int|string|null> $parameters */
@@ -330,7 +330,7 @@ final class AppointmentController extends AbstractController
     private function assertCalendarCsrf(string $token): void
     {
         if (!$this->isCsrfTokenValid('appointment_calendar', $token)) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
     }
 

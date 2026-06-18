@@ -36,14 +36,14 @@ class AppointmentParticipant
     public const RESPONSE_CHOICES = [
         'Invite' => 'invited',
         'Accepte' => 'accepted',
-        'Refuse' => 'declined',
+        'Refusé' => 'declined',
         'En attente' => 'pending',
     ];
 
     public const RESPONSE_LABELS = [
         'invited' => 'Invite',
         'accepted' => 'Accepte',
-        'declined' => 'Refuse',
+        'declined' => 'Refusé',
         'pending' => 'En attente',
     ];
 

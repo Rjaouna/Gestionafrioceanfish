@@ -270,7 +270,7 @@ final class InterventionController extends AbstractController
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'delete_maintenance_intervention_'.$intervention->getId());
         $movedToTrash = $this->interventionService->delete($intervention, $this->currentUser());
         if ($movedToTrash) {
-            return $this->jsonResponder->success('L intervention a ete deplacee dans la corbeille.', ['reload' => true]);
+            return $this->jsonResponder->success('L’intervention a été déplacée dans la corbeille.', ['reload' => true]);
         }
 
         return $this->jsonResponder->success('L’intervention a été supprimée.', ['reload' => true]);

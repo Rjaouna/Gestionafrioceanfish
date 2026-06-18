@@ -3,11 +3,11 @@
         <table class="table align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Reference</th>
-                    <th>Materiel</th>
+                    <th>Référence</th>
+                    <th>Matériel</th>
                     <th>Suivi</th>
                     <th>Site / emplacement</th>
-                    <th class="text-end">Quantites</th>
+                    <th class="text-end">Quantités</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -17,13 +17,13 @@
                         <td>
                             <span class="inventory-reference-badge" style="--inventory-logistics-color: {{ item.logisticsColor }}">{{ item.reference }}</span>
                             {% if not item.isActive %}
-                                <span class="badge text-bg-secondary ms-1">Archive</span>
+                                <span class="badge text-bg-secondary ms-1">Archivé</span>
                             {% endif %}
                         </td>
                         <td>
                             <div class="fw-semibold">{{ item.name }}</div>
                             <div class="small text-secondary">
-                                {{ item.category.name|default('Non classe') }}
+                                {{ item.category.name|default('Non classé') }}
                                 {% if item.dimensions %} · {{ item.dimensions }}{% endif %}
                             </div>
                         </td>
@@ -47,21 +47,21 @@
                         <td>
                             {% if is_granted('INVENTORY_ITEM_EDIT', item) %}
                                 <button type="button" class="btn btn-link btn-sm p-0 text-start text-decoration-none" data-remote-modal="{{ path('app_inventory_item_quick_form', {id: item.id, field: 'site'}) }}" title="Demander un changement de site">
-                                    <i class="bi bi-building me-1"></i>{{ item.site.name|default('Site non renseigne') }}
+                                    <i class="bi bi-building me-1"></i>{{ item.site.name|default('Site non renseigné') }}
                                 </button>
                                 <div>
-                                    <button type="button" class="btn btn-link btn-sm p-0 text-start text-secondary text-decoration-none" data-remote-modal="{{ path('app_inventory_item_quick_form', {id: item.id, field: 'location'}) }}" title="Demander un changement d emplacement">
-                                        <i class="bi bi-geo-alt me-1"></i>{{ item.location ? item.location.name : 'Emplacement non renseigne' }}
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-start text-secondary text-decoration-none" data-remote-modal="{{ path('app_inventory_item_quick_form', {id: item.id, field: 'location'}) }}" title="Demander un changement d’emplacement">
+                                        <i class="bi bi-geo-alt me-1"></i>{{ item.location ? item.location.name : 'Emplacement non renseigné' }}
                                     </button>
                                 </div>
                             {% else %}
-                                <div><i class="bi bi-building me-1"></i>{{ item.site.name|default('Site non renseigne') }}</div>
-                                <div class="small text-secondary"><i class="bi bi-geo-alt me-1"></i>{{ item.location ? item.location.name : 'Emplacement non renseigne' }}</div>
+                                <div><i class="bi bi-building me-1"></i>{{ item.site.name|default('Site non renseigné') }}</div>
+                                <div class="small text-secondary"><i class="bi bi-geo-alt me-1"></i>{{ item.location ? item.location.name : 'Emplacement non renseigné' }}</div>
                             {% endif %}
                         </td>
                         <td class="text-end">
                             {% if is_granted('INVENTORY_ITEM_EDIT', item) %}
-                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" data-remote-modal="{{ path('app_inventory_item_quick_form', {id: item.id, field: 'quantity'}) }}" title="Ajuster la quantite">
+                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" data-remote-modal="{{ path('app_inventory_item_quick_form', {id: item.id, field: 'quantity'}) }}" title="Ajuster la quantité">
                                     <span class="fw-semibold">{{ item.availableQuantity }}</span>
                                     <span class="text-secondary">/ {{ item.quantity }} {{ item.unit }}</span>
                                     <i class="bi bi-pencil-square ms-1"></i>
@@ -97,7 +97,7 @@
                     <tr>
                         <td colspan="6" class="text-center text-secondary py-5">
                             <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
-                            Aucun materiel trouve.
+                            Aucun matériel trouvé.
                         </td>
                     </tr>
                 {% endfor %}
@@ -108,7 +108,7 @@
         <div class="card-footer bg-white d-flex justify-content-between align-items-center">
             <span class="small text-secondary">Page {{ result.page }} / {{ result.pages }}</span>
             <div class="btn-group btn-group-sm">
-                <a class="btn btn-outline-secondary {{ result.page <= 1 ? 'disabled' : '' }}" href="{{ path('app_inventory_item_index', filters|merge({page: result.page - 1})) }}" data-ajax-region-page="inventory-items" data-page="{{ result.page - 1 }}">Precedent</a>
+                <a class="btn btn-outline-secondary {{ result.page <= 1 ? 'disabled' : '' }}" href="{{ path('app_inventory_item_index', filters|merge({page: result.page - 1})) }}" data-ajax-region-page="inventory-items" data-page="{{ result.page - 1 }}">Précédent</a>
                 <a class="btn btn-outline-secondary {{ result.page >= result.pages ? 'disabled' : '' }}" href="{{ path('app_inventory_item_index', filters|merge({page: result.page + 1})) }}" data-ajax-region-page="inventory-items" data-page="{{ result.page + 1 }}">Suivant</a>
             </div>
         </div>

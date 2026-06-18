@@ -166,7 +166,7 @@ final class DocumentController extends AbstractController
         $this->assertCsrf((string) ($payload['token'] ?? ''), 'delete_document_'.$document->getId());
         $movedToTrash = $this->documentService->delete($document, $this->currentUser());
         if ($movedToTrash) {
-            return $this->jsonResponder->success('Le document a ete deplace dans la corbeille.', ['reload' => true]);
+            return $this->jsonResponder->success('Le document a été déplacé dans la corbeille.', ['reload' => true]);
         }
 
         return $this->jsonResponder->success('Le document a été supprimé.', ['reload' => true]);

@@ -109,7 +109,7 @@ final readonly class UserManagementService
     {
         if (!$this->access->isSuperAdmin($actor)) {
             if (!$creating && $this->isSameUser($user, $actor) && $role !== null && $role !== '' && $role !== $this->primaryRole($user)) {
-                throw new \DomainException('Vous ne pouvez pas modifier votre propre role.');
+                throw new \DomainException('Vous ne pouvez pas modifier votre propre rôle.');
             }
 
             if ($creating) {
@@ -124,7 +124,7 @@ final readonly class UserManagementService
         }
 
         if (!$creating && $this->isSameUser($user, $actor) && $role !== $this->primaryRole($user)) {
-            throw new \DomainException('Vous devez conserver votre role actuel.');
+            throw new \DomainException('Vous devez conserver votre rôle actuel.');
         }
 
         $user->setRoles([$role]);

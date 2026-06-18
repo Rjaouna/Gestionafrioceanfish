@@ -25,9 +25,9 @@ class InventoryCampaign
     public const STATUSES = [
         'Brouillon' => 'draft',
         'En cours' => 'running',
-        'A valider' => 'review',
-        'Validee' => 'validated',
-        'Archivee' => 'archived',
+        'À valider' => 'review',
+        'Validée' => 'validated',
+        'Archivée' => 'archived',
     ];
 
     #[ORM\Id]

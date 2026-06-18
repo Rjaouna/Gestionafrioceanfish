@@ -154,7 +154,7 @@ final class PasswordEntryController extends AbstractController
         $this->assertCsrfValue((string) ($payload['token'] ?? ''), 'delete_password_'.$entry->getId());
         $movedToTrash = $this->passwordService->delete($entry, $this->currentUser());
         if ($movedToTrash) {
-            return $this->jsonResponder->success('Le mot de passe a ete deplace dans la corbeille.', ['reload' => true]);
+            return $this->jsonResponder->success('Le mot de passe a été déplacé dans la corbeille.', ['reload' => true]);
         }
 
         return $this->jsonResponder->success('Le mot de passe a été supprimé.', ['reload' => true]);

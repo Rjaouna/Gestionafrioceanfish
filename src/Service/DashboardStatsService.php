@@ -236,7 +236,7 @@ final readonly class DashboardStatsService
                 'icon' => 'bi-box-seam',
                 'tone' => $inventory['pending_requests'] > 0 ? 'warning' : 'primary',
                 'route' => 'app_inventory_dashboard',
-                'hint' => sprintf('%d demande%s a valider, %d a surveiller', $inventory['pending_requests'], $inventory['pending_requests'] > 1 ? 's' : '', $inventory['unavailable_items']),
+                'hint' => sprintf('%d demande%s à valider, %d à surveiller', $inventory['pending_requests'], $inventory['pending_requests'] > 1 ? 's' : '', $inventory['unavailable_items']),
             ];
         }
 
@@ -320,7 +320,7 @@ final readonly class DashboardStatsService
             'agenda' => $maintenance['open_interventions'],
             'sections' => $sections,
             'module_tiles' => [
-                ['label' => 'Demandes inventaire', 'value' => $inventory['pending_requests'], 'icon' => 'bi-clipboard-check', 'tone' => 'info'],
+                ['label' => 'Demandes d’inventaire', 'value' => $inventory['pending_requests'], 'icon' => 'bi-clipboard-check', 'tone' => 'info'],
                 ['label' => 'RDV aujourd’hui', 'value' => $agenda['today'], 'icon' => 'bi-calendar2-check', 'tone' => 'primary'],
                 ['label' => 'Intervenants', 'value' => $maintenance['intervenants'], 'icon' => 'bi-person-gear', 'tone' => 'warning'],
                 ['label' => 'Contacts actifs', 'value' => $contacts['active'], 'icon' => 'bi-person-lines-fill', 'tone' => 'success'],
@@ -375,9 +375,9 @@ final readonly class DashboardStatsService
 
         if ($hasModule('inventory')) {
             $items[] = [
-                'label' => 'Inventaire a valider',
+                'label' => 'Inventaire à valider',
                 'value' => $inventory['pending_requests'],
-                'hint' => sprintf('%d transport%s, %d inventaire%s, %d materiel%s actif%s', $inventory['pending_transfers'], $inventory['pending_transfers'] > 1 ? 's' : '', $inventory['pending_inventories'], $inventory['pending_inventories'] > 1 ? 's' : '', $inventory['active_items'], $inventory['active_items'] > 1 ? 's' : '', $inventory['active_items'] > 1 ? 's' : ''),
+                'hint' => sprintf('%d transport%s, %d inventaire%s, %d matériel%s actif%s', $inventory['pending_transfers'], $inventory['pending_transfers'] > 1 ? 's' : '', $inventory['pending_inventories'], $inventory['pending_inventories'] > 1 ? 's' : '', $inventory['active_items'], $inventory['active_items'] > 1 ? 's' : '', $inventory['active_items'] > 1 ? 's' : ''),
                 'icon' => 'bi-box-seam',
                 'tone' => $inventory['pending_requests'] > 0 ? 'warning' : 'primary',
                 'route' => 'app_inventory_request_index',
@@ -419,7 +419,7 @@ final readonly class DashboardStatsService
             ['label' => 'RDV 7 jours', 'value' => $agenda['next_7_days'], 'icon' => 'bi-calendar-week', 'tone' => 'primary'],
             ['label' => 'Interventions ouvertes', 'value' => $maintenance['planned_interventions'] + $maintenance['running_interventions'], 'icon' => 'bi-activity', 'tone' => 'success'],
             ['label' => 'Dépenses période', 'value' => number_format($expenses['period_total'], 0, ',', ' ').' dh', 'icon' => 'bi-receipt', 'tone' => 'warning'],
-            ['label' => 'Demandes inventaire', 'value' => $inventory['pending_requests'], 'icon' => 'bi-box-seam', 'tone' => $inventory['pending_requests'] > 0 ? 'warning' : 'primary'],
+            ['label' => 'Demandes d’inventaire', 'value' => $inventory['pending_requests'], 'icon' => 'bi-box-seam', 'tone' => $inventory['pending_requests'] > 0 ? 'warning' : 'primary'],
         ];
     }
 
@@ -462,7 +462,7 @@ final readonly class DashboardStatsService
             $cards[] = [
                 'label' => 'Inventaire',
                 'value' => $inventory['pending_requests'] + $inventory['unavailable_items'],
-                'caption' => sprintf('%d demandes a valider, %d materiels a surveiller', $inventory['pending_requests'], $inventory['unavailable_items']),
+                'caption' => sprintf('%d demandes à valider, %d matériels à surveiller', $inventory['pending_requests'], $inventory['unavailable_items']),
                 'tone' => ($inventory['pending_requests'] + $inventory['unavailable_items']) > 0 ? 'warning' : 'success',
                 'icon' => 'bi-box-seam',
             ];
@@ -1351,7 +1351,7 @@ final readonly class DashboardStatsService
 
         if ($inventory['pending_requests'] > 0) {
             $alerts[] = [
-                'title' => 'Inventaire a valider',
+                'title' => 'Inventaire à valider',
                 'text' => sprintf('%d demande%s en attente : %d transport%s, %d inventaire%s.', $inventory['pending_requests'], $inventory['pending_requests'] > 1 ? 's' : '', $inventory['pending_transfers'], $inventory['pending_transfers'] > 1 ? 's' : '', $inventory['pending_inventories'], $inventory['pending_inventories'] > 1 ? 's' : ''),
                 'icon' => 'bi-box-seam',
                 'tone' => 'info',
@@ -1360,8 +1360,8 @@ final readonly class DashboardStatsService
 
         if ($inventory['unavailable_items'] > 0) {
             $alerts[] = [
-                'title' => 'Materiel a surveiller',
-                'text' => sprintf('%d materiel%s en maintenance, perdu%s ou sorti%s du parc.', $inventory['unavailable_items'], $inventory['unavailable_items'] > 1 ? 's' : '', $inventory['unavailable_items'] > 1 ? 's' : '', $inventory['unavailable_items'] > 1 ? 's' : ''),
+                'title' => 'Matériel à surveiller',
+                'text' => sprintf('%d matériel%s en maintenance, perdu%s ou sorti%s du parc.', $inventory['unavailable_items'], $inventory['unavailable_items'] > 1 ? 's' : '', $inventory['unavailable_items'] > 1 ? 's' : '', $inventory['unavailable_items'] > 1 ? 's' : ''),
                 'icon' => 'bi-exclamation-triangle',
                 'tone' => 'warning',
             ];
@@ -1581,7 +1581,7 @@ final readonly class DashboardStatsService
         $inventory = $this->inventoryOverview($user);
         $siteItems = array_map(static fn (array $item): array => [
             'title' => $item['label'],
-            'text' => sprintf('%d materiel%s', $item['value'], $item['value'] > 1 ? 's' : ''),
+            'text' => sprintf('%d matériel%s', $item['value'], $item['value'] > 1 ? 's' : ''),
         ], array_slice($inventory['site_chart'], 0, 3));
 
         return [
@@ -1590,22 +1590,22 @@ final readonly class DashboardStatsService
             'icon' => 'bi-box-seam',
             'route' => $module->getRouteName(),
             'tone' => $inventory['pending_requests'] > 0 ? 'warning' : 'primary',
-            'headline' => sprintf('%d materiel%s actif%s', $inventory['active_items'], $inventory['active_items'] > 1 ? 's' : '', $inventory['active_items'] > 1 ? 's' : ''),
+            'headline' => sprintf('%d matériel%s actif%s', $inventory['active_items'], $inventory['active_items'] > 1 ? 's' : '', $inventory['active_items'] > 1 ? 's' : ''),
             'metrics' => [
-                ['label' => 'Materiels actifs', 'value' => $inventory['active_items'], 'icon' => 'bi-box-seam'],
-                ['label' => 'Affectes', 'value' => $inventory['assigned_items'], 'icon' => 'bi-person-check'],
-                ['label' => 'A surveiller', 'value' => $inventory['unavailable_items'], 'icon' => 'bi-exclamation-triangle'],
+                ['label' => 'Matériels actifs', 'value' => $inventory['active_items'], 'icon' => 'bi-box-seam'],
+                ['label' => 'Affectés', 'value' => $inventory['assigned_items'], 'icon' => 'bi-person-check'],
+                ['label' => 'À surveiller', 'value' => $inventory['unavailable_items'], 'icon' => 'bi-exclamation-triangle'],
                 ['label' => 'Demandes', 'value' => $inventory['pending_requests'], 'icon' => 'bi-clipboard-check'],
             ],
             'alerts' => $inventory['pending_requests'] > 0 ? [[
                 'title' => 'Validation requise',
-                'text' => sprintf('%d demande%s inventaire/transport a traiter.', $inventory['pending_requests'], $inventory['pending_requests'] > 1 ? 's' : ''),
+                'text' => sprintf('%d demande%s inventaire/transport à traiter.', $inventory['pending_requests'], $inventory['pending_requests'] > 1 ? 's' : ''),
                 'level' => 'warning',
             ]] : [],
             'items_title' => 'Sites principaux',
             'items' => $siteItems,
             'progress' => $inventory['active_items'] > 0 ? min(100, (int) round(($inventory['unavailable_items'] / max(1, $inventory['active_items'])) * 100)) : 0,
-            'progress_label' => 'Materiel a surveiller',
+            'progress_label' => 'Matériel à surveiller',
             'chart' => $inventory['status_chart'],
             'chart_type' => 'bars',
         ];

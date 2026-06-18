@@ -84,7 +84,7 @@ class InventoryItemRepository extends ServiceEntityRepository
     {
         $rows = $this->visibleQuery($actor, $viewAll, ['active' => 'active'])
             ->select('COALESCE(c.name, :empty) AS label, COUNT(DISTINCT i.id) AS value')
-            ->setParameter('empty', 'Sans categorie')
+            ->setParameter('empty', 'Sans catégorie')
             ->groupBy('label')
             ->orderBy('value', 'DESC')
             ->setMaxResults(8)

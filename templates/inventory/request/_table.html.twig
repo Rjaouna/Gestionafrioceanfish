@@ -4,10 +4,10 @@
             <thead class="table-light">
                 <tr>
                     <th>Demande</th>
-                    <th>Materiel</th>
-                    <th class="text-end">Quantite</th>
-                    <th>Depart</th>
-                    <th>Destination / reponse</th>
+                    <th>Matériel</th>
+                    <th class="text-end">Quantité</th>
+                    <th>Départ</th>
+                    <th>Destination / réponse</th>
                     <th>Demandeur</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -40,7 +40,7 @@
                                 <span class="text-secondary">Actuelle</span>
                                 <div class="fw-semibold">{{ request.item.quantity }} {{ request.item.unit }}</div>
                                 {% if request.countedQuantity is not null %}
-                                    <div class="small text-success">Constatee : {{ request.countedQuantity }}</div>
+                                    <div class="small text-success">Constatée : {{ request.countedQuantity }}</div>
                                 {% endif %}
                             {% else %}
                                 <span class="fw-semibold">{{ request.requestedQuantity }}</span>
@@ -48,26 +48,26 @@
                             {% endif %}
                         </td>
                         <td>
-                            <div>{{ request.fromLocation ? request.fromLocation.displayName : request.fromSite.name|default('Non renseigne') }}</div>
-                            <div class="small text-secondary">Etat actuel : {{ request.item.location ? request.item.location.displayName : request.item.site.name|default('Non renseigne') }}</div>
+                            <div>{{ request.fromLocation ? request.fromLocation.displayName : request.fromSite.name|default('Non renseigné') }}</div>
+                            <div class="small text-secondary">État actuel : {{ request.item.location ? request.item.location.displayName : request.item.site.name|default('Non renseigné') }}</div>
                         </td>
                         <td>
                             {% if request.transfer %}
-                                <div>{{ request.toLocation ? request.toLocation.displayName : request.toSite.name|default('Non renseigne') }}</div>
+                                <div>{{ request.toLocation ? request.toLocation.displayName : request.toSite.name|default('Non renseigné') }}</div>
                                 {% if request.requestedLogisticsStatus %}
-                                    <div class="small text-secondary">Suivi apres validation : {{ request.requestedLogisticsStatusLabel }}</div>
+                                    <div class="small text-secondary">Suivi après validation : {{ request.requestedLogisticsStatusLabel }}</div>
                                 {% endif %}
                             {% else %}
-                                <div>Quantite a confirmer sur place</div>
-                                <div class="small text-secondary">Validation possible avec la quantite actuelle ou une nouvelle quantite.</div>
+                                <div>Quantité à confirmer sur place</div>
+                                <div class="small text-secondary">Validation possible avec la quantité actuelle ou une nouvelle quantité.</div>
                             {% endif %}
                         </td>
                         <td>
-                            <div>{{ request.createdBy ? request.createdBy.displayName : 'Systeme' }}</div>
+                            <div>{{ request.createdBy ? request.createdBy.displayName : 'Système' }}</div>
                             {% if request.validatedBy %}
-                                <div class="small text-success">Validee par {{ request.validatedBy.displayName }}</div>
+                                <div class="small text-success">Validée par {{ request.validatedBy.displayName }}</div>
                             {% elseif request.canceledBy %}
-                                <div class="small text-secondary">Annulee par {{ request.canceledBy.displayName }}</div>
+                                <div class="small text-secondary">Annulée par {{ request.canceledBy.displayName }}</div>
                             {% endif %}
                         </td>
                         <td class="text-end">
@@ -88,7 +88,7 @@
                                         data-confirm-url="{{ path('app_inventory_request_cancel', {id: request.id}) }}"
                                         data-confirm-method="POST"
                                         data-token="{{ csrf_token('cancel_inventory_request_' ~ request.id) }}"
-                                        data-confirm-message="Annuler cette demande sans modifier le materiel ?"
+                                        data-confirm-message="Annuler cette demande sans modifier le matériel ?"
                                         title="Annuler"
                                         aria-label="Annuler"
                                     >
@@ -96,7 +96,7 @@
                                     </button>
                                 </div>
                             {% else %}
-                                <span class="text-secondary small">Traitee</span>
+                                <span class="text-secondary small">Traitée</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -104,7 +104,7 @@
                     <tr>
                         <td colspan="7" class="text-center text-secondary py-5">
                             <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                            Aucune demande a afficher.
+                            Aucune demande à afficher.
                         </td>
                     </tr>
                 {% endfor %}
