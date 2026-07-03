@@ -59,7 +59,7 @@ final readonly class InterimWorkerService
         }
 
         return [
-            'positions' => $this->repository->distinctValues('position'),
+            'positions' => $this->positionChoices(),
             'agencies' => $this->repository->distinctValues('tempAgency'),
             'workerTypes' => InterimWorker::TYPE_LABELS,
             'familySituations' => InterimWorker::FAMILY_LABELS,
@@ -74,6 +74,7 @@ final readonly class InterimWorkerService
             throw new AccessDeniedException();
         }
 
+        $worker->setHireDate(new \DateTimeImmutable('today'));
         $this->prepareWorker($worker);
         $worker->setCreatedBy($actor);
         if ($photo instanceof UploadedFile) {
@@ -303,6 +304,10 @@ final readonly class InterimWorkerService
             $worker->setRegistrationNumber($this->nextRegistrationNumber());
         }
 
+        if ($worker->getHireDate() === null) {
+            $worker->setHireDate(new \DateTimeImmutable('today'));
+        }
+
         if ($worker->getFamilySituation() === InterimWorker::FAMILY_SINGLE) {
             $worker->setChildrenCount(0);
         }
@@ -322,6 +327,19 @@ final readonly class InterimWorkerService
         } while ($this->repository->findOneBy(['registrationNumber' => $registrationNumber]) instanceof InterimWorker);
 
         return $registrationNumber;
+    }
+
+    /** @return list<string> */
+    public function positionChoices(): array
+    {
+        $positions = array_merge(InterimWorker::POSITION_CHOICES, $this->repository->distinctValues('position'));
+        $positions = array_values(array_unique(array_filter(array_map(
+            static fn (mixed $position): string => trim((string) $position),
+            $positions,
+        ))));
+        natcasesort($positions);
+
+        return array_values($positions);
     }
 
     private function recordAction(InterimWorker $worker, string $type, ?string $previousStatus, ?string $newStatus, ?string $reason, \DateTimeImmutable $actionAt, User $actor): void

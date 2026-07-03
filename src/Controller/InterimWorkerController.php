@@ -335,12 +335,19 @@ final class InterimWorkerController extends AbstractController
     /** @param array<string, int|string|null> $routeParameters */
     private function buildForm(InterimWorker $worker, string $route, array $routeParameters = []): FormInterface
     {
+        $isPersisted = $worker->getId() !== null;
+
         return $this->createForm(InterimWorkerType::class, $worker, [
             'action' => $this->generateUrl($route, $routeParameters),
             'max_photo_size' => $this->storage->photoMaxSize(),
             'max_document_size' => $this->storage->documentMaxSize(),
             'photo_mime_types' => $this->storage->photoMimeTypes(),
             'document_mime_types' => $this->storage->documentMimeTypes(),
+            'show_registration_number' => $isPersisted,
+            'show_hire_date' => false,
+            'show_mission_end_date' => false,
+            'show_status' => $isPersisted,
+            'position_choices' => $this->workerService->positionChoices(),
         ]);
     }
 

@@ -18,6 +18,12 @@ final class InterimWorkerType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $positionChoices = array_values(array_unique(array_filter(array_map(
+            static fn (mixed $position): string => trim((string) $position),
+            array_merge(InterimWorker::POSITION_CHOICES, $options['position_choices']),
+        ))));
+        natcasesort($positionChoices);
+
         $photoConstraints = [
             new Assert\File(
                 maxSize: $options['max_photo_size'],
@@ -63,9 +69,10 @@ final class InterimWorkerType extends AbstractType
                 'required' => true,
                 'attr' => ['rows' => 2, 'placeholder' => 'Adresse complete', 'maxlength' => 255],
             ])
-            ->add('position', TextType::class, [
+            ->add('position', ChoiceType::class, [
                 'label' => 'Poste',
-                'attr' => ['list' => 'interim-position-suggestions', 'placeholder' => 'Ex. Operateur production', 'maxlength' => 100],
+                'placeholder' => 'Choisir un poste',
+                'choices' => array_combine($positionChoices, $positionChoices),
             ])
             ->add('workerType', ChoiceType::class, [
                 'label' => 'Profil',
@@ -182,6 +189,22 @@ final class InterimWorkerType extends AbstractType
                 ],
                 'help' => 'Formats acceptes : JPG, JPEG, PNG ou PDF.',
             ]);
+
+        if (!$options['show_registration_number']) {
+            $builder->remove('registrationNumber');
+        }
+
+        if (!$options['show_hire_date']) {
+            $builder->remove('hireDate');
+        }
+
+        if (!$options['show_mission_end_date']) {
+            $builder->remove('missionEndDate');
+        }
+
+        if (!$options['show_status']) {
+            $builder->remove('status');
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -192,10 +215,20 @@ final class InterimWorkerType extends AbstractType
             'max_document_size' => '10M',
             'photo_mime_types' => [],
             'document_mime_types' => [],
+            'show_registration_number' => true,
+            'show_hire_date' => false,
+            'show_mission_end_date' => false,
+            'show_status' => true,
+            'position_choices' => [],
         ]);
         $resolver->setAllowedTypes('max_photo_size', ['int', 'string']);
         $resolver->setAllowedTypes('max_document_size', ['int', 'string']);
         $resolver->setAllowedTypes('photo_mime_types', 'array');
         $resolver->setAllowedTypes('document_mime_types', 'array');
+        $resolver->setAllowedTypes('show_registration_number', 'bool');
+        $resolver->setAllowedTypes('show_hire_date', 'bool');
+        $resolver->setAllowedTypes('show_mission_end_date', 'bool');
+        $resolver->setAllowedTypes('show_status', 'bool');
+        $resolver->setAllowedTypes('position_choices', 'array');
     }
 }

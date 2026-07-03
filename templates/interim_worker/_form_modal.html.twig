@@ -33,7 +33,9 @@
                     <div class="col-lg-4">{{ form_row(form.firstName) }}</div>
                     <div class="col-lg-4">{{ form_row(form.phone) }}</div>
                     <div class="col-lg-4">{{ form_row(form.cin) }}</div>
-                    <div class="col-lg-4">{{ form_row(form.registrationNumber) }}</div>
+                    {% if form.registrationNumber is defined %}
+                        <div class="col-lg-4">{{ form_row(form.registrationNumber) }}</div>
+                    {% endif %}
                     <div class="col-12">{{ form_row(form.address) }}</div>
                     <div class="col-lg-6">
                         {{ form_row(form.birthDate) }}
@@ -54,9 +56,15 @@
                     <div class="col-lg-4">{{ form_row(form.tempAgency) }}</div>
                     <div class="col-lg-6">{{ form_row(form.familySituation) }}</div>
                     <div class="col-lg-6" data-interim-children-row>{{ form_row(form.childrenCount) }}</div>
-                    <div class="col-lg-4">{{ form_row(form.hireDate) }}</div>
-                    <div class="col-lg-4">{{ form_row(form.missionEndDate) }}</div>
-                    <div class="col-lg-4">{{ form_row(form.status) }}</div>
+                    {% if form.hireDate is defined %}
+                        <div class="col-lg-4">{{ form_row(form.hireDate) }}</div>
+                    {% endif %}
+                    {% if form.missionEndDate is defined %}
+                        <div class="col-lg-4">{{ form_row(form.missionEndDate) }}</div>
+                    {% endif %}
+                    {% if form.status is defined %}
+                        <div class="col-lg-4">{{ form_row(form.status) }}</div>
+                    {% endif %}
                 </div>
             </section>
 
@@ -110,11 +118,6 @@
             </section>
         </div>
 
-        <datalist id="interim-position-suggestions">
-            {% for position in filter_choices.positions|default([]) %}
-                <option value="{{ position }}">
-            {% endfor %}
-        </datalist>
         <datalist id="interim-agency-suggestions">
             {% for agency in filter_choices.agencies|default([]) %}
                 <option value="{{ agency }}">

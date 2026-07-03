@@ -52,6 +52,31 @@ class InterimWorker
         self::TYPE_STUDENT => 'text-bg-primary',
     ];
 
+    public const POSITION_CHOICES = [
+        'Production',
+        'Qualité',
+        'Réception matière première',
+        'Tri et calibrage',
+        'Éviscération',
+        'Filetage',
+        'Parage',
+        'Lavage',
+        'Conditionnement',
+        'Emballage',
+        'Étiquetage',
+        'Contrôle qualité',
+        'Laboratoire qualité',
+        'Surgélation',
+        'Stock froid',
+        'Expédition',
+        'Ménage',
+        'Nettoyage industriel',
+        'Maintenance',
+        'Magasin',
+        'Chef d equipe production',
+        'Contrôle poids',
+    ];
+
     public const STATUS_ACTIVE = 'actif';
     public const STATUS_INACTIVE = 'inactif';
     public const STATUS_PENDING = 'en_attente';
