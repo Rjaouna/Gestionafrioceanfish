@@ -1,0 +1,60 @@
+<form id="interimWorkerFilters" class="card border-0 shadow-sm mb-4" data-ajax-filter-region="interimWorkerGrid">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-lg-4">
+                <label class="form-label" for="interimSearch">Recherche rapide</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input
+                        id="interimSearch"
+                        class="form-control"
+                        type="search"
+                        name="q"
+                        value="{{ filters.q }}"
+                        placeholder="Nom, telephone, CIN, matricule, poste"
+                    >
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="interimPositionFilter">Poste</label>
+                <select id="interimPositionFilter" name="position" class="form-select">
+                    <option value="">Tous</option>
+                    {% for position in filter_choices.positions %}
+                        <option value="{{ position }}" {{ filters.position == position ? 'selected' : '' }}>{{ position }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="interimWorkerTypeFilter">Profil</label>
+                <select id="interimWorkerTypeFilter" name="workerType" class="form-select">
+                    <option value="">Tous</option>
+                    {% for value, label in filter_choices.workerTypes %}
+                        <option value="{{ value }}" {{ filters.workerType == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="interimFamilyFilter">Situation</label>
+                <select id="interimFamilyFilter" name="familySituation" class="form-select">
+                    <option value="">Toutes</option>
+                    {% for value, label in filter_choices.familySituations %}
+                        <option value="{{ value }}" {{ filters.familySituation == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="interimStatusFilter">Statut</label>
+                <select id="interimStatusFilter" name="status" class="form-select">
+                    <option value="">Tous</option>
+                    {% for value, label in filter_choices.statuses %}
+                        <option value="{{ value }}" {{ filters.status == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="interimHireDateFilter">Embauche</label>
+                <input id="interimHireDateFilter" class="form-control" type="date" name="hireDate" value="{{ filters.hireDate }}">
+            </div>
+        </div>
+    </div>
+</form>

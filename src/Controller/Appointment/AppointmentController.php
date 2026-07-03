@@ -112,10 +112,8 @@ final class AppointmentController extends AbstractController
                 throw new \DomainException('Le titre du rendez-vous est obligatoire.');
             }
 
-            $startAt = new \DateTimeImmutable((string) ($payload['startAt'] ?? ''));
-            $endAt = !empty($payload['endAt'])
-                ? new \DateTimeImmutable((string) $payload['endAt'])
-                : $startAt->modify('+'.max(15, (int) ($payload['duration'] ?? 60)).' minutes');
+            $startAt = $this->quickStartAt($payload);
+            $endAt = $this->quickEndAt($payload, $startAt);
 
             $appointment = (new Appointment())
                 ->setTitle($title)
@@ -131,8 +129,8 @@ final class AppointmentController extends AbstractController
             $this->appointmentService->create($appointment, $this->currentUser(), $users);
         } catch (\DomainException $exception) {
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
-        } catch (\Exception) {
-            return $this->jsonResponder->error('Le créneau sélectionné est invalide.', [], 422);
+        } catch (\Throwable) {
+            return $this->jsonResponder->error('Impossible de créer le rendez-vous pour le moment.', [], 500);
         }
 
         return $this->jsonResponder->success('Le rendez-vous a été créé.', [
@@ -331,6 +329,63 @@ final class AppointmentController extends AbstractController
     {
         if (!$this->isCsrfTokenValid('appointment_calendar', $token)) {
             throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
+        }
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function quickStartAt(array $payload): \DateTimeImmutable
+    {
+        $startAt = $this->quickDateTime($payload['startAt'] ?? null);
+        if ($startAt instanceof \DateTimeImmutable) {
+            return $startAt;
+        }
+
+        $date = trim((string) ($payload['appointmentDate'] ?? ''));
+        $time = trim((string) ($payload['startTime'] ?? ''));
+        $startAt = $this->quickDateTime($date !== '' && $time !== '' ? $date.'T'.$time.':00' : null);
+        if ($startAt instanceof \DateTimeImmutable) {
+            return $startAt;
+        }
+
+        throw new \DomainException('Choisissez une date et une heure valides.');
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function quickEndAt(array $payload, \DateTimeImmutable $startAt): \DateTimeImmutable
+    {
+        $endAt = $this->quickDateTime($payload['endAt'] ?? null);
+        if ($endAt instanceof \DateTimeImmutable) {
+            return $endAt;
+        }
+
+        $duration = max(15, (int) ($payload['duration'] ?? 60));
+
+        $endAt = $startAt->modify(sprintf('+%d minutes', $duration));
+        if (!$endAt instanceof \DateTimeImmutable) {
+            throw new \DomainException('La durée du rendez-vous est invalide.');
+        }
+
+        return $endAt;
+    }
+
+    private function quickDateTime(mixed $value): ?\DateTimeImmutable
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        foreach ([\DateTimeInterface::ATOM, 'Y-m-d\TH:i:sP', 'Y-m-d\TH:i:s', 'Y-m-d\TH:i'] as $format) {
+            $date = \DateTimeImmutable::createFromFormat($format, $value);
+            if ($date instanceof \DateTimeImmutable) {
+                return $date;
+            }
+        }
+
+        try {
+            return new \DateTimeImmutable($value);
+        } catch (\Exception) {
+            return null;
         }
     }
 

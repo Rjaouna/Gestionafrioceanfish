@@ -6,6 +6,7 @@ use App\Entity\Appointment;
 use App\Entity\Contact;
 use App\Entity\Document;
 use App\Entity\Expense;
+use App\Entity\InterimWorker;
 use App\Entity\InventoryItem;
 use App\Entity\Intervenant;
 use App\Entity\Intervention;
@@ -14,6 +15,7 @@ use App\Entity\PasswordEntry;
 use App\Entity\User;
 use App\Service\DocumentStorageService;
 use App\Service\Expense\ExpenseDocumentService;
+use App\Service\InterimWorkerStorageService;
 use App\Service\Inventory\InventoryFileService;
 use App\Service\Maintenance\MaintenanceShareService;
 use App\Service\SecurityAccessService;
@@ -31,6 +33,7 @@ final readonly class TrashService
         'maintenance-contract' => ['class' => MaintenanceContract::class, 'label' => 'Contrat de maintenance', 'module' => 'Maintenance', 'icon' => 'bi-clipboard-check'],
         'intervention' => ['class' => Intervention::class, 'label' => 'Intervention', 'module' => 'Maintenance', 'icon' => 'bi-tools'],
         'intervenant' => ['class' => Intervenant::class, 'label' => 'Intervenant', 'module' => 'Maintenance', 'icon' => 'bi-person-gear'],
+        'interim-worker' => ['class' => InterimWorker::class, 'label' => 'Intérimaire', 'module' => 'Intérimaires', 'icon' => 'bi-person-vcard'],
         'appointment' => ['class' => Appointment::class, 'label' => 'Rendez-vous', 'module' => 'Agenda - RDV', 'icon' => 'bi-calendar-check'],
         'inventory-item' => ['class' => InventoryItem::class, 'label' => 'Matériel', 'module' => 'Inventaire', 'icon' => 'bi-box-seam'],
     ];
@@ -42,6 +45,7 @@ final readonly class TrashService
         private ExpenseDocumentService $expenseDocumentService,
         private MaintenanceShareService $maintenanceShareService,
         private InventoryFileService $inventoryFileService,
+        private InterimWorkerStorageService $interimWorkerStorage,
     ) {
     }
 
@@ -103,6 +107,10 @@ final readonly class TrashService
 
         if ($entity instanceof InventoryItem) {
             $this->inventoryFileService->deleteFilesForItem($entity);
+        }
+
+        if ($entity instanceof InterimWorker) {
+            $this->interimWorkerStorage->deleteFilesForWorker($entity);
         }
 
         $this->entityManager->remove($entity);
@@ -234,6 +242,7 @@ final readonly class TrashService
             $entity instanceof MaintenanceContract => (string) ($entity->getReference().' - '.$entity->getCustomerName()),
             $entity instanceof Intervention => (string) ($entity->getReference().' - '.$entity->getTitle()),
             $entity instanceof Intervenant => (string) $entity->getDisplayName(),
+            $entity instanceof InterimWorker => (string) $entity->getFullName(),
             $entity instanceof Appointment => (string) ($entity->getReference().' - '.$entity->getTitle()),
             $entity instanceof InventoryItem => (string) ($entity->getReference().' - '.$entity->getName()),
             default => 'Élément supprimé',

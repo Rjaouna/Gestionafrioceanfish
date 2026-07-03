@@ -31,6 +31,7 @@ final readonly class InstallationService
             ['Carnet de contacts', 'contacts', 'bi-person-lines-fill', 'app_contact_index', 'Fournisseurs, clients, dépanneurs et contacts partagés.'],
             ['Maintenance', 'maintenance', 'bi-tools', 'app_maintenance_intervenant_index', 'Intervenants, contrats et interventions de maintenance.'],
             ['Dépenses', 'expenses', 'bi-cash-coin', 'app_expense_index', 'Gestion financière des dépenses, justificatifs et validations.'],
+            ['Intérimaires', 'interimaires', 'bi-person-vcard', 'app_interim_worker_index', 'Fiches de poste, suivi RH et documents des intérimaires.'],
             ['Agenda - RDV', 'agenda', 'bi-calendar-check', 'app_appointment_calendar', 'Calendrier professionnel, rendez-vous, participants et rappels.'],
             ['Statistiques', 'statistics', 'bi-graph-up-arrow', 'app_statistics_index', 'Graphiques et indicateurs de pilotage.'],
             ['Gestion des utilisateurs', 'users', 'bi-people', 'app_user_index', 'Comptes, rôles et accès modules.'],
@@ -38,6 +39,11 @@ final readonly class InstallationService
         ];
 
         foreach ($definitions as [$name, $slug, $icon, $route, $description]) {
+            if ($slug === 'interimaires') {
+                $name = 'Fiches intérimaires';
+                $description = 'Fiches de poste, suivi RH, statuts et documents des intérimaires.';
+            }
+
             $module = $this->moduleRepository->findOneBy(['slug' => $slug]) ?? new AppModule();
             $module
                 ->setName($name)

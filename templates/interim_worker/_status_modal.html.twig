@@ -1,0 +1,26 @@
+{{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
+    <div class="modal-header border-0 pb-0">
+        <div>
+            <h2 class="modal-title h4">Changer le statut</h2>
+            <p class="text-secondary mb-0">{{ worker.fullName }} · Statut actuel : {{ worker.statusLabel }}</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-info">
+            Le changement sera date et ajoute a l'historique de la fiche.
+        </div>
+        <div class="row g-3">
+            <div class="col-md-7">{{ form_row(form.status) }}</div>
+            <div class="col-md-5">{{ form_row(form.actionDate) }}</div>
+            <div class="col-12">{{ form_row(form.reason) }}</div>
+        </div>
+        {{ form_rest(form) }}
+    </div>
+    <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-arrow-repeat me-2"></i>Mettre a jour
+        </button>
+    </div>
+{{ form_end(form) }}

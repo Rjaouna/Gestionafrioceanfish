@@ -1,0 +1,78 @@
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Produit</th>
+                    <th>Categorie</th>
+                    <th>Emplacement</th>
+                    <th class="text-end">Stock</th>
+                    <th class="text-end">Minimum</th>
+                    <th>Etat</th>
+                    <th>Suivi</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr class="{{ item.stockLevel == 'out' ? 'table-danger' : (item.stockLevel == 'low' ? 'table-warning' : '') }}">
+                        <td>
+                            <button class="btn btn-link p-0 text-start fw-semibold text-decoration-none" type="button" data-remote-modal="{{ path('app_inventory_consumable_stock_view', {id: item.id}) }}">
+                                {{ item.name }}
+                            </button>
+                            <div class="small text-secondary">{{ item.reference }}</div>
+                            {% if item.preferredSupplier or item.supplierPhone %}
+                                <div class="small text-secondary">
+                                    Fournisseur:
+                                    {% if item.preferredSupplier %}{{ item.preferredSupplier }}{% endif %}
+                                    {% if item.preferredSupplier and item.supplierPhone %} - {% endif %}
+                                    {% if item.supplierPhone %}{{ item.supplierPhone }}{% endif %}
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.categoryLabel }}</td>
+                        <td>{{ item.storageLocation ?: '-' }}</td>
+                        <td class="text-end fw-semibold">{{ item.quantityDisplay }} {{ item.unitLabel }}</td>
+                        <td class="text-end">{{ item.minimumQuantityDisplay }} {{ item.unitLabel }}</td>
+                        <td>
+                            <span class="badge {{ item.stockLevelBadgeClass }}">{{ item.stockLevelLabel }}</span>
+                            {% if not item.active %}<span class="badge text-bg-secondary">Archive</span>{% endif %}
+                        </td>
+                        <td class="small text-secondary">
+                            <div>Cree: {{ item.createdAt ? item.createdAt|date('d/m/Y H:i') : '-' }}</div>
+                            {% if item.updatedAt %}
+                                <div>Modifie: {{ item.updatedAt|date('d/m/Y H:i') }}</div>
+                            {% endif %}
+                            {% if item.lastInventoryAt %}
+                                <div>Inventaire: {{ item.lastInventoryAt|date('d/m/Y H:i') }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-success" title="Entree de stock" aria-label="Entree de stock" data-remote-modal="{{ path('app_inventory_consumable_stock_entry_form', {id: item.id}) }}">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning" title="Sortie de stock" aria-label="Sortie de stock" data-remote-modal="{{ path('app_inventory_consumable_stock_exit_form', {id: item.id}) }}">
+                                    <i class="bi bi-dash-lg"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" title="Inventaire" aria-label="Inventaire" data-remote-modal="{{ path('app_inventory_consumable_stock_inventory_form', {id: item.id}) }}">
+                                    <i class="bi bi-clipboard-check"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_inventory_consumable_stock_form', {id: item.id}) }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <button type="button" class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-remote-modal="{{ path('app_inventory_consumable_stock_delete_form', {id: item.id}) }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="8" class="text-center text-secondary py-5">Aucun produit de stock pour le moment.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

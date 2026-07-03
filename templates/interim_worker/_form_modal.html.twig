@@ -1,0 +1,131 @@
+{% set worker = worker|default(form.vars.data) %}
+{{ form_start(form, {attr: {'data-ajax-form': 'true', 'data-interim-worker-form': 'true', 'enctype': 'multipart/form-data'}}) }}
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">{{ title }}</h2>
+            <p class="text-secondary small mb-0">Fiche RH, photo et documents stockes dans un espace prive.</p>
+        </div>
+        {% if not hide_close|default(false) %}
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        {% endif %}
+    </div>
+    <div class="modal-body">
+        <div class="d-grid gap-4">
+            <section>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis">1</span>
+                    <h3 class="h6 mb-0">Identite</h3>
+                </div>
+                <div class="row g-3">
+                    <div class="col-lg-4">
+                        <div class="border rounded-3 p-2 mb-2 bg-light text-center" data-interim-photo-preview-box>
+                            {% if worker.id and worker.hasPhoto %}
+                                <img class="img-fluid rounded-2 d-block mx-auto" style="max-height: 180px;" src="{{ path('app_interim_worker_photo', {id: worker.id}) }}" alt="Photo {{ worker.fullName }}" data-interim-photo-preview>
+                                <div class="text-secondary small d-none" data-interim-photo-placeholder>PHOTO</div>
+                            {% else %}
+                                <div class="d-flex align-items-center justify-content-center border rounded-2 bg-white text-secondary mx-auto" style="height: 180px; max-width: 180px;" data-interim-photo-placeholder>PHOTO</div>
+                                <img class="img-fluid rounded-2 d-none mx-auto" style="max-height: 180px;" alt="Apercu photo" data-interim-photo-preview>
+                            {% endif %}
+                        </div>
+                        {{ form_row(form.photo) }}
+                    </div>
+                    <div class="col-lg-4">{{ form_row(form.lastName) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.firstName) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.phone) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.cin) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.registrationNumber) }}</div>
+                    <div class="col-12">{{ form_row(form.address) }}</div>
+                    <div class="col-lg-6">
+                        {{ form_row(form.birthDate) }}
+                        <div class="small text-secondary" data-interim-age-output></div>
+                    </div>
+                    <div class="col-lg-6">{{ form_row(form.birthPlace) }}</div>
+                </div>
+            </section>
+
+            <section>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis">2</span>
+                    <h3 class="h6 mb-0">Situation et mission</h3>
+                </div>
+                <div class="row g-3">
+                    <div class="col-lg-4">{{ form_row(form.position) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.workerType) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.tempAgency) }}</div>
+                    <div class="col-lg-6">{{ form_row(form.familySituation) }}</div>
+                    <div class="col-lg-6" data-interim-children-row>{{ form_row(form.childrenCount) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.hireDate) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.missionEndDate) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.status) }}</div>
+                </div>
+            </section>
+
+            <section>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis">3</span>
+                    <h3 class="h6 mb-0">Commentaires et documents</h3>
+                </div>
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        {{ form_row(form.managerObservations) }}
+                        <div class="small text-secondary text-end" data-interim-observations-counter>0 / 1000</div>
+                    </div>
+                    <div class="col-lg-6">{{ form_row(form.internalComment) }}</div>
+                    <div class="col-12">
+                        {% if worker.id and worker.documents|length > 0 %}
+                            <div class="list-group mb-3">
+                                {% for document in worker.documents %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center gap-3">
+                                        <div class="min-w-0">
+                                            <strong class="d-block text-truncate">{{ document.originalFileName }}</strong>
+                                            <small class="text-secondary">{{ document.fileSizeLabel }}</small>
+                                        </div>
+                                        <div class="btn-group btn-group-sm">
+                                            <a class="btn btn-outline-secondary" href="{{ path('app_interim_worker_document_download', {id: document.id}) }}">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+                                            <button class="btn btn-outline-danger" type="button" data-confirm-url="{{ path('app_interim_worker_document_delete', {id: document.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_interim_worker_document_' ~ document.id) }}" data-confirm-message="Supprimer ce document ?">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {{ form_row(form.documents) }}
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis">4</span>
+                    <h3 class="h6 mb-0">Signatures</h3>
+                </div>
+                <div class="row g-3">
+                    <div class="col-lg-4">{{ form_row(form.employeeSignature) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.managerSignature) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.signatureDate) }}</div>
+                </div>
+            </section>
+        </div>
+
+        <datalist id="interim-position-suggestions">
+            {% for position in filter_choices.positions|default([]) %}
+                <option value="{{ position }}">
+            {% endfor %}
+        </datalist>
+        <datalist id="interim-agency-suggestions">
+            {% for agency in filter_choices.agencies|default([]) %}
+                <option value="{{ agency }}">
+            {% endfor %}
+        </datalist>
+    </div>
+    <div class="modal-footer">
+        {{ form_rest(form) }}
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>{{ submit_label }}
+        </button>
+    </div>
+{{ form_end(form, {render_rest: false}) }}

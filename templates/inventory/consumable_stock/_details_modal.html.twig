@@ -1,0 +1,91 @@
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">{{ item.name }}</h2>
+        <p class="text-secondary small mb-0">{{ item.reference }} - {{ item.categoryLabel }}</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="text-secondary small">Stock courant</div>
+            <strong class="h4 mb-0 d-block">{{ item.quantityDisplay }} {{ item.unitLabel }}</strong>
+        </div>
+        <div class="col-md-4">
+            <div class="text-secondary small">Stock minimum</div>
+            <strong>{{ item.minimumQuantityDisplay }} {{ item.unitLabel }}</strong>
+        </div>
+        <div class="col-md-4">
+            <div class="text-secondary small">Etat</div>
+            <span class="badge {{ item.stockLevelBadgeClass }}">{{ item.stockLevelLabel }}</span>
+        </div>
+        <div class="col-md-4"><div class="text-secondary small">Emplacement</div><strong>{{ item.storageLocation ?: '-' }}</strong></div>
+        <div class="col-md-4"><div class="text-secondary small">Nom fournisseur</div><strong>{{ item.preferredSupplier ?: '-' }}</strong></div>
+        <div class="col-md-4"><div class="text-secondary small">Numero fournisseur</div><strong>{{ item.supplierPhone ?: '-' }}</strong></div>
+        <div class="col-md-4"><div class="text-secondary small">Cree le</div><strong>{{ item.createdAt ? item.createdAt|date('d/m/Y H:i') : '-' }}</strong></div>
+        <div class="col-md-4"><div class="text-secondary small">Derniere modification</div><strong>{{ item.updatedAt ? item.updatedAt|date('d/m/Y H:i') : '-' }}</strong></div>
+        <div class="col-md-4"><div class="text-secondary small">Dernier inventaire</div><strong>{{ item.lastInventoryAt ? item.lastInventoryAt|date('d/m/Y H:i') : '-' }}</strong></div>
+        <div class="col-md-6"><div class="text-secondary small">Statut</div><strong>{{ item.active ? 'Actif' : 'Archive' }}</strong></div>
+        <div class="col-md-6"><div class="text-secondary small">Ajoute par</div><strong>{{ item.createdBy ? item.createdBy.displayName : '-' }}</strong></div>
+        {% if item.notes %}
+            <div class="col-12"><div class="text-secondary small">Notes</div><p class="mb-0">{{ item.notes }}</p></div>
+        {% endif %}
+    </div>
+
+    <h3 class="h6">Historique recent</h3>
+    <div class="list-group">
+        {% for movement in movements %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between gap-3">
+                    <div>
+                        <span class="badge {{ movement.movementTypeBadgeClass }} me-2">{{ movement.movementTypeLabel }}</span>
+                        <strong>{{ movement.quantityDisplay }} {{ item.unitLabel }}</strong>
+                        <div class="small text-secondary">
+                            {{ movement.previousQuantityDisplay }} -> {{ movement.newQuantityDisplay }} {{ item.unitLabel }}
+                            {% if movement.supplier %} - {{ movement.supplier }}{% endif %}
+                            {% if movement.recipient %} - {{ movement.recipient }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="small text-secondary text-end text-nowrap">
+                        <div>Date action</div>
+                        <time>{{ movement.movementDate|date('d/m/Y H:i') }}</time>
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-outline-danger btn-sm" title="{{ movement.movementType == 'inventory' ? "Supprimer l'inventaire" : 'Supprimer le mouvement' }}" aria-label="{{ movement.movementType == 'inventory' ? "Supprimer l'inventaire" : 'Supprimer le mouvement' }}" data-remote-modal="{{ path('app_inventory_consumable_stock_movement_delete_form', {id: movement.id}) }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if movement.reason %}
+                    <div class="small mt-2">{{ movement.reason }}</div>
+                {% endif %}
+                {% if movement.performedBy %}
+                    <div class="small text-secondary mt-1">Par {{ movement.performedBy.displayName }}</div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="text-secondary small">Aucun mouvement enregistre.</div>
+        {% endfor %}
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-outline-success" data-remote-modal="{{ path('app_inventory_consumable_stock_entry_form', {id: item.id}) }}">
+        <i class="bi bi-plus-lg me-1"></i>Entree
+    </button>
+    <button class="btn btn-outline-warning" data-remote-modal="{{ path('app_inventory_consumable_stock_exit_form', {id: item.id}) }}">
+        <i class="bi bi-dash-lg me-1"></i>Sortie
+    </button>
+    <button class="btn btn-outline-primary" data-remote-modal="{{ path('app_inventory_consumable_stock_inventory_form', {id: item.id}) }}">
+        <i class="bi bi-clipboard-check me-1"></i>Inventaire
+    </button>
+    <button class="btn btn-primary" data-remote-modal="{{ path('app_inventory_consumable_stock_form', {id: item.id}) }}">
+        <i class="bi bi-pencil me-1"></i>Modifier
+    </button>
+    {% if is_granted('ROLE_ADMIN') %}
+        <button class="btn btn-outline-danger" data-remote-modal="{{ path('app_inventory_consumable_stock_delete_form', {id: item.id}) }}">
+            <i class="bi bi-trash me-1"></i>Supprimer
+        </button>
+    {% endif %}
+</div>

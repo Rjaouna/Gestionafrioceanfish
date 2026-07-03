@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Stock consommables{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Stock consommables</h1>
+        <p class="text-secondary mb-0">Gants, bavettes, savon, produits d'hygiene et consommables du quotidien.</p>
+    </div>
+    <button type="button" class="btn btn-primary" data-remote-modal="{{ path('app_inventory_consumable_stock_new') }}">
+        <i class="bi bi-plus-circle me-2"></i>Nouveau produit
+    </button>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body d-flex align-items-center gap-3">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fs-4" style="width:48px;height:48px;"><i class="bi bi-box-seam"></i></span>
+            <div><div class="text-secondary small">Produits actifs</div><div class="h3 mb-0">{{ stats.active }}</div></div>
+        </div></div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body d-flex align-items-center gap-3">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning-emphasis fs-4" style="width:48px;height:48px;"><i class="bi bi-exclamation-triangle"></i></span>
+            <div><div class="text-secondary small">Stock bas</div><div class="h3 mb-0">{{ stats.low }}</div></div>
+        </div></div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body d-flex align-items-center gap-3">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger fs-4" style="width:48px;height:48px;"><i class="bi bi-x-octagon"></i></span>
+            <div><div class="text-secondary small">Ruptures</div><div class="h3 mb-0">{{ stats.out }}</div></div>
+        </div></div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body d-flex align-items-center gap-3">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-info-subtle text-info-emphasis fs-4" style="width:48px;height:48px;"><i class="bi bi-clock-history"></i></span>
+            <div><div class="text-secondary small">Mouvements recents</div><div class="h3 mb-0">{{ stats.recent_movements|length }}</div></div>
+        </div></div>
+    </div>
+</div>
+
+{% if stats.low_items is not empty %}
+    <div class="alert alert-warning d-flex gap-3 align-items-start mb-4">
+        <i class="bi bi-exclamation-triangle fs-5"></i>
+        <div>
+            <strong>Produits a commander</strong>
+            <div class="small mt-1">
+                {% for item in stats.low_items|slice(0, 5) %}
+                    <span class="badge text-bg-light border me-1">{{ item.name }} : {{ item.quantityDisplay }} {{ item.unitLabel }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form id="consumable-stock-filters" class="row g-3 align-items-end" method="get" action="{{ path('app_inventory_consumable_stock_index') }}" data-ajax-filter-region="consumable-stock">
+            <div class="col-lg-4">
+                <label class="form-label" for="stock-search">Recherche</label>
+                <input id="stock-search" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Produit, reference, fournisseur, telephone...">
+            </div>
+            <div class="col-md-3 col-lg-2">
+                <label class="form-label" for="stock-category">Categorie</label>
+                <select id="stock-category" class="form-select" name="category">
+                    <option value="">Toutes</option>
+                    {% for category in filter_choices.categories %}
+                        <option value="{{ category }}" {{ filters.category == category ? 'selected' : '' }}>{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 col-lg-2">
+                <label class="form-label" for="stock-status">Etat</label>
+                <select id="stock-status" class="form-select" name="status">
+                    <option value="">Tous</option>
+                    {% for value, label in filter_choices.statuses %}
+                        <option value="{{ value }}" {{ filters.status == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 col-lg-2">
+                <label class="form-label" for="stock-active">Statut</label>
+                <select id="stock-active" class="form-select" name="active">
+                    <option value="active" {{ filters.active == 'active' ? 'selected' : '' }}>Actifs</option>
+                    <option value="archived" {{ filters.active == 'archived' ? 'selected' : '' }}>Archives</option>
+                    <option value="all" {{ filters.active == 'all' ? 'selected' : '' }}>Tous</option>
+                </select>
+            </div>
+            <div class="col-md-3 col-lg-2 d-grid">
+                <button class="btn btn-outline-primary" type="submit"><i class="bi bi-funnel me-1"></i>Filtrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div data-ajax-region="consumable-stock" data-refresh-url="{{ path('app_inventory_consumable_stock_search') }}" data-refresh-form="#consumable-stock-filters">
+    {% include 'inventory/consumable_stock/_table.html.twig' with {items: items} %}
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-xl-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0">
+                <h2 class="h5 mb-0">Derniers mouvements</h2>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for movement in stats.recent_movements %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between gap-3">
+                            <div>
+                                <span class="badge {{ movement.movementTypeBadgeClass }} me-2">{{ movement.movementTypeLabel }}</span>
+                                <strong>{{ movement.item.name }}</strong>
+                                <div class="small text-secondary">{{ movement.reason ?: movement.supplier ?: movement.recipient ?: 'Sans commentaire' }}</div>
+                            </div>
+                            <div class="text-end small text-secondary">
+                                <div>{{ movement.quantityDisplay }} {{ movement.item.unitLabel }}</div>
+                                <time>{{ movement.movementDate|date('d/m/Y H:i') }}</time>
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-outline-danger btn-sm" title="{{ movement.movementType == 'inventory' ? "Supprimer l'inventaire" : 'Supprimer le mouvement' }}" aria-label="{{ movement.movementType == 'inventory' ? "Supprimer l'inventaire" : 'Supprimer le mouvement' }}" data-remote-modal="{{ path('app_inventory_consumable_stock_movement_delete_form', {id: movement.id}) }}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="list-group-item text-center text-secondary py-4">Aucun mouvement pour le moment.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0">
+                <h2 class="h5 mb-0">Repartition par categorie</h2>
+            </div>
+            <div class="card-body">
+                {% for row in stats.categories %}
+                    <div class="d-flex justify-content-between gap-3 mb-2">
+                        <span>{{ row.label }}</span>
+                        <strong>{{ row.value }}</strong>
+                    </div>
+                {% else %}
+                    <div class="text-center text-secondary py-4">Aucune categorie.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

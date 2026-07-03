@@ -1,0 +1,25 @@
+{{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
+    <div class="modal-header border-0 pb-0">
+        <div>
+            <h2 class="modal-title h4">Fin de mission</h2>
+            <p class="text-secondary mb-0">{{ worker.fullName }} · {{ worker.registrationNumber }}</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-warning">
+            Cette action passe la personne en statut <strong>Fin de mission</strong>, desactive son dossier actif et conserve le motif dans l'historique.
+        </div>
+        <div class="row g-3">
+            <div class="col-md-5">{{ form_row(form.missionEndDate) }}</div>
+            <div class="col-12">{{ form_row(form.reason) }}</div>
+        </div>
+        {{ form_rest(form) }}
+    </div>
+    <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-warning">
+            <i class="bi bi-flag me-2"></i>Valider la fin
+        </button>
+    </div>
+{{ form_end(form) }}

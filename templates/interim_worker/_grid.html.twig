@@ -1,0 +1,107 @@
+{% if workers|length > 0 %}
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Photo</th>
+                    <th>Nom et prenom</th>
+                    <th>Poste</th>
+                    <th>Matricule</th>
+                    <th>Telephone</th>
+                    <th>CIN</th>
+                    <th>Situation</th>
+                    <th>Embauche</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for worker in workers %}
+                    {% set initials = ((worker.lastName|default('')|slice(0, 1)) ~ (worker.firstName|default('')|slice(0, 1)))|upper %}
+                    <tr class="{{ worker.status == 'a_ne_pas_rappeler' ? 'table-danger' : '' }}">
+                        <td style="width: 64px;">
+                            {% if worker.hasPhoto %}
+                                <img class="rounded-2 object-fit-cover" src="{{ path('app_interim_worker_photo', {id: worker.id}) }}" alt="Photo {{ worker.fullName }}" style="width: 44px; height: 44px;">
+                            {% else %}
+                                <span class="d-inline-flex align-items-center justify-content-center rounded-2 bg-primary-subtle text-primary fw-semibold" style="width: 44px; height: 44px;">{{ initials ?: 'IN' }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ worker.fullName }}</div>
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                <span class="badge {{ worker.statusBadgeClass }}">{{ worker.statusLabel }}</span>
+                                <span class="badge {{ worker.workerTypeBadgeClass }}">{{ worker.workerTypeLabel }}</span>
+                            </div>
+                        </td>
+                        <td>{{ worker.position }}</td>
+                        <td class="text-nowrap">{{ worker.registrationNumber }}</td>
+                        <td class="text-nowrap">{{ worker.phone }}</td>
+                        <td class="text-nowrap">{{ worker.cin ?: '-' }}</td>
+                        <td>{{ worker.familySituationLabel }}</td>
+                        <td class="text-nowrap">{{ worker.hireDate ? worker.hireDate|date('d/m/Y') : '-' }}</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                {% if is_granted('INTERIM_WORKER_VIEW', worker) %}
+                                    <button class="btn btn-outline-primary" title="Voir" aria-label="Voir" data-remote-modal="{{ path('app_interim_worker_view', {id: worker.id}) }}">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                {% endif %}
+                                {% if is_granted('INTERIM_WORKER_EDIT', worker) %}
+                                    <button class="btn btn-outline-primary" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_interim_worker_form', {id: worker.id}) }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-outline-secondary" title="Changer le statut" aria-label="Changer le statut" data-remote-modal="{{ path('app_interim_worker_status_form', {id: worker.id}) }}">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </button>
+                                    {% if worker.status not in ['fin_mission', 'a_ne_pas_rappeler'] %}
+                                        <button class="btn btn-outline-warning" title="Fin de mission" aria-label="Fin de mission" data-remote-modal="{{ path('app_interim_worker_end_mission_form', {id: worker.id}) }}">
+                                            <i class="bi bi-flag"></i>
+                                        </button>
+                                    {% endif %}
+                                    {% if worker.status != 'a_ne_pas_rappeler' %}
+                                        <button class="btn btn-outline-danger" title="A ne pas rappeler" aria-label="A ne pas rappeler" data-remote-modal="{{ path('app_interim_worker_do_not_recall_form', {id: worker.id}) }}">
+                                            <i class="bi bi-exclamation-octagon"></i>
+                                        </button>
+                                    {% endif %}
+                                {% endif %}
+                                {% if is_granted('INTERIM_WORKER_PRINT', worker) %}
+                                    <a class="btn btn-outline-secondary" title="Imprimer" aria-label="Imprimer" href="{{ path('app_interim_worker_print', {id: worker.id}) }}" target="_blank" rel="noopener">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                {% endif %}
+                                {% if is_granted('INTERIM_WORKER_DELETE', worker) %}
+                                    <button class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_interim_worker_delete', {id: worker.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_interim_worker_' ~ worker.id) }}" data-confirm-message="Supprimer cet interimaire ?">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
+                <i class="bi bi-person-vcard"></i>
+            </span>
+            <h2 class="h5 mt-3">Aucun interimaire</h2>
+            <p class="text-secondary mb-0">Ajoutez un interimaire ou ajustez les filtres.</p>
+        </div>
+    </div>
+{% endif %}
+
+{% if pagination.pages > 1 %}
+    <div class="d-flex justify-content-center gap-2 mt-4">
+        <a class="btn btn-outline-secondary btn-sm {{ pagination.page <= 1 ? 'disabled' : '' }}" href="#" data-ajax-region-page="interimWorkerGrid" data-page="{{ pagination.page - 1 }}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="btn btn-light btn-sm disabled">Page {{ pagination.page }} / {{ pagination.pages }}</span>
+        <a class="btn btn-outline-secondary btn-sm {{ pagination.page >= pagination.pages ? 'disabled' : '' }}" href="#" data-ajax-region-page="interimWorkerGrid" data-page="{{ pagination.page + 1 }}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+{% endif %}

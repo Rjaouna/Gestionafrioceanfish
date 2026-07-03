@@ -1,0 +1,24 @@
+{{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">Entree de stock</h2>
+            <p class="text-secondary small mb-0">{{ item.name }} · stock actuel {{ item.quantityDisplay }} {{ item.unitLabel }}</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-success">Ajoutez ici les achats ou livraisons recus.</div>
+        <div class="row g-3">
+            <div class="col-md-4">{{ form_row(form.quantity) }}</div>
+            <div class="col-md-4">{{ form_row(form.movementDate) }}</div>
+            <div class="col-md-4">{{ form_row(form.unitCost) }}</div>
+            <div class="col-md-6">{{ form_row(form.supplier) }}</div>
+            <div class="col-12">{{ form_row(form.reason) }}</div>
+        </div>
+        {{ form_rest(form) }}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-success"><i class="bi bi-plus-lg me-1"></i>Ajouter au stock</button>
+    </div>
+{{ form_end(form) }}

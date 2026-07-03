@@ -24,6 +24,25 @@
 {% endfor %}
 
 <div class="sidebar-navigation">
+    <div class="sidebar-menu-search" data-sidebar-search>
+        <label class="visually-hidden" for="{{ item_prefix }}MenuSearch">Rechercher dans le menu</label>
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input
+                id="{{ item_prefix }}MenuSearch"
+                class="form-control"
+                type="search"
+                placeholder="Rechercher..."
+                autocomplete="off"
+                data-sidebar-search-input
+            >
+            <button class="btn btn-outline-secondary d-none" type="button" aria-label="Effacer la recherche" data-sidebar-search-clear>
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="sidebar-search-empty d-none" data-sidebar-search-empty>Aucun resultat.</div>
+    </div>
+
     <div class="sidebar-primary">
         <div class="sidebar-kicker">Vue d’ensemble</div>
         <a class="sidebar-home-link {{ current_route == 'app_dashboard' ? 'active' : '' }}" href="{{ path('app_dashboard') }}">
@@ -132,6 +151,10 @@
                         <i class="bi bi-boxes"></i>
                         <span>Stocks cartons</span>
                     </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_inventory_consumable_stock' ? 'active' : '' }}" href="{{ path('app_inventory_consumable_stock_index') }}">
+                        <i class="bi bi-basket"></i>
+                        <span>Stock consommables</span>
+                    </a>
                     <a class="sidebar-sub-link ps-4 {{ inventory_locations_active ? 'active' : '' }}" href="{{ path('app_inventory_location_index') }}">
                         <i class="bi bi-pin-map"></i>
                         <span>Sites et emplacements</span>
@@ -211,6 +234,17 @@
                             >
                                 <i class="bi bi-file-earmark-plus"></i>
                                 <span>Ajouter un document</span>
+                            </a>
+                        {% endif %}
+
+                        {% if module.slug == 'interimaires' %}
+                            <a
+                                class="sidebar-sub-link ps-4"
+                                href="{{ path(module.routeName) }}#nouvel-interimaire"
+                                data-navigation-modal="#createInterimWorkerModal"
+                            >
+                                <i class="bi bi-person-plus"></i>
+                                <span>Ajouter un intérimaire</span>
                             </a>
                         {% endif %}
                     {% endfor %}

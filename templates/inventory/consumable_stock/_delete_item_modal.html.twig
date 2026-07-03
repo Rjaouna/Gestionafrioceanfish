@@ -1,0 +1,32 @@
+<form method="post" action="{{ path('app_inventory_consumable_stock_delete', {id: item.id}) }}" data-ajax-form>
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">Supprimer {{ item.name }}</h2>
+            <div class="small text-secondary">{{ item.reference }} - {{ item.categoryLabel }}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" name="token" value="{{ csrf_token('delete_consumable_stock_item_' ~ item.id) }}">
+
+        <div class="alert alert-danger">
+            Cet article sera supprime avec tout son historique de mouvements.
+        </div>
+
+        <dl class="row small mb-3">
+            <dt class="col-sm-4 text-secondary">Stock courant</dt>
+            <dd class="col-sm-8 fw-semibold">{{ item.quantityDisplay }} {{ item.unitLabel }}</dd>
+            <dt class="col-sm-4 text-secondary">Mouvements</dt>
+            <dd class="col-sm-8 fw-semibold">{{ item.movements|length }}</dd>
+        </dl>
+
+        <label class="form-label fw-semibold" for="delete-consumable-item-password">Mot de passe de confirmation</label>
+        <input id="delete-consumable-item-password" class="form-control" type="password" name="confirmationPassword" required autocomplete="off">
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash me-1"></i>Supprimer l'article
+        </button>
+    </div>
+</form>

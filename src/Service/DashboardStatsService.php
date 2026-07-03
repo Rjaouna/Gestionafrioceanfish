@@ -10,6 +10,7 @@ use App\Entity\Intervention;
 use App\Entity\User;
 use App\Repository\AppModuleRepository;
 use App\Repository\AppointmentRepository;
+use App\Repository\ConsumableStockItemRepository;
 use App\Repository\ExpenseRepository;
 use App\Repository\InventoryItemRepository;
 use App\Repository\InventoryMovementRepository;
@@ -44,6 +45,7 @@ final readonly class DashboardStatsService
         private InventoryItemRepository $inventoryItemRepository,
         private InventoryRequestRepository $inventoryRequestRepository,
         private InventoryMovementRepository $inventoryMovementRepository,
+        private ConsumableStockItemRepository $consumableStockItemRepository,
         private TrashService $trashService,
     ) {
     }
@@ -145,7 +147,12 @@ final readonly class DashboardStatsService
             'pending_requests' => 0,
             'pending_transfers' => 0,
             'pending_inventories' => 0,
+            'consumable_items' => 0,
+            'consumable_low' => 0,
+            'consumable_out' => 0,
+            'consumable_alerts' => 0,
             'recent_movements' => [],
+            'consumable_low_items' => [],
             'status_chart' => [],
             'category_chart' => [],
             'site_chart' => [],
@@ -162,7 +169,8 @@ final readonly class DashboardStatsService
             + $agenda['pending']
             + $agenda['high_priority']
             + $inventory['pending_requests']
-            + $inventory['unavailable_items'];
+            + $inventory['unavailable_items']
+            + $inventory['consumable_alerts'];
         $kpis = [];
 
         if ($hasModule('agenda')) {
@@ -461,9 +469,9 @@ final readonly class DashboardStatsService
         if ($hasModule('inventory')) {
             $cards[] = [
                 'label' => 'Inventaire',
-                'value' => $inventory['pending_requests'] + $inventory['unavailable_items'],
+                'value' => $inventory['pending_requests'] + $inventory['unavailable_items'] + $inventory['consumable_alerts'],
                 'caption' => sprintf('%d demandes à valider, %d matériels à surveiller', $inventory['pending_requests'], $inventory['unavailable_items']),
-                'tone' => ($inventory['pending_requests'] + $inventory['unavailable_items']) > 0 ? 'warning' : 'success',
+                'tone' => ($inventory['pending_requests'] + $inventory['unavailable_items'] + $inventory['consumable_alerts']) > 0 ? 'warning' : 'success',
                 'icon' => 'bi-box-seam',
             ];
         }
@@ -564,6 +572,7 @@ final readonly class DashboardStatsService
 
         if ($hasModule('inventory')) {
             $actions[] = ['label' => 'Valider inventaire', 'text' => 'Transports et inventaires en attente', 'route' => 'app_inventory_request_index', 'icon' => 'bi-clipboard-check', 'tone' => 'info'];
+            $actions[] = ['label' => 'Stock consommables', 'text' => 'Entrees, sorties et seuils minimum', 'route' => 'app_inventory_consumable_stock_index', 'icon' => 'bi-basket', 'tone' => 'warning'];
         }
 
         if ($hasModule('documents')) {
@@ -992,7 +1001,12 @@ final readonly class DashboardStatsService
                 'pending_requests' => 0,
                 'pending_transfers' => 0,
                 'pending_inventories' => 0,
+                'consumable_items' => 0,
+                'consumable_low' => 0,
+                'consumable_out' => 0,
+                'consumable_alerts' => 0,
                 'recent_movements' => [],
+                'consumable_low_items' => [],
                 'status_chart' => [],
                 'category_chart' => [],
                 'site_chart' => [],
@@ -1010,6 +1024,8 @@ final readonly class DashboardStatsService
         $retired = $this->inventoryItemRepository->countVisible($user, $viewAll, ['active' => 'active', 'status' => 'retired']);
         $pendingTransfers = $this->inventoryRequestRepository->countPendingVisibleByType($user, $viewAll, 'transfer');
         $pendingInventories = $this->inventoryRequestRepository->countPendingVisibleByType($user, $viewAll, 'inventory');
+        $consumableLow = $this->consumableStockItemRepository->countLowStock();
+        $consumableOut = $this->consumableStockItemRepository->countOutOfStock();
 
         return [
             'total_items' => $active + $archived,
@@ -1022,7 +1038,12 @@ final readonly class DashboardStatsService
             'pending_requests' => $pendingTransfers + $pendingInventories,
             'pending_transfers' => $pendingTransfers,
             'pending_inventories' => $pendingInventories,
+            'consumable_items' => $this->consumableStockItemRepository->countActive(),
+            'consumable_low' => $consumableLow,
+            'consumable_out' => $consumableOut,
+            'consumable_alerts' => $consumableLow + $consumableOut,
             'recent_movements' => $this->inventoryMovementRepository->recentVisible($user, $viewAll, 5),
+            'consumable_low_items' => $this->consumableStockItemRepository->lowStockItems(5),
             'status_chart' => $this->inventoryChart($this->labelInventoryStatuses($this->inventoryItemRepository->groupByStatus($user, $viewAll))),
             'category_chart' => $this->inventoryChart($this->inventoryItemRepository->groupByCategory($user, $viewAll)),
             'site_chart' => $this->inventoryChart($this->inventoryItemRepository->groupBySite($user, $viewAll)),
@@ -1364,6 +1385,15 @@ final readonly class DashboardStatsService
                 'text' => sprintf('%d matériel%s en maintenance, perdu%s ou sorti%s du parc.', $inventory['unavailable_items'], $inventory['unavailable_items'] > 1 ? 's' : '', $inventory['unavailable_items'] > 1 ? 's' : '', $inventory['unavailable_items'] > 1 ? 's' : ''),
                 'icon' => 'bi-exclamation-triangle',
                 'tone' => 'warning',
+            ];
+        }
+
+        if (($inventory['consumable_alerts'] ?? 0) > 0) {
+            $alerts[] = [
+                'title' => 'Stock consommables',
+                'text' => sprintf('%d produit%s sous le seuil minimum ou en rupture.', $inventory['consumable_alerts'], $inventory['consumable_alerts'] > 1 ? 's' : ''),
+                'icon' => 'bi-basket',
+                'tone' => ($inventory['consumable_out'] ?? 0) > 0 ? 'danger' : 'warning',
             ];
         }
 

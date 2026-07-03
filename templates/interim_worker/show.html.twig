@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ worker.fullName }}{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ worker.fullName }}</h1>
+        <p class="text-secondary mb-0">{{ worker.position }} · {{ worker.registrationNumber }}</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ path('app_interim_worker_index') }}">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    {% include 'interim_worker/_details_modal.html.twig' with {worker: worker} %}
+</div>
+{% endblock %}

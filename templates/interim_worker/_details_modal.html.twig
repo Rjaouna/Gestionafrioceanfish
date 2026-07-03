@@ -1,0 +1,132 @@
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">{{ worker.fullName }}</h2>
+        <p class="text-secondary small mb-0">{{ worker.position }} · {{ worker.registrationNumber }}</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    {% if worker.status == 'a_ne_pas_rappeler' %}
+        <div class="alert alert-danger d-flex gap-2 align-items-start">
+            <i class="bi bi-exclamation-octagon mt-1"></i>
+            <div>
+                <strong>A ne pas rappeler.</strong>
+                {% if worker.doNotRecallReason %}
+                    <div class="small mt-1">{{ worker.doNotRecallReason }}</div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center">
+                    {% if worker.hasPhoto %}
+                        <img class="img-fluid rounded-3 mb-3" style="max-height: 260px;" src="{{ path('app_interim_worker_photo', {id: worker.id}) }}" alt="Photo {{ worker.fullName }}">
+                    {% else %}
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fs-1 mb-3" style="width: 96px; height: 96px;">
+                            <i class="bi bi-person"></i>
+                        </span>
+                    {% endif %}
+                    <span class="badge {{ worker.statusBadgeClass }}">{{ worker.statusLabel }}</span>
+                    <span class="badge {{ worker.workerTypeBadgeClass }}">{{ worker.workerTypeLabel }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="row g-3">
+                <div class="col-md-6"><div class="text-secondary small">Telephone</div><strong>{{ worker.phone }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">CIN</div><strong>{{ worker.cin ?: '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Date de naissance</div><strong>{{ worker.birthDate ? worker.birthDate|date('d/m/Y') : '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Lieu de naissance</div><strong>{{ worker.birthPlace ?: '-' }}</strong></div>
+                <div class="col-12"><div class="text-secondary small">Adresse</div><strong>{{ worker.address ?: '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Profil</div><strong>{{ worker.workerTypeLabel }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Situation familiale</div><strong>{{ worker.familySituationLabel }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Nombre d'enfants</div><strong>{{ worker.childrenCount }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Date d'embauche</div><strong>{{ worker.hireDate ? worker.hireDate|date('d/m/Y') : '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Signature salarie</div><strong>{{ worker.employeeSignature ?: '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Signature responsable</div><strong>{{ worker.managerSignature ?: '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Date de signature</div><strong>{{ worker.signatureDate ? worker.signatureDate|date('d/m/Y') : '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Fin de mission</div><strong>{{ worker.missionEndDate ? worker.missionEndDate|date('d/m/Y') : '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Dernier changement de statut</div><strong>{{ worker.lastStatusChangedAt ? worker.lastStatusChangedAt|date('d/m/Y') : '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Date blocage rappel</div><strong>{{ worker.doNotRecallAt ? worker.doNotRecallAt|date('d/m/Y') : '-' }}</strong></div>
+                <div class="col-12"><div class="text-secondary small">Agence d'interim</div><strong>{{ worker.tempAgency ?: '-' }}</strong></div>
+                {% if worker.missionEndReason %}
+                    <div class="col-12"><div class="text-secondary small">Motif de fin de mission</div><strong class="text-break d-block">{{ worker.missionEndReason }}</strong></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-4">
+    <h3 class="h6">Observations du responsable</h3>
+    <p class="mb-4 text-break">{{ worker.managerObservations ?: 'Aucune observation.' }}</p>
+
+    {% if worker.internalComment %}
+        <h3 class="h6">Commentaire interne</h3>
+        <p class="mb-4 text-break">{{ worker.internalComment }}</p>
+    {% endif %}
+
+    <h3 class="h6">Historique des actions</h3>
+    <div class="list-group mb-4">
+        {% for action in worker.actions|slice(0, 6) %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between gap-3">
+                    <div>
+                        <strong>{{ action.actionTypeLabel }}</strong>
+                        {% if action.previousStatusLabel or action.newStatusLabel %}
+                            <div class="small text-secondary">
+                                {{ action.previousStatusLabel ?: '-' }} -> {{ action.newStatusLabel ?: '-' }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <small class="text-secondary text-nowrap">{{ action.actionAt|date('d/m/Y') }}</small>
+                </div>
+                {% if action.reason %}
+                    <div class="small mt-2 text-break">{{ action.reason }}</div>
+                {% endif %}
+                {% if action.performedBy %}
+                    <div class="small text-secondary mt-1">Par {{ action.performedBy.displayName }}</div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="text-secondary small">Aucune action enregistree.</div>
+        {% endfor %}
+    </div>
+
+    <h3 class="h6">Documents joints</h3>
+    <div class="list-group">
+        {% for document in worker.documents %}
+            <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-3" href="{{ path('app_interim_worker_document_download', {id: document.id}) }}">
+                <span class="text-truncate"><i class="bi bi-paperclip me-2"></i>{{ document.originalFileName }}</span>
+                <small class="text-secondary">{{ document.fileSizeLabel }}</small>
+            </a>
+        {% else %}
+            <div class="text-secondary small">Aucun document joint.</div>
+        {% endfor %}
+    </div>
+</div>
+<div class="modal-footer">
+    <a class="btn btn-outline-secondary" href="{{ path('app_interim_worker_print', {id: worker.id}) }}" target="_blank" rel="noopener">
+        <i class="bi bi-printer me-1"></i>Imprimer la fiche
+    </a>
+    {% if is_granted('INTERIM_WORKER_EDIT', worker) %}
+        <button class="btn btn-outline-secondary" data-remote-modal="{{ path('app_interim_worker_status_form', {id: worker.id}) }}">
+            <i class="bi bi-arrow-repeat me-1"></i>Statut
+        </button>
+        {% if worker.status not in ['fin_mission', 'a_ne_pas_rappeler'] %}
+            <button class="btn btn-outline-warning" data-remote-modal="{{ path('app_interim_worker_end_mission_form', {id: worker.id}) }}">
+                <i class="bi bi-flag me-1"></i>Fin de mission
+            </button>
+        {% endif %}
+        {% if worker.status != 'a_ne_pas_rappeler' %}
+            <button class="btn btn-outline-danger" data-remote-modal="{{ path('app_interim_worker_do_not_recall_form', {id: worker.id}) }}">
+                <i class="bi bi-exclamation-octagon me-1"></i>A ne pas rappeler
+            </button>
+        {% endif %}
+        <button class="btn btn-primary" data-remote-modal="{{ path('app_interim_worker_form', {id: worker.id}) }}">
+            <i class="bi bi-pencil me-1"></i>Modifier
+        </button>
+    {% endif %}
+</div>

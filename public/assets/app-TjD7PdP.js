@@ -173,62 +173,6 @@ function showAlert(message, type = 'success') {
     window.setTimeout(() => window.bootstrap?.Alert.getOrCreateInstance(alert).close(), 5000);
 }
 
-function confirmAction(message) {
-    let modal = document.getElementById('appConfirmModal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'appConfirmModal';
-        modal.className = 'modal fade';
-        modal.tabIndex = -1;
-        modal.setAttribute('aria-hidden', 'true');
-        modal.innerHTML = `
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2 class="modal-title fs-5">Confirmation</h2>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p class="mb-0" data-confirm-modal-message></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <button type="button" class="btn btn-danger" data-confirm-modal-accept>Confirmer</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-    }
-
-    modal.querySelector('[data-confirm-modal-message]').textContent = message || 'Confirmer cette action ?';
-
-    return new Promise((resolve) => {
-        const instance = window.bootstrap.Modal.getOrCreateInstance(modal);
-        const acceptButton = modal.querySelector('[data-confirm-modal-accept]');
-        let resolved = false;
-
-        const cleanup = () => {
-            acceptButton.removeEventListener('click', accept);
-            modal.removeEventListener('hidden.bs.modal', cancel);
-        };
-        const accept = () => {
-            resolved = true;
-            cleanup();
-            instance.hide();
-            resolve(true);
-        };
-        const cancel = () => {
-            cleanup();
-            if (!resolved) resolve(false);
-        };
-
-        acceptButton.addEventListener('click', accept, {once: true});
-        modal.addEventListener('hidden.bs.modal', cancel, {once: true});
-        instance.show();
-    });
-}
-
 function escapeHtml(value) {
     const element = document.createElement('div');
     element.textContent = String(value);
@@ -250,15 +194,9 @@ function normalizedWords(value) {
 function sidebarSearchMatches(text, query) {
     if (!query) return true;
     const normalized = normalizeSearch(text);
-    if (normalized.includes(query)) return true;
+    if (normalized.startsWith(query)) return true;
 
-    const words = normalizedWords(text);
-    const queryWords = normalizedWords(query);
-    if (queryWords.length > 1) {
-        return queryWords.every((queryWord) => normalized.includes(queryWord) || words.some((word) => word.startsWith(queryWord)));
-    }
-
-    return words.some((word) => word.includes(query));
+    return normalizedWords(text).some((word) => word.startsWith(query));
 }
 
 function documentNameFromFileName(fileName) {
@@ -800,103 +738,6 @@ function initializeExpenseForms(root = document) {
     });
 }
 
-function cleanInterimPhone(value) {
-    return String(value || '').replace(/[\s().-]+/g, '').trim();
-}
-
-function syncInterimAge(form) {
-    const input = form.querySelector('[data-interim-birth-date]');
-    const output = form.querySelector('[data-interim-age-output]');
-    if (!input || !output) return;
-
-    if (!input.value) {
-        output.textContent = '';
-        return;
-    }
-
-    const birthDate = new Date(`${input.value}T00:00:00`);
-    if (Number.isNaN(birthDate.getTime())) {
-        output.textContent = '';
-        return;
-    }
-
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDelta = today.getMonth() - birthDate.getMonth();
-    if (monthDelta < 0 || (monthDelta === 0 && today.getDate() < birthDate.getDate())) {
-        age -= 1;
-    }
-
-    output.textContent = age >= 0 ? `${age} an${age > 1 ? 's' : ''}` : 'Date dans le futur';
-}
-
-function syncInterimFamily(form) {
-    const selected = form.querySelector('input[name$="[familySituation]"]:checked')?.value
-        || form.querySelector('select[name$="[familySituation]"]')?.value
-        || '';
-    const row = form.querySelector('[data-interim-children-row]');
-    const input = form.querySelector('[data-interim-children-count]');
-    if (!row || !input) return;
-
-    const hideChildren = selected === 'celibataire';
-    row.classList.toggle('d-none', hideChildren);
-    if (hideChildren || input.value === '') {
-        input.value = '0';
-    }
-    if (Number(input.value) < 0) input.value = '0';
-    if (Number(input.value) > 20) input.value = '20';
-}
-
-function syncInterimObservationsCounter(form) {
-    const textarea = form.querySelector('[data-interim-observations]');
-    const counter = form.querySelector('[data-interim-observations-counter]');
-    if (!textarea || !counter) return;
-
-    const max = Number(textarea.getAttribute('maxlength') || 1000);
-    counter.textContent = `${textarea.value.length} / ${max}`;
-}
-
-function previewInterimPhoto(input) {
-    const form = input.closest('[data-interim-worker-form]');
-    const preview = form?.querySelector('[data-interim-photo-preview]');
-    const placeholder = form?.querySelector('[data-interim-photo-placeholder]');
-    const file = input.files?.[0];
-    if (!preview || !placeholder || !file) return;
-
-    preview.src = URL.createObjectURL(file);
-    preview.classList.remove('d-none');
-    preview.classList.add('d-block');
-    placeholder.classList.add('d-none');
-}
-
-function initializeInterimWorkerForms(root = document) {
-    root.querySelectorAll('[data-interim-worker-form]').forEach((form) => {
-        syncInterimAge(form);
-        syncInterimFamily(form);
-        syncInterimObservationsCounter(form);
-
-        if (form.dataset.interimWorkerInitialized === 'true') return;
-        form.dataset.interimWorkerInitialized = 'true';
-
-        form.querySelector('[data-interim-photo-input]')?.addEventListener('change', (event) => {
-            previewInterimPhoto(event.currentTarget);
-        });
-        form.querySelector('[data-interim-birth-date]')?.addEventListener('input', () => syncInterimAge(form));
-        form.querySelectorAll('input[name$="[familySituation]"], select[name$="[familySituation]"]').forEach((input) => {
-            input.addEventListener('change', () => syncInterimFamily(form));
-        });
-        form.querySelector('[data-interim-children-count]')?.addEventListener('input', () => syncInterimFamily(form));
-        form.querySelector('[data-interim-observations]')?.addEventListener('input', () => syncInterimObservationsCounter(form));
-        form.querySelector('[data-interim-cin]')?.addEventListener('input', (event) => {
-            event.currentTarget.value = String(event.currentTarget.value || '').toLocaleUpperCase().replace(/[^A-Z0-9]/g, '');
-        });
-        form.querySelector('[data-interim-phone]')?.addEventListener('input', (event) => {
-            event.currentTarget.value = cleanInterimPhone(event.currentTarget.value);
-        });
-        form.addEventListener('submit', () => syncInterimFamily(form));
-    });
-}
-
 function updateContactMobileButton(group) {
     const button = group.querySelector('[data-contact-add-mobile]');
     if (!button) return;
@@ -1400,13 +1241,11 @@ function initializePageBehaviors() {
         '#nouvelle-depense': '#createExpenseModal',
         '#nouvelle-categorie-depense': '#createExpenseCategoryModal',
         '#nouveau-rendez-vous': '#quickAppointmentModal',
-        '#nouvel-interimaire': '#createInterimWorkerModal',
     };
     const targetSelector = modalByHash[window.location.hash];
     if (targetSelector) openNavigationModal(targetSelector);
     initializeMaintenanceSmartForms();
     initializeExpenseForms();
-    initializeInterimWorkerForms();
     initializeContactPhones();
     initializeChoiceTags();
     initializeSidebarSearches();
@@ -1871,7 +1710,6 @@ document.addEventListener('click', async (event) => {
             content.innerHTML = await response.text();
             initializeMaintenanceSmartForms(content);
             initializeExpenseForms(content);
-            initializeInterimWorkerForms(content);
             initializeContactPhones(content);
             initializeChoiceTags(content);
             syncInventoryMoveLocations(content);
@@ -1896,7 +1734,7 @@ document.addEventListener('click', async (event) => {
 
     const confirmButton = event.target.closest('[data-confirm-url]');
     if (confirmButton) {
-        if (!await confirmAction(confirmButton.dataset.confirmMessage || 'Confirmer cette action ?')) return;
+        if (!window.confirm(confirmButton.dataset.confirmMessage || 'Confirmer cette action ?')) return;
         confirmButton.disabled = true;
         try {
             const payload = await sendJson(

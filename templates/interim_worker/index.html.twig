@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Fiches interimaires{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Fiches interimaires</h1>
+        <p class="text-secondary mb-0" data-ajax-count-region="interimWorkerGrid">{{ pagination.total }} element{{ pagination.total > 1 ? 's' : '' }} visible{{ pagination.total > 1 ? 's' : '' }}.</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createInterimWorkerModal">
+        <i class="bi bi-person-plus me-2"></i>Nouvelle fiche
+    </button>
+</div>
+
+{% include 'interim_worker/_filters.html.twig' with {
+    filters: filters,
+    filter_choices: filter_choices
+} %}
+
+<div
+    data-ajax-region="interimWorkerGrid"
+    data-refresh-url="{{ path('app_interim_worker_search') }}"
+    data-refresh-form="#interimWorkerFilters"
+>
+    {% include 'interim_worker/_grid.html.twig' with {workers: workers, pagination: pagination} %}
+</div>
+
+<div class="modal fade" id="createInterimWorkerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+        <div class="modal-content">
+            {% include 'interim_worker/_form_modal.html.twig' with {
+                form: create_form,
+                worker: create_form.vars.data,
+                title: 'Ajouter un interimaire',
+                submit_label: 'Ajouter',
+                filter_choices: filter_choices
+            } %}
+        </div>
+    </div>
+</div>
+{% endblock %}

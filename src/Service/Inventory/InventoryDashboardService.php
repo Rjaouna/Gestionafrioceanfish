@@ -4,6 +4,7 @@ namespace App\Service\Inventory;
 
 use App\Entity\InventoryItem;
 use App\Entity\User;
+use App\Repository\ConsumableStockItemRepository;
 use App\Repository\InventoryItemRepository;
 use App\Repository\InventoryMovementRepository;
 
@@ -13,6 +14,7 @@ final readonly class InventoryDashboardService
         private InventoryItemRepository $itemRepository,
         private InventoryMovementRepository $movementRepository,
         private InventoryAccessService $access,
+        private ConsumableStockItemRepository $consumableRepository,
     ) {
     }
 
@@ -26,18 +28,23 @@ final readonly class InventoryDashboardService
             + $this->itemRepository->countVisible($actor, $viewAll, ['active' => 'active', 'status' => 'lost'])
             + $this->itemRepository->countVisible($actor, $viewAll, ['active' => 'active', 'status' => 'retired']);
         $assigned = $this->itemRepository->countVisible($actor, $viewAll, ['active' => 'active', 'status' => 'assigned']);
+        $stockAlerts = $this->consumableRepository->countLowStock() + $this->consumableRepository->countOutOfStock();
 
         return [
             'cards' => [
                 ['label' => 'Matériels actifs', 'value' => $active, 'icon' => 'bi-box-seam', 'tone' => 'primary'],
                 ['label' => 'Affectés', 'value' => $assigned, 'icon' => 'bi-person-check', 'tone' => 'info'],
                 ['label' => 'A surveiller', 'value' => $unavailable, 'icon' => 'bi-exclamation-triangle', 'tone' => $unavailable > 0 ? 'warning' : 'success'],
+                ['label' => 'Alertes stock', 'value' => $stockAlerts, 'icon' => 'bi-basket', 'tone' => $stockAlerts > 0 ? 'danger' : 'success'],
                 ['label' => 'Archivés', 'value' => $archived, 'icon' => 'bi-archive', 'tone' => 'secondary'],
             ],
             'status_chart' => $this->chart($this->labelStatuses($this->itemRepository->groupByStatus($actor, $viewAll))),
             'category_chart' => $this->chart($this->itemRepository->groupByCategory($actor, $viewAll)),
             'recent_items' => $this->itemRepository->recentVisible($actor, $viewAll, 8),
             'recent_movements' => $this->movementRepository->recentVisible($actor, $viewAll, 8),
+            'archived' => $archived,
+            'stock_alerts' => $stockAlerts,
+            'stock_low_items' => $this->consumableRepository->lowStockItems(5),
         ];
     }
 

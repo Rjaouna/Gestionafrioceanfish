@@ -1,0 +1,104 @@
+{% set initials = ((worker.lastName|default('')|slice(0, 1)) ~ (worker.firstName|default('')|slice(0, 1)))|upper %}
+{% set status_icons = {
+    actif: 'bi-check-circle',
+    en_attente: 'bi-hourglass-split',
+    inactif: 'bi-slash-circle',
+    fin_mission: 'bi-flag',
+    a_ne_pas_rappeler: 'bi-exclamation-octagon'
+} %}
+
+{% embed 'components/_entity_card.html.twig' with {
+    title: worker.fullName,
+    title_remote_url: is_granted('INTERIM_WORKER_VIEW', worker) ? path('app_interim_worker_view', {id: worker.id}) : null,
+    icon: 'bi-person-vcard',
+    avatar_text: worker.hasPhoto ? null : initials,
+    status_label: worker.statusLabel,
+    status_class: worker.statusBadgeClass,
+    status_icon: status_icons[worker.status]|default('bi-circle'),
+    created_at: worker.createdAt,
+    updated_at: worker.updatedAt,
+    compact: false,
+    muted: worker.status in ['inactif', 'fin_mission', 'a_ne_pas_rappeler'],
+    extra_classes: worker.status == 'a_ne_pas_rappeler' ? 'app-card-accent-danger' : ''
+} %}
+    {% block top_actions %}
+        {% if is_granted('INTERIM_WORKER_VIEW', worker) %}
+            <button class="btn btn-outline-primary btn-sm" title="Voir" aria-label="Voir" data-remote-modal="{{ path('app_interim_worker_view', {id: worker.id}) }}">
+                <i class="bi bi-eye"></i>
+            </button>
+        {% endif %}
+        {% if is_granted('INTERIM_WORKER_EDIT', worker) %}
+            <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_interim_worker_form', {id: worker.id}) }}">
+                <i class="bi bi-pencil"></i>
+            </button>
+        {% endif %}
+    {% endblock %}
+
+    {% block subtitle %}
+        <span class="small text-secondary text-nowrap">
+            <i class="bi bi-briefcase me-1"></i>{{ worker.position }}
+        </span>
+    {% endblock %}
+
+    {% block body %}
+        <div class="app-card-detail-line mb-2">
+            <span class="app-card-detail-label"><i class="bi bi-person-badge"></i>Profil</span>
+            <span class="badge {{ worker.workerTypeBadgeClass }}">{{ worker.workerTypeLabel }}</span>
+        </div>
+        <div class="app-card-detail-line mb-2">
+            <span class="app-card-detail-label"><i class="bi bi-hash"></i>Matricule</span>
+            <span class="app-card-detail-value text-nowrap">{{ worker.registrationNumber }}</span>
+        </div>
+        <div class="app-card-detail-line mb-2">
+            <span class="app-card-detail-label"><i class="bi bi-telephone"></i>Telephone</span>
+            <span class="app-card-detail-value text-nowrap">{{ worker.phone }}</span>
+        </div>
+        <div class="app-card-detail-line mb-2">
+            <span class="app-card-detail-label"><i class="bi bi-person-heart"></i>Situation</span>
+            <span class="app-card-detail-value text-nowrap">{{ worker.familySituationLabel }}</span>
+        </div>
+        <div class="app-card-detail-line mb-2">
+            <span class="app-card-detail-label"><i class="bi bi-calendar-event"></i>Embauche</span>
+            <span class="app-card-detail-value text-nowrap">{{ worker.hireDate ? worker.hireDate|date('d/m/Y') : '-' }}</span>
+        </div>
+        {% if worker.tempAgency %}
+            <div class="small text-secondary text-truncate">
+                <i class="bi bi-building me-1"></i>{{ worker.tempAgency }}
+            </div>
+        {% endif %}
+    {% endblock %}
+
+    {% block actions %}
+        <div class="app-card-actions-row">
+            {% if is_granted('INTERIM_WORKER_EDIT', worker) %}
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" title="Changer le statut" aria-label="Changer le statut" data-remote-modal="{{ path('app_interim_worker_status_form', {id: worker.id}) }}">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </button>
+                    {% if worker.status not in ['fin_mission', 'a_ne_pas_rappeler'] %}
+                        <button class="btn btn-outline-warning" title="Fin de mission" aria-label="Fin de mission" data-remote-modal="{{ path('app_interim_worker_end_mission_form', {id: worker.id}) }}">
+                            <i class="bi bi-flag"></i>
+                        </button>
+                    {% endif %}
+                    {% if worker.status != 'a_ne_pas_rappeler' %}
+                        <button class="btn btn-outline-danger" title="A ne pas rappeler" aria-label="A ne pas rappeler" data-remote-modal="{{ path('app_interim_worker_do_not_recall_form', {id: worker.id}) }}">
+                            <i class="bi bi-exclamation-octagon"></i>
+                        </button>
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div class="btn-group btn-group-sm">
+                {% if is_granted('INTERIM_WORKER_PRINT', worker) %}
+                    <a class="btn btn-outline-secondary" title="Generer / imprimer fiche" aria-label="Generer / imprimer fiche" href="{{ path('app_interim_worker_print', {id: worker.id}) }}" target="_blank" rel="noopener">
+                        <i class="bi bi-printer"></i>
+                    </a>
+                {% endif %}
+                {% if is_granted('INTERIM_WORKER_DELETE', worker) %}
+                    <button class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_interim_worker_delete', {id: worker.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_interim_worker_' ~ worker.id) }}" data-confirm-message="Supprimer cet interimaire ?">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    {% endblock %}
+{% endembed %}
