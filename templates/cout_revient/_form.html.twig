@@ -61,7 +61,7 @@
             <section class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-0 pb-0">
                     <h2 class="h5 mb-1">Production</h2>
-                    <p class="text-secondary small mb-0">Poids fini, dechets et pertes pour verifier le rendement.</p>
+                    <p class="text-secondary small mb-0">Reference anchois en filet : 35 a 45% de produit fini, 50 a 60% de dechets, 3 a 8% de pertes process.</p>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
@@ -82,6 +82,9 @@
                             <span>Rendement</span>
                             <strong><span data-cout-output="rendementPourcentage">{{ item.rendementPourcentage|number_format(2, ',', ' ') }}</span> %</strong>
                         </div>
+                    </div>
+                    <div class="alert alert-secondary small mb-0 mt-3" data-cout-production-diagnostic>
+                        Renseignez les poids pour analyser le rendement de production.
                     </div>
                 </div>
             </section>
