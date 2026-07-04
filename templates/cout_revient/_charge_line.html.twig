@@ -6,8 +6,8 @@
 {% set line_unit = line ? line.calculationUnit : 'montant_direct' %}
 {% set line_unit_label = line ? line.calculationUnitLabel : 'Montant direct' %}
 {% set line_unit_short = line ? line.calculationUnitShortLabel : 'direct' %}
-{% set line_unit_cost = line ? line.unitCost : '0.0000' %}
-{% set line_quantity = line ? line.quantity : '1.000' %}
+{% set line_unit_cost = line ? line.unitCost + 0 : '0' %}
+{% set line_quantity = line ? line.quantity + 0 : '1' %}
 {% set line_total = line ? line.totalAmount : '0.00' %}
 {% set line_note = line ? line.note : '' %}
 

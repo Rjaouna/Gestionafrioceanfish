@@ -41,6 +41,20 @@
                         <div class="col-12 col-md-6">{{ form_row(form.fraisTransportAchat) }}</div>
                         <div class="col-12 col-md-6">{{ form_row(form.autresFraisAchat) }}</div>
                     </div>
+                    <div class="cout-live-grid mt-3">
+                        <div class="cout-live-pill">
+                            <span>Achat poisson</span>
+                            <strong><span data-cout-output="coutAchatPoisson">0,00</span> dh</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Frais achat</span>
+                            <strong><span data-cout-output="coutFraisAchatTotal">0,00</span> dh</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Total matiere</span>
+                            <strong><span data-cout-output="coutMatierePremiere">{{ item.coutMatierePremiere|number_format(2, ',', ' ') }}</span> dh</strong>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -54,6 +68,20 @@
                         <div class="col-12 col-md-4">{{ form_row(form.poidsProduitFini) }}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.poidsDechets) }}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.poidsPerte) }}</div>
+                    </div>
+                    <div class="cout-live-grid mt-3">
+                        <div class="cout-live-pill">
+                            <span>Total sortie</span>
+                            <strong><span data-cout-output="totalSortieProduction">0,00</span> kg</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Ecart poids</span>
+                            <strong><span data-cout-output="ecartPoidsProduction">0,00</span> kg</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Rendement</span>
+                            <strong><span data-cout-output="rendementPourcentage">{{ item.rendementPourcentage|number_format(2, ',', ' ') }}</span> %</strong>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -79,6 +107,32 @@
                     <div class="row g-3 mt-1" data-cout-mode-section="montant_direct">
                         <div class="col-12 col-md-6">{{ form_row(form.coutMainOeuvreDirect) }}</div>
                     </div>
+                    <div class="cout-live-grid mt-3" data-cout-mode-result="heure">
+                        <div class="cout-live-pill">
+                            <span>Total / personne</span>
+                            <strong><span data-cout-output="coutMainOeuvreParPersonne">0,00</span> dh</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Total equipe</span>
+                            <strong><span data-cout-output="coutMainOeuvre">{{ item.coutMainOeuvre|number_format(2, ',', ' ') }}</span> dh</strong>
+                        </div>
+                    </div>
+                    <div class="cout-live-grid mt-3" data-cout-mode-result="kg">
+                        <div class="cout-live-pill">
+                            <span>Kg traites</span>
+                            <strong><span data-cout-output="kgTraitesMainOeuvre">0,00</span> kg</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Total tache</span>
+                            <strong><span data-cout-output="coutMainOeuvre">{{ item.coutMainOeuvre|number_format(2, ',', ' ') }}</span> dh</strong>
+                        </div>
+                    </div>
+                    <div class="cout-live-grid mt-3" data-cout-mode-result="montant_direct">
+                        <div class="cout-live-pill">
+                            <span>Total main d'oeuvre</span>
+                            <strong><span data-cout-output="coutMainOeuvre">{{ item.coutMainOeuvre|number_format(2, ',', ' ') }}</span> dh</strong>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -96,6 +150,20 @@
                         <div class="col-12 col-md-4">{{ form_row(form.coutEtiquettes) }}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.coutFilmPlastique) }}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.autresCoutEmballage) }}</div>
+                    </div>
+                    <div class="cout-live-grid mt-3">
+                        <div class="cout-live-pill">
+                            <span>Total cartons</span>
+                            <strong><span data-cout-output="coutCartonsTotal">0,00</span> dh</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Total sachets</span>
+                            <strong><span data-cout-output="coutSachetsTotal">0,00</span> dh</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Total emballage</span>
+                            <strong><span data-cout-output="coutEmballageTotal">{{ item.coutEmballageTotal|number_format(2, ',', ' ') }}</span> dh</strong>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -139,6 +207,21 @@
                         <i class="bi bi-plus-circle me-2"></i>Ajouter une charge au lot
                     </button>
 
+                    <div class="cout-live-grid mt-3">
+                        <div class="cout-live-pill">
+                            <span>Charges configurees</span>
+                            <strong><span data-cout-output="coutChargesConfigureesTotal">0,00</span> dh</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Ajustements</span>
+                            <strong><span data-cout-output="coutAjustementsChargesTotal">0,00</span> dh</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Total charges</span>
+                            <strong><span data-cout-output="coutChargesTotal">{{ item.coutChargesTotal|number_format(2, ',', ' ') }}</span> dh</strong>
+                        </div>
+                    </div>
+
                     <details class="mt-4">
                         <summary class="small text-secondary">Ajustements manuels</summary>
                         <div class="row g-3 mt-2">
@@ -161,6 +244,22 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-12 col-md-4">{{ form_row(form.prixVenteKg) }}</div>
+                        <div class="col-12 col-md-8">
+                            <div class="cout-live-grid">
+                                <div class="cout-live-pill">
+                                    <span>Cout revient / kg</span>
+                                    <strong><span data-cout-output="coutRevientKg">{{ item.coutRevientKg|number_format(2, ',', ' ') }}</span> dh</strong>
+                                </div>
+                                <div class="cout-live-pill">
+                                    <span>Marge / kg</span>
+                                    <strong><span data-cout-output="margeKg">{{ item.margeKg|number_format(2, ',', ' ') }}</span> dh</strong>
+                                </div>
+                                <div class="cout-live-pill">
+                                    <span>Resultat</span>
+                                    <strong><span class="badge {{ item.rentabiliteBadgeClass }}" data-cout-rentability>{{ item.rentabiliteLabel }}</span></strong>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-12">{{ form_row(form.observation) }}</div>
                     </div>
                 </div>

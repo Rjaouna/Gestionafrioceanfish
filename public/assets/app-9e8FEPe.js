@@ -1086,10 +1086,11 @@ function syncCoutRevientForm(form) {
         output.textContent = coutFormat(result[key] ?? 0);
     });
 
-    form.querySelectorAll('[data-cout-rentability]').forEach((rentability) => {
+    const rentability = form.querySelector('[data-cout-rentability]');
+    if (rentability) {
         rentability.className = `badge ${result.rentabiliteBadgeClass}`;
         rentability.textContent = result.rentabiliteLabel;
-    });
+    }
 
     const alerts = form.querySelector('[data-cout-alerts]');
     if (alerts) {

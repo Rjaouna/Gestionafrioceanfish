@@ -33,7 +33,6 @@ final class CoutRevientChargeConfigType extends AbstractType
             ->add('unitCost', NumberType::class, [
                 'label' => 'Cout unitaire',
                 'required' => false,
-                'scale' => 4,
                 'html5' => true,
                 'empty_data' => '0',
                 'attr' => ['min' => 0, 'step' => '0.0001', 'inputmode' => 'decimal'],

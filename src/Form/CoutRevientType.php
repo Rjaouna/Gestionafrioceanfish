@@ -117,7 +117,6 @@ final class CoutRevientType extends AbstractType
         return [
             'label' => $label,
             'required' => $required,
-            'scale' => $scale,
             'html5' => true,
             'empty_data' => $defaultZero ? '0' : null,
             'attr' => [

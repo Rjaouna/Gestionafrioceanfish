@@ -56,7 +56,7 @@
                     </td>
                     <td><span class="badge text-bg-light">{{ charge.categoryLabel }}</span></td>
                     <td>{{ charge.calculationUnitLabel }}</td>
-                    <td class="text-end fw-semibold">{{ charge.unitCost|number_format(4, ',', ' ') }} dh / {{ charge.calculationUnitShortLabel }}</td>
+                    <td class="text-end fw-semibold">{{ charge.unitCost|number_format(4, ',', ' ')|replace({',0000': '', ',000': ''}) }} dh / {{ charge.calculationUnitShortLabel }}</td>
                     <td>
                         <span class="badge {{ charge.active ? 'text-bg-success' : 'text-bg-secondary' }}">
                             {{ charge.active ? 'Active' : 'Inactive' }}

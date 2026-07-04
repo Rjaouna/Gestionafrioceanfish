@@ -36,8 +36,8 @@
                                 <div class="small text-secondary">{{ item.especePoisson }}</div>
                             {% endif %}
                         </td>
-                        <td class="text-end">{{ item.poidsBrutRecu|number_format(3, ',', ' ') }} kg</td>
-                        <td class="text-end">{{ item.poidsProduitFini|number_format(3, ',', ' ') }} kg</td>
+                        <td class="text-end">{{ item.poidsBrutRecu|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</td>
+                        <td class="text-end">{{ item.poidsProduitFini|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</td>
                         <td class="text-end">{{ item.rendementPourcentage|number_format(2, ',', ' ') }} %</td>
                         <td class="text-end">{{ item.coutTotalProduction|number_format(2, ',', ' ') }} dh</td>
                         <td class="text-end">{{ item.coutRevientKg|number_format(2, ',', ' ') }} dh</td>
