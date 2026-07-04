@@ -18,6 +18,8 @@ class CoutRevientChargeLine
 {
     use TimestampableUserTrait;
 
+    private const DAYS_PER_MONTH = 30.0;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -156,6 +158,30 @@ class CoutRevientChargeLine
         return CoutRevientChargeConfig::UNIT_SHORT_LABELS[$this->calculationUnit] ?? $this->calculationUnit;
     }
 
+    public function getQuantityLabel(): string
+    {
+        return match ($this->calculationUnit) {
+            CoutRevientChargeConfig::UNIT_MONTH => 'Jours utilises',
+            CoutRevientChargeConfig::UNIT_DAY => 'Jours',
+            CoutRevientChargeConfig::UNIT_HOUR => 'Heures',
+            CoutRevientChargeConfig::UNIT_KG => 'Kg',
+            CoutRevientChargeConfig::UNIT_LOT => 'Nombre de lots',
+            default => 'Quantite',
+        };
+    }
+
+    public function getAppliedUnitLabel(): string
+    {
+        return $this->calculationUnit === CoutRevientChargeConfig::UNIT_MONTH ? 'jour' : $this->getCalculationUnitShortLabel();
+    }
+
+    public function getAppliedUnitCost(): float
+    {
+        $unitCost = (float) $this->unitCost;
+
+        return $this->calculationUnit === CoutRevientChargeConfig::UNIT_MONTH ? $unitCost / self::DAYS_PER_MONTH : $unitCost;
+    }
+
     public function getUnitCost(): string
     {
         return $this->unitCost;
@@ -194,7 +220,7 @@ class CoutRevientChargeLine
 
     public function recalculate(): static
     {
-        return $this->setTotalAmount((float) $this->unitCost * (float) $this->quantity);
+        return $this->setTotalAmount($this->getAppliedUnitCost() * (float) $this->quantity);
     }
 
     public function getNote(): ?string

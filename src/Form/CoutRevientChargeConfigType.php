@@ -29,6 +29,7 @@ final class CoutRevientChargeConfigType extends AbstractType
             ->add('calculationUnit', ChoiceType::class, [
                 'label' => 'Mode de calcul',
                 'choices' => array_flip(CoutRevientChargeConfig::UNIT_LABELS),
+                'help' => 'Pour une charge mensuelle, le lot demandera le nombre de jours utilises et calculera un prorata sur 30 jours.',
             ])
             ->add('unitCost', NumberType::class, [
                 'label' => 'Cout unitaire',

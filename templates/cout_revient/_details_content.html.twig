@@ -139,7 +139,7 @@
                                     </td>
                                     <td>{{ line.categoryLabel }}</td>
                                     <td>{{ line.calculationUnitLabel }}</td>
-                                    <td class="text-end">{{ line.quantity|number_format(3, ',', ' ')|replace({',000': ''}) }}</td>
+                                    <td class="text-end">{{ line.quantity|number_format(3, ',', ' ')|replace({',000': ''}) }} {{ line.appliedUnitLabel }}</td>
                                     <td class="text-end">{{ line.unitCost|number_format(4, ',', ' ')|replace({',0000': '', ',000': ''}) }} dh / {{ line.calculationUnitShortLabel }}</td>
                                     <td class="text-end fw-semibold">{{ line.totalAmount|number_format(2, ',', ' ') }} dh</td>
                                 </tr>

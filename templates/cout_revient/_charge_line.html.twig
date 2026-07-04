@@ -6,6 +6,7 @@
 {% set line_unit = line ? line.calculationUnit : 'montant_direct' %}
 {% set line_unit_label = line ? line.calculationUnitLabel : 'Montant direct' %}
 {% set line_unit_short = line ? line.calculationUnitShortLabel : 'direct' %}
+{% set line_quantity_label = line ? line.quantityLabel : 'Quantite' %}
 {% set line_unit_cost = line ? line.unitCost + 0 : '0' %}
 {% set line_quantity = line ? line.quantity + 0 : '1' %}
 {% set line_total = line ? line.totalAmount : '0.00' %}
@@ -30,6 +31,7 @@
                         data-unit="{{ config.calculationUnit }}"
                         data-unit-label="{{ config.calculationUnitLabel }}"
                         data-unit-short="{{ config.calculationUnitShortLabel }}"
+                        data-quantity-label="{{ config.calculationUnit == 'mois' ? 'Jours utilises' : (config.calculationUnit == 'jour' ? 'Jours' : (config.calculationUnit == 'heure' ? 'Heures' : (config.calculationUnit == 'kg' ? 'Kg' : (config.calculationUnit == 'lot' ? 'Nombre de lots' : 'Quantite')))) }}"
                         data-unit-cost="{{ config.unitCost }}"
                         {{ selected_config_id == config.id ? 'selected' : '' }}
                     >
@@ -40,7 +42,7 @@
             <div class="form-text" data-cout-charge-meta>{{ line_category_label }} - {{ line_unit_label }}</div>
         </div>
         <div class="col-6 col-lg-2">
-            <label class="form-label fw-semibold" for="cout-charge-quantity-{{ index }}">Quantite</label>
+            <label class="form-label fw-semibold" for="cout-charge-quantity-{{ index }}" data-cout-charge-quantity-label>{{ line_quantity_label }}</label>
             <input id="cout-charge-quantity-{{ index }}" class="form-control" type="number" min="0" step="0.001" inputmode="decimal" name="chargeLines[{{ index }}][quantity]" value="{{ line_quantity }}" data-cout-charge-quantity>
         </div>
         <div class="col-6 col-lg-2">
@@ -53,6 +55,7 @@
             <div class="form-control bg-white fw-semibold">
                 <span data-cout-charge-total>{{ line_total|number_format(2, ',', ' ') }}</span> dh
             </div>
+            <div class="form-text" data-cout-charge-formula>{{ line_unit == 'mois' ? 'Prorata mensuel / 30 jours' : 'Calcul direct' }}</div>
         </div>
         <div class="col-6 col-lg-1 d-grid">
             <button class="btn btn-outline-danger" type="button" title="Retirer" aria-label="Retirer" data-cout-charge-remove>
