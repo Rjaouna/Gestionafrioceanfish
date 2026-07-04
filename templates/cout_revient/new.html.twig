@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau cout de revient{% endblock %}
+
+{% block body %}
+{% include 'cout_revient/_form.html.twig' with {
+    form: form,
+    item: item,
+    charge_configs: charge_configs,
+    title: title,
+    submit_label: submit_label
+} %}
+{% endblock %}

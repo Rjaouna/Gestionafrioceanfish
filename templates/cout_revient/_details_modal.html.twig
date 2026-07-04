@@ -1,0 +1,14 @@
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">Lot {{ item.numeroLot }}</h2>
+        <div class="small text-secondary">{{ item.produit }}{% if item.client %} - {{ item.client }}{% endif %}</div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    {% include 'cout_revient/_details_content.html.twig' with {item: item} %}
+</div>
+<div class="modal-footer">
+    {% include 'cout_revient/_actions.html.twig' with {item: item, size: 'btn-sm'} %}
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+</div>

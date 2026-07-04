@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cout de revient{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Cout de revient</h1>
+        <p class="text-secondary mb-0" data-ajax-count-region="coutRevientGrid">{{ pagination.total }} lot{{ pagination.total > 1 ? 's' : '' }} visible{{ pagination.total > 1 ? 's' : '' }}.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-primary" href="{{ path('app_cout_revient_dashboard') }}">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+        <a class="btn btn-outline-secondary" href="{{ path('app_cout_revient_charge_index') }}">
+            <i class="bi bi-sliders me-2"></i>Charges
+        </a>
+        <a class="btn btn-outline-success" href="{{ path('app_cout_revient_export_excel', filters) }}">
+            <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+        </a>
+        {% if is_granted('COUT_REVIENT_CREATE') %}
+            <a class="btn btn-primary" href="{{ path('app_cout_revient_new') }}">
+                <i class="bi bi-plus-circle me-2"></i>Nouveau lot
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{% include 'cout_revient/_filters.html.twig' with {
+    filters: filters,
+    filter_choices: filter_choices
+} %}
+
+<div
+    data-ajax-region="coutRevientGrid"
+    data-refresh-url="{{ path('app_cout_revient_search') }}"
+    data-refresh-form="#coutRevientFilters"
+>
+    {% include 'cout_revient/_grid.html.twig' with {items: items, pagination: pagination} %}
+</div>
+{% endblock %}

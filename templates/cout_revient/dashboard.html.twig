@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard cout de revient{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Dashboard cout de revient</h1>
+        <p class="text-secondary mb-0">Rentabilite, rendement et couts de production par lot.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_cout_revient_index') }}">
+            <i class="bi bi-table me-2"></i>Liste
+        </a>
+        <a class="btn btn-outline-secondary" href="{{ path('app_cout_revient_charge_index') }}">
+            <i class="bi bi-sliders me-2"></i>Charges
+        </a>
+        <a class="btn btn-outline-success" href="{{ path('app_cout_revient_export_excel', filters) }}">
+            <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+        </a>
+        {% if is_granted('COUT_REVIENT_CREATE') %}
+            <a class="btn btn-primary" href="{{ path('app_cout_revient_new') }}">
+                <i class="bi bi-plus-circle me-2"></i>Nouveau lot
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<form
+    id="coutRevientDashboardFilters"
+    class="card border-0 shadow-sm mb-4"
+    data-cout-dashboard-form
+    data-dashboard-url="{{ path('app_cout_revient_dashboard_stats') }}"
+>
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-6 col-lg-2">
+                <label class="form-label" for="dashboard-date-from">Du</label>
+                <input id="dashboard-date-from" class="form-control" type="date" name="dateFrom" value="{{ filters.dateFrom|default('') }}">
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label" for="dashboard-date-to">Au</label>
+                <input id="dashboard-date-to" class="form-control" type="date" name="dateTo" value="{{ filters.dateTo|default('') }}">
+            </div>
+            <div class="col-12 col-md-4 col-lg-2">
+                <label class="form-label" for="dashboard-produit">Produit</label>
+                <select id="dashboard-produit" class="form-select" name="produit">
+                    <option value="">Tous</option>
+                    {% for produit in filter_choices.produits %}
+                        <option value="{{ produit }}" {{ filters.produit|default('') == produit ? 'selected' : '' }}>{{ produit }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-4 col-lg-2">
+                <label class="form-label" for="dashboard-statut">Statut</label>
+                <select id="dashboard-statut" class="form-select" name="statut">
+                    <option value="">Tous</option>
+                    {% for value, label in filter_choices.statuts %}
+                        <option value="{{ value }}" {{ filters.statut|default('') == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-4 col-lg-2">
+                <label class="form-label" for="dashboard-client">Client</label>
+                <select id="dashboard-client" class="form-select" name="client">
+                    <option value="">Tous</option>
+                    {% for client in filter_choices.clients %}
+                        <option value="{{ client }}" {{ filters.client|default('') == client ? 'selected' : '' }}>{{ client }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-lg-auto ms-lg-auto">
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-arrow-repeat me-2"></i>Actualiser
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div data-cout-dashboard-region>
+    {% include 'cout_revient/_dashboard_content.html.twig' with {dashboard: dashboard} %}
+</div>
+{% endblock %}

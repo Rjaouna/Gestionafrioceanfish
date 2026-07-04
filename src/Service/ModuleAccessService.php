@@ -29,11 +29,13 @@ final readonly class ModuleAccessService
 
         $modules = $this->moduleRepository->findActiveForUser($user);
         if ($this->securityAccess->isAdmin($user)) {
-            $passwordModule = $this->moduleRepository->findOneBy(['slug' => 'passwords', 'isActive' => true]);
-            if ($passwordModule && !in_array($passwordModule, $modules, true)) {
-                $modules[] = $passwordModule;
-                usort($modules, static fn (AppModule $a, AppModule $b): int => strcmp((string) $a->getName(), (string) $b->getName()));
+            foreach (['passwords', 'cout-revient'] as $adminModuleSlug) {
+                $adminModule = $this->moduleRepository->findOneBy(['slug' => $adminModuleSlug, 'isActive' => true]);
+                if ($adminModule && !in_array($adminModule, $modules, true)) {
+                    $modules[] = $adminModule;
+                }
             }
+            usort($modules, static fn (AppModule $a, AppModule $b): int => strcmp((string) $a->getName(), (string) $b->getName()));
         }
 
         return $modules;

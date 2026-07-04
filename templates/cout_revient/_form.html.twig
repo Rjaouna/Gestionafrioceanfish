@@ -1,0 +1,244 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ title }}</h1>
+        <p class="text-secondary mb-0">Calcul automatique du cout reel par kg de produit fini.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ path('app_cout_revient_index') }}">
+        <i class="bi bi-arrow-left me-2"></i>Retour
+    </a>
+</div>
+
+{{ form_start(form, {attr: {'data-ajax-form': 'true', 'data-cout-revient-form': 'true', 'data-cout-calculate-url': path('app_cout_revient_calculate')}}) }}
+    <div class="row g-4 align-items-start">
+        <div class="col-12 col-xl-8">
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Informations generales</h2>
+                    <p class="text-secondary small mb-0">Lot, produit, client et responsable de production.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.dateProduction) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.numeroLot) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.produit) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.especePoisson) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.client) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.responsableProduction) }}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Matiere premiere</h2>
+                    <p class="text-secondary small mb-0">Achat poisson et frais directs avant production.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.poidsBrutRecu) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.poidsMisEnProduction) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.prixAchatKg) }}</div>
+                        <div class="col-12 col-md-6">{{ form_row(form.fraisTransportAchat) }}</div>
+                        <div class="col-12 col-md-6">{{ form_row(form.autresFraisAchat) }}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Production</h2>
+                    <p class="text-secondary small mb-0">Poids fini, dechets et pertes pour verifier le rendement.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.poidsProduitFini) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.poidsDechets) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.poidsPerte) }}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Main d oeuvre</h2>
+                    <p class="text-secondary small mb-0">Choisissez le mode adapte : heure, tache/kg ou montant direct.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.modeCalculMainOeuvre) }}</div>
+                    </div>
+                    <div class="row g-3 mt-1" data-cout-mode-section="heure">
+                        <div class="col-12 col-md-4">{{ form_row(form.nombreOperatrices) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.nombreHeures) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.coutHoraireMoyen) }}</div>
+                    </div>
+                    <div class="row g-3 mt-1" data-cout-mode-section="kg">
+                        <div class="col-12 col-md-6">{{ form_row(form.prixTacheKg) }}</div>
+                        <div class="col-12 col-md-6">{{ form_row(form.kgTraitesMainOeuvre) }}</div>
+                    </div>
+                    <div class="row g-3 mt-1" data-cout-mode-section="montant_direct">
+                        <div class="col-12 col-md-6">{{ form_row(form.coutMainOeuvreDirect) }}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Emballage</h2>
+                    <p class="text-secondary small mb-0">Cartons, sachets, etiquettes et autres emballages.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">{{ form_row(form.nombreCartons) }}</div>
+                        <div class="col-6 col-md-3">{{ form_row(form.prixCarton) }}</div>
+                        <div class="col-6 col-md-3">{{ form_row(form.nombreSachets) }}</div>
+                        <div class="col-6 col-md-3">{{ form_row(form.prixSachet) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.coutEtiquettes) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.coutFilmPlastique) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.autresCoutEmballage) }}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                        <div>
+                            <h2 class="h5 mb-1">Charges configurees</h2>
+                            <p class="text-secondary small mb-0">Selectionnez les charges a inclure dans ce lot.</p>
+                        </div>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_cout_revient_charge_index') }}">
+                            <i class="bi bi-sliders me-1"></i>Configurer
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3" data-cout-charge-lines>
+                        {% for line in item.chargeLines %}
+                            {% include 'cout_revient/_charge_line.html.twig' with {
+                                line: line,
+                                index: loop.index0,
+                                charge_configs: charge_configs|default([])
+                            } %}
+                        {% endfor %}
+                    </div>
+
+                    <div class="alert alert-light border mt-3 mb-0 {{ item.chargeLines|length > 0 ? 'd-none' : '' }}" data-cout-charge-empty>
+                        Aucune charge configuree sur ce lot.
+                    </div>
+
+                    <template data-cout-charge-template>
+                        {% include 'cout_revient/_charge_line.html.twig' with {
+                            line: null,
+                            index: '__INDEX__',
+                            charge_configs: charge_configs|default([])
+                        } %}
+                    </template>
+
+                    <button class="btn btn-outline-primary mt-3" type="button" data-cout-charge-add>
+                        <i class="bi bi-plus-circle me-2"></i>Ajouter une charge au lot
+                    </button>
+
+                    <details class="mt-4">
+                        <summary class="small text-secondary">Ajustements manuels</summary>
+                        <div class="row g-3 mt-2">
+                            <div class="col-12 col-md-4">{{ form_row(form.coutElectricite) }}</div>
+                            <div class="col-12 col-md-4">{{ form_row(form.coutEau) }}</div>
+                            <div class="col-12 col-md-4">{{ form_row(form.coutGlace) }}</div>
+                            <div class="col-12 col-md-4">{{ form_row(form.coutNettoyage) }}</div>
+                            <div class="col-12 col-md-4">{{ form_row(form.coutMaintenance) }}</div>
+                            <div class="col-12 col-md-4">{{ form_row(form.coutTransportLivraison) }}</div>
+                            <div class="col-12 col-md-4">{{ form_row(form.autresCharges) }}</div>
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Vente et observation</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.prixVenteKg) }}</div>
+                        <div class="col-12">{{ form_row(form.observation) }}</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <aside class="col-12 col-xl-4">
+            <div class="position-sticky" style="top: 1rem;" data-cout-summary>
+                <section class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white border-0 pb-0">
+                        <h2 class="h5 mb-1">Resultat automatique</h2>
+                        <p class="text-secondary small mb-0">Previsualisation instantanee, recalcul serveur a l'enregistrement.</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="p-3 rounded-2 bg-primary-subtle">
+                                    <div class="small text-secondary">Cout total</div>
+                                    <strong data-cout-output="coutTotalProduction">{{ item.coutTotalProduction|number_format(2, ',', ' ') }}</strong> dh
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 rounded-2 bg-info-subtle">
+                                    <div class="small text-secondary">Cout/kg</div>
+                                    <strong data-cout-output="coutRevientKg">{{ item.coutRevientKg|number_format(2, ',', ' ') }}</strong> dh
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 rounded-2 bg-success-subtle">
+                                    <div class="small text-secondary">Rendement</div>
+                                    <strong data-cout-output="rendementPourcentage">{{ item.rendementPourcentage|number_format(2, ',', ' ') }}</strong> %
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 rounded-2 bg-warning-subtle">
+                                    <div class="small text-secondary">Marge/kg</div>
+                                    <strong data-cout-output="margeKg">{{ item.margeKg|number_format(2, ',', ' ') }}</strong> dh
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="p-3 rounded-2 bg-light">
+                                    <div class="d-flex justify-content-between gap-2">
+                                        <span>Marge totale</span>
+                                        <strong><span data-cout-output="margeTotale">{{ item.margeTotale|number_format(2, ',', ' ') }}</span> dh</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between gap-2 mt-2">
+                                        <span>Taux marge</span>
+                                        <strong><span data-cout-output="tauxMargePourcentage">{{ item.tauxMargePourcentage|number_format(2, ',', ' ') }}</span> %</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between gap-2 mt-2">
+                                        <span>Charges</span>
+                                        <strong><span data-cout-output="coutChargesTotal">{{ item.coutChargesTotal|number_format(2, ',', ' ') }}</span> dh</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <span class="badge {{ item.rentabiliteBadgeClass }}" data-cout-rentability>{{ item.rentabiliteLabel }}</span>
+                        </div>
+                        <div class="mt-3 d-grid gap-2" data-cout-alerts>
+                            {% for alert in item.alertMessages %}
+                                <div class="alert alert-warning small mb-0">{{ alert }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" type="submit" name="saveMode" value="draft">
+                        <i class="bi bi-save me-2"></i>{{ submit_label }}
+                    </button>
+                    <button class="btn btn-success" type="submit" name="saveMode" value="validate">
+                        <i class="bi bi-check2-circle me-2"></i>Enregistrer et valider
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+    {{ form_rest(form) }}
+{{ form_end(form) }}

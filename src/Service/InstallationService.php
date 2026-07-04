@@ -31,6 +31,7 @@ final readonly class InstallationService
             ['Carnet de contacts', 'contacts', 'bi-person-lines-fill', 'app_contact_index', 'Fournisseurs, clients, dépanneurs et contacts partagés.'],
             ['Maintenance', 'maintenance', 'bi-tools', 'app_maintenance_intervenant_index', 'Intervenants, contrats et interventions de maintenance.'],
             ['Dépenses', 'expenses', 'bi-cash-coin', 'app_expense_index', 'Gestion financière des dépenses, justificatifs et validations.'],
+            ['Cout de revient', 'cout-revient', 'bi-calculator', 'app_cout_revient_index', 'Calcul des couts de production, rendements et marges par lot.'],
             ['Intérimaires', 'interimaires', 'bi-person-vcard', 'app_interim_worker_index', 'Fiches de poste, suivi RH et documents des intérimaires.'],
             ['Agenda - RDV', 'agenda', 'bi-calendar-check', 'app_appointment_calendar', 'Calendrier professionnel, rendez-vous, participants et rappels.'],
             ['Statistiques', 'statistics', 'bi-graph-up-arrow', 'app_statistics_index', 'Graphiques et indicateurs de pilotage.'],

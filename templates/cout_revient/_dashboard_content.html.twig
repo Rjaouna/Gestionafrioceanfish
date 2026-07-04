@@ -1,0 +1,107 @@
+{% set stats = dashboard.stats %}
+{% set charts = dashboard.charts %}
+
+<div class="dashboard-kpi-grid mb-4">
+    <div class="dashboard-kpi-card card border-0 shadow-sm">
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Lots</span><span class="dashboard-kpi-icon"><i class="bi bi-box"></i></span></div>
+        <div class="dashboard-kpi-value">{{ stats.lots }}</div>
+        <div class="dashboard-kpi-hint">lots analyses</div>
+    </div>
+    <div class="dashboard-kpi-card card border-0 shadow-sm">
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Poids fini</span><span class="dashboard-kpi-icon"><i class="bi bi-speedometer"></i></span></div>
+        <div class="dashboard-kpi-value">{{ stats.poids_fini_total|number_format(0, ',', ' ') }}</div>
+        <div class="dashboard-kpi-hint">kg produits finis</div>
+    </div>
+    <div class="dashboard-kpi-card card border-0 shadow-sm">
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Rendement</span><span class="dashboard-kpi-icon"><i class="bi bi-percent"></i></span></div>
+        <div class="dashboard-kpi-value">{{ stats.rendement_moyen|number_format(1, ',', ' ') }}%</div>
+        <div class="dashboard-kpi-hint">moyenne periode</div>
+    </div>
+    <div class="dashboard-kpi-card card border-0 shadow-sm">
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Cout total</span><span class="dashboard-kpi-icon"><i class="bi bi-cash-stack"></i></span></div>
+        <div class="dashboard-kpi-value">{{ stats.cout_total|number_format(0, ',', ' ') }}</div>
+        <div class="dashboard-kpi-hint">dh production</div>
+    </div>
+    <div class="dashboard-kpi-card card border-0 shadow-sm">
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Cout/kg</span><span class="dashboard-kpi-icon"><i class="bi bi-calculator"></i></span></div>
+        <div class="dashboard-kpi-value">{{ stats.cout_moyen_kg|number_format(2, ',', ' ') }}</div>
+        <div class="dashboard-kpi-hint">dh/kg moyen</div>
+    </div>
+    <div class="dashboard-kpi-card card border-0 shadow-sm">
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Marge</span><span class="dashboard-kpi-icon"><i class="bi bi-graph-up-arrow"></i></span></div>
+        <div class="dashboard-kpi-value">{{ stats.marge_totale|number_format(0, ',', ' ') }}</div>
+        <div class="dashboard-kpi-hint">dh marge totale</div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-6">
+        <section class="dashboard-module-card card border-0 shadow-sm h-100">
+            <div class="card-body">
+                {% include 'components/_dashboard_chart.html.twig' with {
+                    title: 'Repartition des couts',
+                    subtitle: 'Matiere / main oeuvre / emballage / charges',
+                    chart: charts.cost_breakdown,
+                    chart_type: 'pie',
+                    center_value: stats.cout_total|number_format(0, ',', ' ') ~ ' dh',
+                    center_label: 'Total',
+                    tone: 'primary'
+                } only %}
+            </div>
+        </section>
+    </div>
+    <div class="col-12 col-xl-6">
+        <section class="dashboard-module-card card border-0 shadow-sm h-100">
+            <div class="card-body">
+                {% include 'components/_dashboard_chart.html.twig' with {
+                    title: 'Rentabilite lots',
+                    subtitle: stats.lots ~ ' lot(s)',
+                    chart: charts.rentability,
+                    chart_type: 'pie',
+                    center_value: stats.lots,
+                    center_label: 'Lots',
+                    tone: 'success'
+                } only %}
+            </div>
+        </section>
+    </div>
+    <div class="col-12 col-xl-6">
+        <section class="dashboard-module-card card border-0 shadow-sm h-100">
+            <div class="card-body">
+                {% include 'components/_dashboard_chart.html.twig' with {
+                    title: 'Marge totale par lot',
+                    subtitle: 'Top derniers lots',
+                    chart: charts.margin_by_lot,
+                    chart_type: 'bars',
+                    tone: 'success'
+                } only %}
+            </div>
+        </section>
+    </div>
+    <div class="col-12 col-xl-6">
+        <section class="dashboard-module-card card border-0 shadow-sm h-100">
+            <div class="card-body">
+                {% include 'components/_dashboard_chart.html.twig' with {
+                    title: 'Rendement par lot',
+                    subtitle: 'Controle production',
+                    chart: charts.rendement_by_lot,
+                    chart_type: 'bars',
+                    tone: 'primary'
+                } only %}
+            </div>
+        </section>
+    </div>
+    <div class="col-12">
+        <section class="dashboard-module-card card border-0 shadow-sm">
+            <div class="card-body">
+                {% include 'components/_dashboard_chart.html.twig' with {
+                    title: 'Evolution cout de revient / kg',
+                    subtitle: 'Par date de production',
+                    chart: charts.cout_kg_evolution,
+                    chart_type: 'bars',
+                    tone: 'info'
+                } only %}
+            </div>
+        </section>
+    </div>
+</div>

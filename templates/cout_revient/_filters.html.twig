@@ -1,0 +1,79 @@
+<form id="coutRevientFilters" class="card border-0 shadow-sm mb-4" data-ajax-filter-region="coutRevientGrid">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-lg-3">
+                <label class="form-label" for="cout-revient-q">Recherche</label>
+                <input id="cout-revient-q" class="form-control" type="search" name="q" value="{{ filters.q|default('') }}" placeholder="Lot, produit, client...">
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label" for="cout-revient-date-from">Du</label>
+                <input id="cout-revient-date-from" class="form-control" type="date" name="dateFrom" value="{{ filters.dateFrom|default('') }}">
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label" for="cout-revient-date-to">Au</label>
+                <input id="cout-revient-date-to" class="form-control" type="date" name="dateTo" value="{{ filters.dateTo|default('') }}">
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="cout-revient-produit">Produit</label>
+                <select id="cout-revient-produit" class="form-select" name="produit">
+                    <option value="">Tous</option>
+                    {% for produit in filter_choices.produits %}
+                        <option value="{{ produit }}" {{ filters.produit|default('') == produit ? 'selected' : '' }}>{{ produit }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="cout-revient-client">Client</label>
+                <select id="cout-revient-client" class="form-select" name="client">
+                    <option value="">Tous</option>
+                    {% for client in filter_choices.clients %}
+                        <option value="{{ client }}" {{ filters.client|default('') == client ? 'selected' : '' }}>{{ client }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-4 col-lg-2">
+                <label class="form-label" for="cout-revient-statut">Statut</label>
+                <select id="cout-revient-statut" class="form-select" name="statut">
+                    <option value="">Tous</option>
+                    {% for value, label in filter_choices.statuts %}
+                        <option value="{{ value }}" {{ filters.statut|default('') == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-4 col-lg-2">
+                <label class="form-label" for="cout-revient-rentabilite">Rentabilite</label>
+                <select id="cout-revient-rentabilite" class="form-select" name="rentabilite">
+                    <option value="">Toutes</option>
+                    {% for value, label in filter_choices.rentabilites %}
+                        <option value="{{ value }}" {{ filters.rentabilite|default('') == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2 col-lg-2">
+                <label class="form-label" for="cout-revient-sort">Tri</label>
+                <select id="cout-revient-sort" class="form-select" name="sort">
+                    {% for value, label in filter_choices.sorts %}
+                        <option value="{{ value }}" {{ filters.sort|default('date') == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2 col-lg-2">
+                <label class="form-label" for="cout-revient-direction">Sens</label>
+                <select id="cout-revient-direction" class="form-select" name="direction">
+                    <option value="desc" {{ filters.direction|default('desc') == 'desc' ? 'selected' : '' }}>Desc</option>
+                    <option value="asc" {{ filters.direction|default('desc') == 'asc' ? 'selected' : '' }}>Asc</option>
+                </select>
+            </div>
+            <div class="col-12 col-lg-auto ms-lg-auto">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-search me-2"></i>Filtrer
+                    </button>
+                    <a class="btn btn-outline-secondary" href="{{ path('app_cout_revient_index') }}">
+                        <i class="bi bi-x-circle me-2"></i>Effacer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

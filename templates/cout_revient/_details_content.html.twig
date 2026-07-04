@@ -1,0 +1,156 @@
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Cout total</div>
+                <div class="h5 mb-0">{{ item.coutTotalProduction|number_format(2, ',', ' ') }} dh</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Cout/kg</div>
+                <div class="h5 mb-0">{{ item.coutRevientKg|number_format(2, ',', ' ') }} dh</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Rendement</div>
+                <div class="h5 mb-0">{{ item.rendementPourcentage|number_format(2, ',', ' ') }} %</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Marge totale</div>
+                <div class="h5 mb-0 {{ item.hasPrixVente and item.margeKg < 0 ? 'text-danger' : '' }}">{{ item.margeTotale|number_format(2, ',', ' ') }} dh</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Taux marge</div>
+                <div class="h5 mb-0">{{ item.tauxMargePourcentage|number_format(2, ',', ' ') }} %</div>
+                <span class="badge {{ item.rentabiliteBadgeClass }} mt-2">{{ item.rentabiliteLabel }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for alert in item.alertMessages %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle me-2"></i>{{ alert }}
+    </div>
+{% endfor %}
+
+<div class="row g-4">
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Informations generales</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-5 text-secondary">Date</dt><dd class="col-7">{{ item.dateProduction ? item.dateProduction|date('d/m/Y') : '-' }}</dd>
+                    <dt class="col-5 text-secondary">Lot</dt><dd class="col-7">{{ item.numeroLot }}</dd>
+                    <dt class="col-5 text-secondary">Produit</dt><dd class="col-7">{{ item.produit }}</dd>
+                    <dt class="col-5 text-secondary">Espece</dt><dd class="col-7">{{ item.especePoisson ?: '-' }}</dd>
+                    <dt class="col-5 text-secondary">Client</dt><dd class="col-7">{{ item.client ?: '-' }}</dd>
+                    <dt class="col-5 text-secondary">Responsable</dt><dd class="col-7">{{ item.responsableProduction ?: '-' }}</dd>
+                    <dt class="col-5 text-secondary">Statut</dt><dd class="col-7"><span class="badge {{ item.statutBadgeClass }}">{{ item.statutLabel }}</span></dd>
+                    <dt class="col-5 text-secondary">Cree par</dt><dd class="col-7">{{ item.createdBy ? item.createdBy.displayName : '-' }}</dd>
+                    <dt class="col-5 text-secondary">Valide le</dt><dd class="col-7">{{ item.validatedAt ? item.validatedAt|date('d/m/Y H:i') : '-' }}</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Matiere et production</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6 text-secondary">Poids brut</dt><dd class="col-6 text-end">{{ item.poidsBrutRecu|number_format(3, ',', ' ') }} kg</dd>
+                    <dt class="col-6 text-secondary">Mis en production</dt><dd class="col-6 text-end">{{ item.poidsMisEnProduction|number_format(3, ',', ' ') }} kg</dd>
+                    <dt class="col-6 text-secondary">Prix achat/kg</dt><dd class="col-6 text-end">{{ item.prixAchatKg|number_format(2, ',', ' ') }} dh</dd>
+                    <dt class="col-6 text-secondary">Frais achat</dt><dd class="col-6 text-end">{{ (item.fraisTransportAchat + item.autresFraisAchat)|number_format(2, ',', ' ') }} dh</dd>
+                    <dt class="col-6 text-secondary">Cout matiere</dt><dd class="col-6 text-end fw-semibold">{{ item.coutMatierePremiere|number_format(2, ',', ' ') }} dh</dd>
+                    <dt class="col-6 text-secondary">Poids fini</dt><dd class="col-6 text-end">{{ item.poidsProduitFini|number_format(3, ',', ' ') }} kg</dd>
+                    <dt class="col-6 text-secondary">Dechets</dt><dd class="col-6 text-end">{{ item.poidsDechets|number_format(3, ',', ' ') }} kg</dd>
+                    <dt class="col-6 text-secondary">Pertes</dt><dd class="col-6 text-end">{{ item.poidsPerte|number_format(3, ',', ' ') }} kg</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Couts directs</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6 text-secondary">Main d oeuvre</dt><dd class="col-6 text-end">{{ item.coutMainOeuvre|number_format(2, ',', ' ') }} dh</dd>
+                    <dt class="col-6 text-secondary">Mode main oeuvre</dt><dd class="col-6 text-end">{{ item.modeCalculMainOeuvreLabel }}</dd>
+                    <dt class="col-6 text-secondary">Emballage</dt><dd class="col-6 text-end">{{ item.coutEmballageTotal|number_format(2, ',', ' ') }} dh</dd>
+                    <dt class="col-6 text-secondary">Charges</dt><dd class="col-6 text-end">{{ item.coutChargesTotal|number_format(2, ',', ' ') }} dh</dd>
+                    <dt class="col-6 text-secondary">Prix vente/kg</dt><dd class="col-6 text-end">{{ item.prixVenteKg is not null ? item.prixVenteKg|number_format(2, ',', ' ') ~ ' dh' : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Marge/kg</dt><dd class="col-6 text-end">{{ item.margeKg|number_format(2, ',', ' ') }} dh</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Observations</h2></div>
+            <div class="card-body">
+                <p class="mb-0 text-pre-wrap">{{ item.observation ?: 'Aucune observation.' }}</p>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12">
+        <section class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Charges appliquees</h2></div>
+            <div class="card-body">
+                {% if item.chargeLines|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Charge</th>
+                                    <th>Categorie</th>
+                                    <th>Calcul</th>
+                                    <th class="text-end">Quantite</th>
+                                    <th class="text-end">Cout unitaire</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for line in item.chargeLines %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">{{ line.name }}</div>
+                                        {% if line.note %}
+                                            <div class="small text-secondary">{{ line.note }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ line.categoryLabel }}</td>
+                                    <td>{{ line.calculationUnitLabel }}</td>
+                                    <td class="text-end">{{ line.quantity|number_format(3, ',', ' ') }}</td>
+                                    <td class="text-end">{{ line.unitCost|number_format(4, ',', ' ') }} dh / {{ line.calculationUnitShortLabel }}</td>
+                                    <td class="text-end fw-semibold">{{ line.totalAmount|number_format(2, ',', ' ') }} dh</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-secondary mb-0">Aucune charge configuree appliquee.</p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>

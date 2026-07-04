@@ -112,7 +112,7 @@ final readonly class SecurityAccessService
             return false;
         }
 
-        if ($this->isSuperAdmin($user) || ($this->isAdmin($user) && $slug === 'passwords')) {
+        if ($this->isSuperAdmin($user) || ($this->isAdmin($user) && in_array($slug, ['passwords', 'cout-revient'], true))) {
             return true;
         }
 

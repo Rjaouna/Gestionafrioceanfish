@@ -1,3 +1,119 @@
+{% macro business_module(module, current_route) %}
+    {% set module_active = module.slug == 'maintenance' ? current_route starts with 'app_maintenance' : current_route starts with module.routeName|replace({'_index': ''}) %}
+
+    {% if module.slug == 'maintenance' %}
+        <section class="sidebar-open-section {{ module_active ? 'active' : '' }}">
+            <div class="sidebar-open-body">
+                <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path('app_maintenance_intervention_index') }}">
+                    <i class="bi bi-tools"></i>
+                    <span>Maintenance</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_maintenance_intervention' ? 'active' : '' }}" href="{{ path('app_maintenance_intervention_index') }}">
+                    <i class="bi bi-wrench-adjustable"></i>
+                    <span>Interventions</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_maintenance_intervenant' ? 'active' : '' }}" href="{{ path('app_maintenance_intervenant_index') }}">
+                    <i class="bi bi-person-gear"></i>
+                    <span>Intervenants</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_maintenance_contract' ? 'active' : '' }}" href="{{ path('app_maintenance_contract_index') }}">
+                    <i class="bi bi-file-earmark-check"></i>
+                    <span>Contrats</span>
+                </a>
+            </div>
+        </section>
+    {% elseif module.slug == 'expenses' %}
+        <section class="sidebar-open-section {{ module_active ? 'active' : '' }}">
+            <div class="sidebar-open-body">
+                <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path('app_expense_index') }}">
+                    <i class="bi bi-cash-coin"></i>
+                    <span>Depenses</span>
+                </a>
+                <a
+                    class="sidebar-sub-link ps-4"
+                    href="{{ path('app_expense_index') }}#nouvelle-depense"
+                    data-navigation-modal="#createExpenseModal"
+                >
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Nouvelle depense</span>
+                </a>
+                {% if is_granted('EXPENSE_MANAGE_CATEGORIES') %}
+                    <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_expense_category' ? 'active' : '' }}" href="{{ path('app_expense_category_index') }}">
+                        <i class="bi bi-tags"></i>
+                        <span>Categories</span>
+                    </a>
+                {% endif %}
+            </div>
+        </section>
+    {% elseif module.slug == 'cout-revient' %}
+        <section class="sidebar-open-section {{ module_active ? 'active' : '' }}">
+            <div class="sidebar-open-body">
+                <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path('app_cout_revient_index') }}">
+                    <i class="bi bi-calculator"></i>
+                    <span>Cout de revient</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route == 'app_cout_revient_dashboard' ? 'active' : '' }}" href="{{ path('app_cout_revient_dashboard') }}">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route == 'app_cout_revient_new' ? 'active' : '' }}" href="{{ path('app_cout_revient_new') }}">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Nouveau lot</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_cout_revient_charge' ? 'active' : '' }}" href="{{ path('app_cout_revient_charge_index') }}">
+                    <i class="bi bi-sliders"></i>
+                    <span>Charges production</span>
+                </a>
+            </div>
+        </section>
+    {% else %}
+        {% set label = module.slug == 'interimaires' ? 'Fiche interimaire' : (module.slug == 'contacts' ? 'Carnet de contacts' : module.name) %}
+        <section class="sidebar-open-section {{ module_active ? 'active' : '' }}">
+            <div class="sidebar-open-body">
+                <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path(module.routeName) }}">
+                    <i class="bi {{ module.icon }}"></i>
+                    <span>{{ label }}</span>
+                </a>
+
+                {% if module.slug == 'contacts' %}
+                    <a
+                        class="sidebar-sub-link ps-4"
+                        href="{{ path(module.routeName) }}#nouveau-contact"
+                        data-navigation-modal="#createContactModal"
+                    >
+                        <i class="bi bi-person-plus"></i>
+                        <span>Ajouter un contact</span>
+                    </a>
+                {% endif %}
+
+                {% if module.slug == 'documents' %}
+                    <a
+                        class="sidebar-sub-link ps-4"
+                        href="{{ path(module.routeName) }}#nouveau-document"
+                        data-navigation-modal="#createDocumentModal"
+                    >
+                        <i class="bi bi-file-earmark-plus"></i>
+                        <span>Ajouter un document</span>
+                    </a>
+                {% endif %}
+
+                {% if module.slug == 'interimaires' %}
+                    <a
+                        class="sidebar-sub-link ps-4"
+                        href="{{ path(module.routeName) }}#nouvel-interimaire"
+                        data-navigation-modal="#createInterimWorkerModal"
+                    >
+                        <i class="bi bi-person-plus"></i>
+                        <span>Ajouter un interimaire</span>
+                    </a>
+                {% endif %}
+            </div>
+        </section>
+    {% endif %}
+{% endmacro %}
+
+{% import _self as menu %}
+
 {% set current_route = app.request.attributes.get('_route')|default('') %}
 {% set password_modules = modules|filter(module => module.slug == 'passwords') %}
 {% set user_modules = modules|filter(module => module.slug == 'users') %}
@@ -15,13 +131,9 @@
 {% set configuration_active = current_route starts with 'app_module' %}
 {% set trash_active = current_route starts with 'app_trash' %}
 {% set deleted_items_count = is_granted('ROLE_SUPER_ADMIN') ? trash_deleted_count(app.user) : 0 %}
-{% set business_active = false %}
-
-{% for module in business_modules %}
-    {% if current_route starts with module.routeName|replace({'_index': ''}) or (module.slug == 'maintenance' and current_route starts with 'app_maintenance') %}
-        {% set business_active = true %}
-    {% endif %}
-{% endfor %}
+{% set primary_business_slugs = ['cout-revient', 'interimaires', 'expenses', 'contacts'] %}
+{% set secondary_business_slugs = ['documents', 'maintenance'] %}
+{% set ordered_business_slugs = primary_business_slugs|merge(secondary_business_slugs) %}
 
 <div class="sidebar-navigation">
     <div class="sidebar-menu-search" data-sidebar-search>
@@ -44,108 +156,36 @@
     </div>
 
     <div class="sidebar-primary">
-        <div class="sidebar-kicker">Vue d’ensemble</div>
         <a class="sidebar-home-link {{ current_route == 'app_dashboard' ? 'active' : '' }}" href="{{ path('app_dashboard') }}">
             <span class="sidebar-link-icon"><i class="bi bi-speedometer2"></i></span>
             <span>
                 <strong>Tableau de bord</strong>
-                <small>Résumé de votre espace</small>
+                <small>Accueil</small>
             </span>
         </a>
 
-        <div class="sidebar-kicker mt-3">Espaces de gestion</div>
-
-        {% if password_modules|length > 0 %}
-            <section class="sidebar-open-section {{ security_active ? 'active' : '' }}">
-                <div class="sidebar-open-heading">
-                    <span class="sidebar-section-icon"><i class="bi bi-shield-lock"></i></span>
-                    <strong>Gestion de sécurité</strong>
-                </div>
-                <div class="sidebar-open-body">
-                    <a class="sidebar-sub-link {{ security_active ? 'active' : '' }}" href="{{ path('app_password_index') }}">
-                        <i class="bi bi-key"></i>
-                        <span>Coffre de mots de passe</span>
-                    </a>
-                    <a
-                        class="sidebar-sub-link ps-4"
-                        href="{{ path('app_password_index') }}#nouveau-mot-de-passe"
-                        data-navigation-modal="#createPasswordModal"
-                    >
-                        <i class="bi bi-plus-circle"></i>
-                        <span>Ajouter un mot de passe</span>
-                    </a>
-                </div>
-            </section>
-        {% endif %}
-
-        {% if can_manage_users %}
-            <section class="sidebar-open-section {{ users_active ? 'active' : '' }}">
-                <div class="sidebar-open-heading">
-                    <span class="sidebar-section-icon"><i class="bi bi-people"></i></span>
-                    <strong>Gestion des utilisateurs</strong>
-                </div>
-                <div class="sidebar-open-body">
-                    <a class="sidebar-sub-link {{ current_route starts with 'app_user' ? 'active' : '' }}" href="{{ path('app_user_index') }}">
-                        <i class="bi bi-people"></i>
-                        <span>Liste des utilisateurs</span>
-                    </a>
-                    <a
-                        class="sidebar-sub-link ps-4"
-                        href="{{ path('app_user_index') }}#nouvel-utilisateur"
-                        data-navigation-modal="#createUserModal"
-                    >
-                        <i class="bi bi-person-plus"></i>
-                        <span>Ajouter un utilisateur</span>
-                    </a>
-                </div>
-            </section>
-        {% endif %}
-
-        {% if agenda_modules|length > 0 %}
-            <section class="sidebar-open-section {{ agenda_active ? 'active' : '' }}">
-                <div class="sidebar-open-heading">
-                    <span class="sidebar-section-icon"><i class="bi bi-calendar-check"></i></span>
-                    <strong>Agenda - RDV</strong>
-                </div>
-                <div class="sidebar-open-body">
-                    <a class="sidebar-sub-link {{ current_route in ['app_appointment_calendar', 'app_appointment_calendar_alias'] ? 'active' : '' }}" href="{{ path('app_appointment_calendar') }}">
-                        <i class="bi bi-calendar3"></i>
-                        <span>Calendrier</span>
-                    </a>
-                    <a class="sidebar-sub-link ps-4 {{ current_route == 'app_appointment_index' ? 'active' : '' }}" href="{{ path('app_appointment_index') }}">
-                        <i class="bi bi-list-task"></i>
-                        <span>Liste des rendez-vous</span>
-                    </a>
-                    <a class="sidebar-sub-link ps-4 {{ current_route == 'app_appointment_new' ? 'active' : '' }}" href="{{ path('app_appointment_new') }}">
-                        <i class="bi bi-calendar-plus"></i>
-                        <span>Nouveau rendez-vous</span>
-                    </a>
-                    <a class="sidebar-sub-link ps-4 {{ current_route == 'app_appointment_my' ? 'active' : '' }}" href="{{ path('app_appointment_my') }}">
-                        <i class="bi bi-person-check"></i>
-                        <span>Mes rendez-vous</span>
-                    </a>
-                </div>
-            </section>
-        {% endif %}
+        {% for slug in primary_business_slugs %}
+            {% for module in business_modules %}
+                {% if module.slug == slug %}
+                    {{ menu.business_module(module, current_route) }}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
 
         {% if inventory_modules|length > 0 %}
             <section class="sidebar-open-section {{ inventory_active ? 'active' : '' }}">
-                <div class="sidebar-open-heading">
-                    <span class="sidebar-section-icon"><i class="bi bi-box-seam"></i></span>
-                    <strong>Inventaire</strong>
-                </div>
                 <div class="sidebar-open-body">
-                    <a class="sidebar-sub-link {{ current_route == 'app_inventory_dashboard' ? 'active' : '' }}" href="{{ path('app_inventory_dashboard') }}">
-                        <i class="bi bi-speedometer2"></i>
-                        <span>Tableau de bord</span>
+                    <a class="sidebar-sub-link {{ inventory_active ? 'active' : '' }}" href="{{ path('app_inventory_dashboard') }}">
+                        <i class="bi bi-box-seam"></i>
+                        <span>Inventaire</span>
                     </a>
                     <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_inventory_request' ? 'active' : '' }}" href="{{ path('app_inventory_request_index') }}">
                         <i class="bi bi-inbox"></i>
-                        <span>Demandes à valider</span>
+                        <span>Demandes a valider</span>
                     </a>
                     <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_inventory_item' ? 'active' : '' }}" href="{{ path('app_inventory_item_index') }}">
                         <i class="bi bi-box-seam"></i>
-                        <span>Matériel</span>
+                        <span>Materiel</span>
                     </a>
                     <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_inventory_carton' ? 'active' : '' }}" href="{{ path('app_inventory_carton_stock_index') }}">
                         <i class="bi bi-boxes"></i>
@@ -163,97 +203,83 @@
             </section>
         {% endif %}
 
-        {% if business_modules|length > 0 %}
-            <section class="sidebar-open-section {{ business_active ? 'active' : '' }}">
-                <div class="sidebar-open-heading">
-                    <span class="sidebar-section-icon"><i class="bi bi-briefcase"></i></span>
-                    <strong>Gestion métier</strong>
-                </div>
+        {% for slug in secondary_business_slugs %}
+            {% for module in business_modules %}
+                {% if module.slug == slug %}
+                    {{ menu.business_module(module, current_route) }}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+
+        {% if agenda_modules|length > 0 %}
+            <section class="sidebar-open-section {{ agenda_active ? 'active' : '' }}">
                 <div class="sidebar-open-body">
-                    {% for module in business_modules %}
-                        {% set module_active = module.slug == 'maintenance' ? current_route starts with 'app_maintenance' : current_route starts with module.routeName|replace({'_index': ''}) %}
-                        {% if module.slug == 'maintenance' %}
-                            <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path('app_maintenance_intervenant_index') }}">
-                                <i class="bi bi-tools"></i>
-                                <span>Maintenance</span>
-                            </a>
-                            <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_maintenance_intervenant' ? 'active' : '' }}" href="{{ path('app_maintenance_intervenant_index') }}">
-                                <i class="bi bi-person-gear"></i>
-                                <span>Intervenants</span>
-                            </a>
-                            <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_maintenance_contract' ? 'active' : '' }}" href="{{ path('app_maintenance_contract_index') }}">
-                                <i class="bi bi-file-earmark-check"></i>
-                                <span>Contrats de maintenance</span>
-                            </a>
-                            <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_maintenance_intervention' ? 'active' : '' }}" href="{{ path('app_maintenance_intervention_index') }}">
-                                <i class="bi bi-wrench-adjustable"></i>
-                                <span>Interventions</span>
-                            </a>
-                        {% elseif module.slug == 'expenses' %}
-                            <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path('app_expense_index') }}">
-                                <i class="bi bi-cash-coin"></i>
-                                <span>Dépenses</span>
-                            </a>
-                            <a
-                                class="sidebar-sub-link ps-4"
-                                href="{{ path('app_expense_index') }}#nouvelle-depense"
-                                data-navigation-modal="#createExpenseModal"
-                            >
-                                <i class="bi bi-plus-circle"></i>
-                                <span>Nouvelle dépense</span>
-                            </a>
-                            {% if is_granted('EXPENSE_MANAGE_CATEGORIES') %}
-                                <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_expense_category' ? 'active' : '' }}" href="{{ path('app_expense_category_index') }}">
-                                    <i class="bi bi-tags"></i>
-                                    <span>Catégories</span>
-                                </a>
-                            {% endif %}
-                        {% else %}
-                            <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path(module.routeName) }}">
-                                <i class="bi {{ module.icon }}"></i>
-                                <span>{{ module.name }}</span>
-                            </a>
-                        {% endif %}
+                    <a class="sidebar-sub-link {{ agenda_active ? 'active' : '' }}" href="{{ path('app_appointment_calendar') }}">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>Agenda</span>
+                    </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route == 'app_appointment_index' ? 'active' : '' }}" href="{{ path('app_appointment_index') }}">
+                        <i class="bi bi-list-task"></i>
+                        <span>Liste des rendez-vous</span>
+                    </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route == 'app_appointment_new' ? 'active' : '' }}" href="{{ path('app_appointment_new') }}">
+                        <i class="bi bi-calendar-plus"></i>
+                        <span>Nouveau rendez-vous</span>
+                    </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route == 'app_appointment_my' ? 'active' : '' }}" href="{{ path('app_appointment_my') }}">
+                        <i class="bi bi-person-check"></i>
+                        <span>Mes rendez-vous</span>
+                    </a>
+                </div>
+            </section>
+        {% endif %}
 
-                        {% if module.slug == 'contacts' %}
-                            <a
-                                class="sidebar-sub-link ps-4"
-                                href="{{ path(module.routeName) }}#nouveau-contact"
-                                data-navigation-modal="#createContactModal"
-                            >
-                                <i class="bi bi-person-plus"></i>
-                                <span>Ajouter un contact</span>
-                            </a>
-                        {% endif %}
+        {% for module in business_modules %}
+            {% if module.slug not in ordered_business_slugs %}
+                {{ menu.business_module(module, current_route) }}
+            {% endif %}
+        {% endfor %}
 
-                        {% if module.slug == 'documents' %}
-                            <a
-                                class="sidebar-sub-link ps-4"
-                                href="{{ path(module.routeName) }}#nouveau-document"
-                                data-navigation-modal="#createDocumentModal"
-                            >
-                                <i class="bi bi-file-earmark-plus"></i>
-                                <span>Ajouter un document</span>
-                            </a>
-                        {% endif %}
+        {% if password_modules|length > 0 %}
+            <section class="sidebar-open-section {{ security_active ? 'active' : '' }}">
+                <div class="sidebar-open-body">
+                    <a class="sidebar-sub-link {{ security_active ? 'active' : '' }}" href="{{ path('app_password_index') }}">
+                        <i class="bi bi-shield-lock"></i>
+                        <span>Securite</span>
+                    </a>
+                    <a
+                        class="sidebar-sub-link ps-4"
+                        href="{{ path('app_password_index') }}#nouveau-mot-de-passe"
+                        data-navigation-modal="#createPasswordModal"
+                    >
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Ajouter un mot de passe</span>
+                    </a>
+                </div>
+            </section>
+        {% endif %}
 
-                        {% if module.slug == 'interimaires' %}
-                            <a
-                                class="sidebar-sub-link ps-4"
-                                href="{{ path(module.routeName) }}#nouvel-interimaire"
-                                data-navigation-modal="#createInterimWorkerModal"
-                            >
-                                <i class="bi bi-person-plus"></i>
-                                <span>Ajouter un intérimaire</span>
-                            </a>
-                        {% endif %}
-                    {% endfor %}
+        {% if can_manage_users %}
+            <section class="sidebar-open-section {{ users_active ? 'active' : '' }}">
+                <div class="sidebar-open-body">
+                    <a class="sidebar-sub-link {{ current_route starts with 'app_user' ? 'active' : '' }}" href="{{ path('app_user_index') }}">
+                        <i class="bi bi-people"></i>
+                        <span>Utilisateurs</span>
+                    </a>
+                    <a
+                        class="sidebar-sub-link ps-4"
+                        href="{{ path('app_user_index') }}#nouvel-utilisateur"
+                        data-navigation-modal="#createUserModal"
+                    >
+                        <i class="bi bi-person-plus"></i>
+                        <span>Ajouter un utilisateur</span>
+                    </a>
                 </div>
             </section>
         {% endif %}
 
         {% if modules is empty %}
-            <div class="small text-secondary px-2 py-3">Aucun module attribué.</div>
+            <div class="small text-secondary px-2 py-3">Aucun module attribue.</div>
         {% endif %}
     </div>
 
@@ -261,17 +287,13 @@
         {% if is_granted('ROLE_SUPER_ADMIN') %}
             <div class="sidebar-configuration">
                 <section class="sidebar-open-section {{ trash_active ? 'active' : '' }}">
-                    <div class="sidebar-open-heading">
-                        <span class="sidebar-section-icon"><i class="bi bi-trash3"></i></span>
-                        <strong>Corbeille</strong>
-                        {% if deleted_items_count > 0 %}
-                            <span class="sidebar-trash-count ms-auto">{{ deleted_items_count }}</span>
-                        {% endif %}
-                    </div>
                     <div class="sidebar-open-body">
                         <a class="sidebar-sub-link {{ trash_active ? 'active' : '' }}" href="{{ path('app_trash_index') }}">
                             <i class="bi bi-trash3"></i>
-                            <span>Elements supprimes</span>
+                            <span>Corbeille</span>
+                            {% if deleted_items_count > 0 %}
+                                <span class="sidebar-trash-count ms-auto">{{ deleted_items_count }}</span>
+                            {% endif %}
                         </a>
                     </div>
                 </section>
@@ -281,14 +303,10 @@
         {% if can_manage_modules %}
             <div class="sidebar-configuration">
                 <section class="sidebar-open-section {{ configuration_active ? 'active' : '' }}">
-                    <div class="sidebar-open-heading">
-                        <span class="sidebar-section-icon"><i class="bi bi-sliders"></i></span>
-                        <strong>Configuration</strong>
-                    </div>
                     <div class="sidebar-open-body">
                         <a class="sidebar-sub-link {{ current_route starts with 'app_module' ? 'active' : '' }}" href="{{ path('app_module_index') }}">
-                            <i class="bi bi-grid"></i>
-                            <span>Gestion des modules</span>
+                            <i class="bi bi-sliders"></i>
+                            <span>Modules</span>
                         </a>
                     </div>
                 </section>
@@ -297,7 +315,7 @@
 
         <a class="sidebar-logout-button" href="{{ path('app_logout') }}">
             <span class="sidebar-logout-icon"><i class="bi bi-box-arrow-right"></i></span>
-            <span>Déconnexion</span>
+            <span>Deconnexion</span>
         </a>
     </div>
 </div>

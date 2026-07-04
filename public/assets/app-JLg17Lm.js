@@ -916,73 +916,6 @@ function coutValue(form, name) {
     return coutNumber(coutField(form, name)?.value);
 }
 
-function syncCoutChargeLine(row) {
-    const select = row.querySelector('[data-cout-charge-select]');
-    const selectedOption = select?.selectedOptions?.[0];
-    const nameInput = row.querySelector('[data-cout-charge-name]');
-    const categoryInput = row.querySelector('[data-cout-charge-category]');
-    const unitInput = row.querySelector('[data-cout-charge-unit]');
-    const unitCostInput = row.querySelector('[data-cout-charge-unit-cost]');
-    const quantityInput = row.querySelector('[data-cout-charge-quantity]');
-    const meta = row.querySelector('[data-cout-charge-meta]');
-    const unitShort = row.querySelector('[data-cout-charge-unit-short]');
-    const totalOutput = row.querySelector('[data-cout-charge-total]');
-
-    if (selectedOption?.value) {
-        if (nameInput) nameInput.value = selectedOption.dataset.name || '';
-        if (categoryInput) categoryInput.value = selectedOption.dataset.category || 'autre';
-        if (unitInput) unitInput.value = selectedOption.dataset.unit || 'montant_direct';
-        if (unitCostInput && (unitCostInput.value === '' || row.dataset.coutChargeSelected !== selectedOption.value)) {
-            unitCostInput.value = selectedOption.dataset.unitCost || '0';
-        }
-        if (quantityInput && coutNumber(quantityInput.value) <= 0) quantityInput.value = '1';
-        if (meta) meta.textContent = `${selectedOption.dataset.categoryLabel || 'Autre'} - ${selectedOption.dataset.unitLabel || 'Montant direct'}`;
-        if (unitShort) unitShort.textContent = selectedOption.dataset.unitShort || 'direct';
-        row.dataset.coutChargeSelected = selectedOption.value;
-    } else {
-        if (nameInput) nameInput.value = '';
-        if (categoryInput) categoryInput.value = 'autre';
-        if (unitInput) unitInput.value = 'montant_direct';
-        if (meta) meta.textContent = 'Autre - Montant direct';
-        if (unitShort) unitShort.textContent = 'direct';
-        row.dataset.coutChargeSelected = '';
-    }
-
-    const total = coutNumber(unitCostInput?.value) * coutNumber(quantityInput?.value);
-    if (totalOutput) totalOutput.textContent = coutFormat(total);
-
-    return total;
-}
-
-function configuredCoutChargesTotal(form) {
-    return [...form.querySelectorAll('[data-cout-charge-line]')]
-        .reduce((total, row) => total + syncCoutChargeLine(row), 0);
-}
-
-function refreshCoutChargeEmptyState(form) {
-    const empty = form.querySelector('[data-cout-charge-empty]');
-    if (!empty) return;
-
-    empty.classList.toggle('d-none', form.querySelectorAll('[data-cout-charge-line]').length > 0);
-}
-
-function addCoutChargeLine(form) {
-    const template = form.querySelector('[data-cout-charge-template]');
-    const container = form.querySelector('[data-cout-charge-lines]');
-    if (!template || !container) return;
-
-    const index = `${Date.now()}${container.querySelectorAll('[data-cout-charge-line]').length}`;
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = template.innerHTML.replace(/__INDEX__/g, index).trim();
-    const row = wrapper.firstElementChild;
-    if (!row) return;
-
-    container.appendChild(row);
-    refreshCoutChargeEmptyState(form);
-    syncCoutRevientForm(form);
-    row.querySelector('[data-cout-charge-select]')?.focus();
-}
-
 function syncCoutMode(form) {
     const mode = coutField(form, 'modeCalculMainOeuvre')?.value || 'montant_direct';
     form.querySelectorAll('[data-cout-mode-section]').forEach((section) => {
@@ -1012,8 +945,7 @@ function calculateCoutRevient(form) {
         + coutValue(form, 'coutFilmPlastique')
         + coutValue(form, 'autresCoutEmballage');
 
-    const coutChargesTotal = configuredCoutChargesTotal(form)
-        + coutValue(form, 'coutElectricite')
+    const coutChargesTotal = coutValue(form, 'coutElectricite')
         + coutValue(form, 'coutEau')
         + coutValue(form, 'coutGlace')
         + coutValue(form, 'coutNettoyage')
@@ -1046,7 +978,6 @@ function calculateCoutRevient(form) {
         margeKg,
         margeTotale,
         tauxMargePourcentage,
-        coutChargesTotal,
         rentabiliteLabel: !hasPrixVente ? 'Sans prix vente' : (margeKg < 0 ? 'Non rentable' : (Math.abs(margeKg) < 0.01 ? 'Marge nulle' : 'Rentable')),
         rentabiliteBadgeClass: !hasPrixVente ? 'text-bg-secondary' : (margeKg < 0 ? 'text-bg-danger' : (Math.abs(margeKg) < 0.01 ? 'text-bg-warning' : 'text-bg-success')),
         alerts,
@@ -1082,26 +1013,11 @@ function initializeCoutRevientForms(root = document) {
         syncCoutRevientForm(form);
         if (form.dataset.coutRevientInitialized === 'true') return;
         form.dataset.coutRevientInitialized = 'true';
-        refreshCoutChargeEmptyState(form);
         form.addEventListener('input', (event) => {
             if (event.target.matches('input, textarea')) syncCoutRevientForm(form);
         });
         form.addEventListener('change', (event) => {
             if (event.target.matches('select, input')) syncCoutRevientForm(form);
-        });
-        form.addEventListener('click', (event) => {
-            const addButton = event.target.closest('[data-cout-charge-add]');
-            if (addButton) {
-                addCoutChargeLine(form);
-                return;
-            }
-
-            const removeButton = event.target.closest('[data-cout-charge-remove]');
-            if (removeButton) {
-                removeButton.closest('[data-cout-charge-line]')?.remove();
-                refreshCoutChargeEmptyState(form);
-                syncCoutRevientForm(form);
-            }
         });
         form.addEventListener('submit', () => syncCoutRevientForm(form));
     });

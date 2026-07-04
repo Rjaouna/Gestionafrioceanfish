@@ -1,0 +1,67 @@
+{% set line = line|default(null) %}
+{% set selected_config_id = line and line.chargeConfig ? line.chargeConfig.id : '' %}
+{% set line_name = line ? line.name : '' %}
+{% set line_category = line ? line.category : 'autre' %}
+{% set line_category_label = line ? line.categoryLabel : 'Autre' %}
+{% set line_unit = line ? line.calculationUnit : 'montant_direct' %}
+{% set line_unit_label = line ? line.calculationUnitLabel : 'Montant direct' %}
+{% set line_unit_short = line ? line.calculationUnitShortLabel : 'direct' %}
+{% set line_unit_cost = line ? line.unitCost : '0.0000' %}
+{% set line_quantity = line ? line.quantity : '1.000' %}
+{% set line_total = line ? line.totalAmount : '0.00' %}
+{% set line_note = line ? line.note : '' %}
+
+<div class="border rounded-2 p-3 bg-light-subtle" data-cout-charge-line>
+    <input type="hidden" name="chargeLines[{{ index }}][name]" value="{{ line_name }}" data-cout-charge-name>
+    <input type="hidden" name="chargeLines[{{ index }}][category]" value="{{ line_category }}" data-cout-charge-category>
+    <input type="hidden" name="chargeLines[{{ index }}][calculationUnit]" value="{{ line_unit }}" data-cout-charge-unit>
+
+    <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-5">
+            <label class="form-label fw-semibold" for="cout-charge-{{ index }}">Charge</label>
+            <select id="cout-charge-{{ index }}" class="form-select" name="chargeLines[{{ index }}][chargeConfig]" data-cout-charge-select>
+                <option value="">Selectionner...</option>
+                {% for config in charge_configs|default([]) %}
+                    <option
+                        value="{{ config.id }}"
+                        data-name="{{ config.name }}"
+                        data-category="{{ config.category }}"
+                        data-category-label="{{ config.categoryLabel }}"
+                        data-unit="{{ config.calculationUnit }}"
+                        data-unit-label="{{ config.calculationUnitLabel }}"
+                        data-unit-short="{{ config.calculationUnitShortLabel }}"
+                        data-unit-cost="{{ config.unitCost }}"
+                        {{ selected_config_id == config.id ? 'selected' : '' }}
+                    >
+                        {{ config.name }} - {{ config.unitCost|number_format(2, ',', ' ') }} dh / {{ config.calculationUnitShortLabel }}
+                    </option>
+                {% endfor %}
+            </select>
+            <div class="form-text" data-cout-charge-meta>{{ line_category_label }} - {{ line_unit_label }}</div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label fw-semibold" for="cout-charge-quantity-{{ index }}">Quantite</label>
+            <input id="cout-charge-quantity-{{ index }}" class="form-control" type="number" min="0" step="0.001" inputmode="decimal" name="chargeLines[{{ index }}][quantity]" value="{{ line_quantity }}" data-cout-charge-quantity>
+        </div>
+        <div class="col-6 col-lg-2">
+            <label class="form-label fw-semibold" for="cout-charge-cost-{{ index }}">Cout unitaire</label>
+            <input id="cout-charge-cost-{{ index }}" class="form-control" type="number" min="0" step="0.0001" inputmode="decimal" name="chargeLines[{{ index }}][unitCost]" value="{{ line_unit_cost }}" data-cout-charge-unit-cost>
+            <div class="form-text">dh / <span data-cout-charge-unit-short>{{ line_unit_short }}</span></div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="form-label fw-semibold">Total</div>
+            <div class="form-control bg-white fw-semibold">
+                <span data-cout-charge-total>{{ line_total|number_format(2, ',', ' ') }}</span> dh
+            </div>
+        </div>
+        <div class="col-6 col-lg-1 d-grid">
+            <button class="btn btn-outline-danger" type="button" title="Retirer" aria-label="Retirer" data-cout-charge-remove>
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+        <div class="col-12">
+            <label class="form-label visually-hidden" for="cout-charge-note-{{ index }}">Note</label>
+            <input id="cout-charge-note-{{ index }}" class="form-control form-control-sm" type="text" maxlength="1000" name="chargeLines[{{ index }}][note]" value="{{ line_note }}" placeholder="Note interne optionnelle">
+        </div>
+    </div>
+</div>

@@ -1,0 +1,114 @@
+{% if items|length > 0 %}
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Lot</th>
+                    <th>Produit</th>
+                    <th class="text-end">Poids brut</th>
+                    <th class="text-end">Poids fini</th>
+                    <th class="text-end">Rendement</th>
+                    <th class="text-end">Cout total</th>
+                    <th class="text-end">Cout/kg</th>
+                    <th class="text-end">Prix vente/kg</th>
+                    <th class="text-end">Marge totale</th>
+                    <th>Statut</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr class="{{ item.hasPrixVente and item.margeKg < 0 ? 'table-danger' : '' }}">
+                        <td class="text-nowrap">{{ item.dateProduction ? item.dateProduction|date('d/m/Y') : '-' }}</td>
+                        <td>
+                            <button class="btn btn-link p-0 text-start fw-semibold text-decoration-none" data-remote-modal="{{ path('app_cout_revient_view', {id: item.id}) }}">
+                                {{ item.numeroLot }}
+                            </button>
+                            {% if item.client %}
+                                <div class="small text-secondary">{{ item.client }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div>{{ item.produit }}</div>
+                            {% if item.especePoisson %}
+                                <div class="small text-secondary">{{ item.especePoisson }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">{{ item.poidsBrutRecu|number_format(3, ',', ' ') }} kg</td>
+                        <td class="text-end">{{ item.poidsProduitFini|number_format(3, ',', ' ') }} kg</td>
+                        <td class="text-end">{{ item.rendementPourcentage|number_format(2, ',', ' ') }} %</td>
+                        <td class="text-end">{{ item.coutTotalProduction|number_format(2, ',', ' ') }} dh</td>
+                        <td class="text-end">{{ item.coutRevientKg|number_format(2, ',', ' ') }} dh</td>
+                        <td class="text-end">{{ item.prixVenteKg is not null ? item.prixVenteKg|number_format(2, ',', ' ') ~ ' dh' : '-' }}</td>
+                        <td class="text-end">
+                            <span class="fw-semibold {{ item.hasPrixVente and item.margeKg < 0 ? 'text-danger' : '' }}">
+                                {{ item.margeTotale|number_format(2, ',', ' ') }} dh
+                            </span>
+                            <div><span class="badge {{ item.rentabiliteBadgeClass }}">{{ item.rentabiliteLabel }}</span></div>
+                        </td>
+                        <td><span class="badge {{ item.statutBadgeClass }}">{{ item.statutLabel }}</span></td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                {% if is_granted('COUT_REVIENT_VIEW', item) %}
+                                    <button class="btn btn-outline-primary" title="Voir" aria-label="Voir" data-remote-modal="{{ path('app_cout_revient_view', {id: item.id}) }}">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                {% endif %}
+                                {% if is_granted('COUT_REVIENT_EDIT', item) %}
+                                    <a class="btn btn-outline-primary" title="Modifier" aria-label="Modifier" href="{{ path('app_cout_revient_edit', {id: item.id}) }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                {% endif %}
+                                {% if is_granted('COUT_REVIENT_DUPLICATE', item) %}
+                                    <button class="btn btn-outline-secondary" title="Dupliquer" aria-label="Dupliquer" data-confirm-url="{{ path('app_cout_revient_duplicate', {id: item.id}) }}" data-token="{{ csrf_token('duplicate_cout_revient_' ~ item.id) }}" data-confirm-message="Dupliquer ce lot ?">
+                                        <i class="bi bi-copy"></i>
+                                    </button>
+                                {% endif %}
+                                {% if is_granted('COUT_REVIENT_VALIDATE', item) %}
+                                    <button class="btn btn-outline-success" title="Valider" aria-label="Valider" data-confirm-url="{{ path('app_cout_revient_validate', {id: item.id}) }}" data-token="{{ csrf_token('validate_cout_revient_' ~ item.id) }}" data-confirm-message="Valider ce cout de revient ? Les calculs seront verrouilles comme version validee.">
+                                        <i class="bi bi-check2-circle"></i>
+                                    </button>
+                                {% endif %}
+                                {% if is_granted('COUT_REVIENT_EXPORT', item) %}
+                                    <a class="btn btn-outline-success" title="Export Excel" aria-label="Export Excel" href="{{ path('app_cout_revient_export_excel_item', {id: item.id}) }}">
+                                        <i class="bi bi-file-earmark-excel"></i>
+                                    </a>
+                                {% endif %}
+                                {% if is_granted('COUT_REVIENT_DELETE', item) %}
+                                    <button class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_cout_revient_delete', {id: item.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_cout_revient_' ~ item.id) }}" data-confirm-message="Supprimer ce lot de cout de revient ?">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
+                <i class="bi bi-calculator"></i>
+            </span>
+            <h2 class="h5 mt-3">Aucun lot</h2>
+            <p class="text-secondary mb-0">Ajoutez un lot ou ajustez les filtres.</p>
+        </div>
+    </div>
+{% endif %}
+
+{% if pagination.pages > 1 %}
+    <div class="d-flex justify-content-center gap-2 mt-4">
+        <a class="btn btn-outline-secondary btn-sm {{ pagination.page <= 1 ? 'disabled' : '' }}" href="#" data-ajax-region-page="coutRevientGrid" data-page="{{ pagination.page - 1 }}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="btn btn-light btn-sm disabled">Page {{ pagination.page }} / {{ pagination.pages }}</span>
+        <a class="btn btn-outline-secondary btn-sm {{ pagination.page >= pagination.pages ? 'disabled' : '' }}" href="#" data-ajax-region-page="coutRevientGrid" data-page="{{ pagination.page + 1 }}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+{% endif %}

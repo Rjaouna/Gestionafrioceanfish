@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Lot {{ item.numeroLot }}{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Lot {{ item.numeroLot }}</h1>
+        <p class="text-secondary mb-0">{{ item.produit }}{% if item.client %} - {{ item.client }}{% endif %}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_cout_revient_index') }}">
+            <i class="bi bi-arrow-left me-2"></i>Retour
+        </a>
+        {% include 'cout_revient/_actions.html.twig' with {item: item, size: ''} %}
+    </div>
+</div>
+
+{% include 'cout_revient/_details_content.html.twig' with {item: item} %}
+{% endblock %}
