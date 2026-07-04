@@ -65,9 +65,33 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-12 col-md-4">{{ form_row(form.poidsProduitFini) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.poidsDechets) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.poidsPerte) }}</div>
+                        <div class="col-12 col-md-4">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                {{ form_label(form.poidsProduitFini, null, {label_attr: {class: 'form-label mb-0'}}) }}
+                                <span class="badge text-bg-success flex-shrink-0">Norme 35-45%</span>
+                            </div>
+                            {{ form_widget(form.poidsProduitFini) }}
+                            {{ form_errors(form.poidsProduitFini) }}
+                            {{ form_help(form.poidsProduitFini) }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                {{ form_label(form.poidsDechets, null, {label_attr: {class: 'form-label mb-0'}}) }}
+                                <span class="badge text-bg-warning flex-shrink-0">Norme 50-60%</span>
+                            </div>
+                            {{ form_widget(form.poidsDechets) }}
+                            {{ form_errors(form.poidsDechets) }}
+                            {{ form_help(form.poidsDechets) }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                {{ form_label(form.poidsPerte, null, {label_attr: {class: 'form-label mb-0'}}) }}
+                                <span class="badge text-bg-info flex-shrink-0">Norme 3-8%</span>
+                            </div>
+                            {{ form_widget(form.poidsPerte) }}
+                            {{ form_errors(form.poidsPerte) }}
+                            {{ form_help(form.poidsPerte) }}
+                        </div>
                     </div>
                     <div class="cout-live-grid mt-3">
                         <div class="cout-live-pill">
