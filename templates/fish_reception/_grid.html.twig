@@ -54,9 +54,9 @@
                     <tr class="{{ row_class }}">
                         <td class="text-nowrap">{{ item.dateReception ? item.dateReception|date('d/m/Y') : '-' }}</td>
                         <td>
-                            <button class="btn btn-link p-0 text-start fw-semibold text-decoration-none" data-remote-modal="{{ path('app_fish_reception_view', {id: item.id}) }}">
+                            <a class="btn btn-link p-0 text-start fw-semibold text-decoration-none" href="{{ path('app_fish_reception_view', {id: item.id}) }}">
                                 {{ item.numeroReception }}
-                            </button>
+                            </a>
                             <div class="small text-secondary">{{ item.numeroLot }}</div>
                         </td>
                         <td>
@@ -129,9 +129,9 @@
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">
                                 {% if is_granted('FISH_RECEPTION_VIEW', item) %}
-                                    <button class="btn btn-outline-primary" title="Voir" aria-label="Voir" data-remote-modal="{{ path('app_fish_reception_view', {id: item.id}) }}">
+                                    <a class="btn btn-outline-primary" title="Voir" aria-label="Voir" href="{{ path('app_fish_reception_view', {id: item.id}) }}">
                                         <i class="bi bi-eye"></i>
-                                    </button>
+                                    </a>
                                 {% endif %}
                                 {% if is_granted('FISH_RECEPTION_EDIT', item) %}
                                     <a class="btn btn-outline-primary" title="Modifier" aria-label="Modifier" href="{{ path('app_fish_reception_edit', {id: item.id}) }}">
