@@ -16,7 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:fish-reception:inject-july-2026',
-    description: 'Simulates or injects the real July 2026 reception dataset, using existing factory spaces.',
+    description: 'Simulates or injects the real July 2026 reception dataset at reception stage only.',
 )]
 final class InjectJulyFishReceptionsCommand extends Command
 {
@@ -35,7 +35,7 @@ final class InjectJulyFishReceptionsCommand extends Command
             ->addOption('force', null, InputOption::VALUE_NONE, 'Write changes to the database. Without this option the command only simulates.')
             ->addOption('append', null, InputOption::VALUE_NONE, 'Keep existing receptions and only add missing generated numbers.')
             ->addOption('year', null, InputOption::VALUE_REQUIRED, 'Year used for dates and generated numbers.', '2026')
-            ->addOption('user', null, InputOption::VALUE_REQUIRED, 'Optional user email to attach as reception/treatment/storage actor.');
+            ->addOption('user', null, InputOption::VALUE_REQUIRED, 'Optional user email to attach as reception actor.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -54,7 +54,7 @@ final class InjectJulyFishReceptionsCommand extends Command
         $rows = $this->dataset($year, $chambre1['value'], $chambre2['value'], $tunnel1['value'], $tunnel2['value']);
 
         $io->title('Injection receptions poisson - jeu terrain juillet '.$year);
-        $io->section('Pieces usine utilisees');
+        $io->section('Pieces usine reperees pour les observations');
         $io->table(
             ['Usage', 'Valeur stockee', 'Piece detectee'],
             [
@@ -67,24 +67,24 @@ final class InjectJulyFishReceptionsCommand extends Command
 
         $io->section('Donnees qui seront injectees');
         $io->table(
-            ['Reception', 'Date', 'Produit', 'BL kg', 'Recu kg', 'Stock kg', 'Espace', 'Hypothese'],
+            ['Reception', 'Date', 'Produit', 'BL kg', 'Recu kg', 'Statut', 'A gerer ensuite', 'Note'],
             array_map(static fn (array $row): array => [
                 $row['numeroReception'],
                 $row['dateReception'],
                 $row['especePoisson'],
                 number_format((float) $row['quantiteIndiqueeBl'], 3, ',', ' '),
                 number_format((float) $row['quantiteReceptionnee'], 3, ',', ' '),
-                number_format((float) $row['quantiteStockee'], 3, ',', ' '),
-                $row['chambreFroide'],
+                'Receptionnee',
+                $row['destinationPrevue'],
                 $row['resume'],
             ], $rows),
         );
 
         $io->note([
             'Dates interpretees : 27/29/30 = juin '.$year.' ; hier = 04/07/'.$year.'.',
-            'Maquereau : stock estime apres retrait glace/dechets a 96 % du poids BL, car les details complets ne sont pas fournis.',
-            'Episode terrain trace en observation : traitement 604 kg du 01/07 au 02/07, sortie 305 kg, produit fini 167 kg, dechets/pertes estimes 138 kg.',
-            'La commande respecte les pieces deja declarees dans Composition usine et stocke les codes CHN/TUN quand ils existent.',
+            'Toutes les lignes sont injectees uniquement a l etape Reception : aucun traitement, emballage, congelation, stockage ou expedition n est valide automatiquement.',
+            'Les estimations et destinations prevues restent dans les observations pour gerer ensuite chaque reception cas par cas.',
+            'Les pieces declarees dans Composition usine sont seulement reperees pour l aide metier, pas utilisees comme stock actif.',
         ]);
 
         if (!$force) {
@@ -364,15 +364,47 @@ final class InjectJulyFishReceptionsCommand extends Command
     private function row(array $data): array
     {
         $received = (float) $data['quantiteReceptionnee'];
-        $stocked = (float) $data['quantiteStockee'];
-        $boxWeight = max(0.001, (float) $data['poidsMoyenParCaisse']);
-        $boxesAfterTreatment = (int) ceil($stocked / $boxWeight);
+        $boxWeight = max(0.001, (float) ($data['poidsMoyenParCaisse'] ?? 1));
+        $plannedSteps = [];
+        if (trim((string) ($data['tunnel'] ?? '')) !== '') {
+            $plannedSteps[] = 'tunnel prevu '.$data['tunnel'];
+        }
+        if (trim((string) ($data['chambreFroide'] ?? '')) !== '') {
+            $plannedSteps[] = 'stockage prevu '.$data['chambreFroide'];
+        }
 
         $data['nombreCaissesReception'] = (int) ceil($received / $boxWeight);
-        $data['nombreCaissesApresTraitement'] = $boxesAfterTreatment;
-        $data['nombreCaissesParPalette'] = self::BOXES_PER_PALLET;
-        $data['nombreTotalPalettes'] = (int) ceil($boxesAfterTreatment / self::BOXES_PER_PALLET);
-        $data['poidsNet'] = $stocked;
+        $data['destinationPrevue'] = $plannedSteps !== [] ? implode(' / ', $plannedSteps) : 'A definir depuis l interface';
+        $data['observations'] = trim((string) ($data['observations'] ?? '')).' Import volontairement limite a l etape reception : lancer le traitement, le conditionnement, la congelation, le stockage et l expedition depuis l interface, cas par cas. '.$data['destinationPrevue'].'.';
+
+        $data['quantiteTotalePreparee'] = 0;
+        $data['quantiteConditionnee'] = 0;
+        $data['quantiteCongelee'] = 0;
+        $data['quantiteStockee'] = 0;
+        $data['quantiteUtiliseeProduction'] = 0;
+        $data['dateDebutTraitement'] = null;
+        $data['heureDebutTraitement'] = null;
+        $data['temperatureEauGlacee'] = null;
+        $data['nombreCaissesApresTraitement'] = 0;
+        $data['poidsMoyenParCaisse'] = 0;
+        $data['nombreMoules'] = 0;
+        $data['nombreCaissesParPalette'] = 0;
+        $data['nombreTotalPalettes'] = 0;
+        $data['dateConditionnement'] = null;
+        $data['heureDebutConditionnement'] = null;
+        $data['heureFinConditionnement'] = null;
+        $data['produitConditionne'] = null;
+        $data['poidsNet'] = 0;
+        $data['tunnel'] = null;
+        $data['heureEntreeTunnel'] = null;
+        $data['temperatureTunnel'] = null;
+        $data['dateSortieTunnel'] = null;
+        $data['temperatureCoeurProduit'] = null;
+        $data['chambreFroide'] = null;
+        $data['temperatureChambre'] = null;
+        $data['dateEntreeStockage'] = null;
+        $data['heureEntreeStockage'] = null;
+        $data['temperatureStockage'] = null;
 
         return $data;
     }
@@ -428,18 +460,16 @@ final class InjectJulyFishReceptionsCommand extends Command
             ->setQuantiteStockee($row['quantiteStockee'])
             ->setTemperatureStockage($row['temperatureStockage'])
             ->setQuantiteUtiliseeProduction($row['quantiteUtiliseeProduction'] ?? 0)
-            ->setStatut(FishReception::STATUS_STORED)
+            ->setStatut(FishReception::STATUS_RECEIVED)
             ->setReceivedAt($this->dateTime($row['dateReception'], $row['heureFinReception']))
-            ->setTreatmentStartedAt($this->dateTime($row['dateDebutTraitement'], $row['heureDebutTraitement']))
-            ->setStoredAt($this->dateTime($row['dateEntreeStockage'], $row['heureEntreeStockage']))
+            ->setTreatmentStartedAt(null)
+            ->setStoredAt(null)
             ->setObservations($row['observations']);
 
         if ($actor instanceof User) {
             $reception
                 ->setCreatedBy($actor)
-                ->setReceivedBy($actor)
-                ->setTreatmentStartedBy($actor)
-                ->setStoredBy($actor);
+                ->setReceivedBy($actor);
         }
 
         return $reception;
