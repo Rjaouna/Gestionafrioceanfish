@@ -41,6 +41,15 @@ final readonly class FactoryUnitService
         FactoryUnit::TYPE_OTHER => 1.5,
     ];
 
+    private const STORAGE_LOCATION_TYPES = [
+        FactoryUnit::TYPE_NEGATIVE_ROOM,
+        FactoryUnit::TYPE_POSITIVE_ROOM,
+        FactoryUnit::TYPE_PRODUCTION_ZONE,
+        FactoryUnit::TYPE_PACKAGING_ZONE,
+        FactoryUnit::TYPE_STORAGE_ZONE,
+        FactoryUnit::TYPE_OTHER,
+    ];
+
     public function __construct(
         private FactoryUnitRepository $repository,
         private CoutRevientChargeConfigRepository $chargeRepository,
@@ -157,8 +166,10 @@ final readonly class FactoryUnitService
     {
         $this->assertUsageAccess($actor);
 
+        $current = $this->findUnitByLocationValue((string) $current, [FactoryUnit::TYPE_TUNNEL]) instanceof FactoryUnit ? null : $current;
+
         return $this->choicesFromUnits(
-            $this->repository->usableByTypes(array_keys(FactoryUnit::TYPE_LABELS)),
+            $this->repository->usableByTypes(self::STORAGE_LOCATION_TYPES),
             $current,
         );
     }
@@ -269,10 +280,10 @@ final readonly class FactoryUnitService
             $actor,
             $location,
             $requestedQuantity,
-            [],
+            self::STORAGE_LOCATION_TYPES,
             'Espace de stockage',
             'Sélectionnez la chambre froide ou la zone de stockage avant de valider.',
-            'Cet espace n\'existe pas dans Composition usine. Sélectionnez une pièce déclarée pour contrôler la capacité.',
+            'Cet espace n\'existe pas dans Composition usine ou correspond à un tunnel. Sélectionnez une chambre froide ou une zone de stockage déclarée.',
         );
     }
 
