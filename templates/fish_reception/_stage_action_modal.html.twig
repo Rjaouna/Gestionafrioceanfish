@@ -7,6 +7,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
     </div>
     <div class="modal-body">
+        {% include 'fish_reception/_excel_import_toolbar.html.twig' %}
         <div class="alert alert-info small">
             <i class="bi {{ icon }} me-2"></i>{{ message }}
         </div>

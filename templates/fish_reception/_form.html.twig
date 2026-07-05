@@ -8,7 +8,8 @@
     </a>
 </div>
 
-{{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
+{{ form_start(form, {attr: {'data-ajax-form': 'true', 'data-fish-reception-excel-form': 'true'}}) }}
+    {% include 'fish_reception/_excel_import_toolbar.html.twig' %}
     <div class="row g-4 align-items-start">
         <div class="col-12 col-xl-8">
             <section class="card border-0 shadow-sm mb-4">

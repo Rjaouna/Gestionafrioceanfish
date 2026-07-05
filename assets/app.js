@@ -828,6 +828,159 @@ function initializeReceptionSmartChoices(root = document) {
     initializeSmartChoices(root);
 }
 
+function clearExcelImportErrors(form) {
+    form.querySelectorAll('.is-invalid[data-excel-import-invalid]').forEach((field) => {
+        field.classList.remove('is-invalid');
+        field.removeAttribute('data-excel-import-invalid');
+    });
+    form.querySelectorAll('[data-excel-import-error]').forEach((error) => error.remove());
+}
+
+function findExcelFormField(form, fieldName) {
+    return form.querySelector(`[name$="[${CSS.escape(fieldName)}]"]`);
+}
+
+function setExcelFieldError(form, fieldName, messages) {
+    const field = findExcelFormField(form, fieldName);
+    if (!field) return;
+
+    field.classList.add('is-invalid');
+    field.dataset.excelImportInvalid = 'true';
+
+    const wrapper = field.closest('[data-reception-smart-choice]') || field.closest('.mb-3') || field.parentElement;
+    const error = document.createElement('div');
+    error.className = 'invalid-feedback d-block';
+    error.dataset.excelImportError = 'true';
+    error.textContent = Array.isArray(messages) ? messages.join(' ') : String(messages || 'Valeur invalide.');
+    (wrapper || field).insertAdjacentElement('afterend', error);
+}
+
+function setExcelImportedValue(form, fieldName, value) {
+    const field = findExcelFormField(form, fieldName);
+    if (!field) return;
+
+    const normalizedValue = String(value ?? '');
+    if (field.matches('[data-reception-smart-select]')) {
+        const hasOption = [...field.options].some((option) => option.value === normalizedValue);
+        if (hasOption) {
+            field.value = normalizedValue;
+        } else {
+            field.value = '__other__';
+            const customName = field.dataset.receptionSmartCustom || `${fieldName}Custom`;
+            const customInput = findExcelFormField(form, customName);
+            if (customInput) {
+                customInput.value = normalizedValue;
+                customInput.classList.remove('d-none');
+                customInput.required = field.required;
+            }
+        }
+        syncReceptionSmartChoice(field);
+    } else if (field.type === 'checkbox') {
+        field.checked = ['1', 'true', 'oui', 'yes'].includes(normalizedValue.toLowerCase());
+    } else {
+        field.value = normalizedValue;
+    }
+
+    field.dispatchEvent(new Event('input', {bubbles: true}));
+    field.dispatchEvent(new Event('change', {bubbles: true}));
+}
+
+function renderExcelImportFeedback(widget, rows = [], hasErrors = false) {
+    const feedback = widget.querySelector('[data-excel-import-feedback]');
+    if (!feedback) return;
+
+    feedback.classList.remove('d-none');
+    if (!rows.length) {
+        feedback.innerHTML = `<div class="alert alert-${hasErrors ? 'danger' : 'success'} small mb-0">Import termine.</div>`;
+        return;
+    }
+
+    const visibleRows = rows.slice(0, 12);
+    feedback.innerHTML = `
+        <div class="table-responsive mt-2">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Ligne</th>
+                        <th>Champ</th>
+                        <th>Valeur</th>
+                        <th>Controle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${visibleRows.map((row) => `
+                        <tr class="${row.status === 'error' ? 'table-danger' : 'table-success'}">
+                            <td>${escapeHtml(row.row)}</td>
+                            <td>${escapeHtml(row.label || row.field || '')}</td>
+                            <td>${escapeHtml(row.value ?? '')}</td>
+                            <td>${escapeHtml(row.message || 'OK')}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function renderExcelFileErrors(widget, messages = []) {
+    const feedback = widget.querySelector('[data-excel-import-feedback]');
+    if (!feedback || !messages.length) return;
+
+    feedback.classList.remove('d-none');
+    feedback.innerHTML = `<div class="alert alert-danger small mb-0">${messages.map((message) => escapeHtml(message)).join('<br>')}</div>`;
+}
+
+async function handleFishReceptionExcelImport(input) {
+    const widget = input.closest('[data-excel-import-widget]');
+    const form = input.closest('form');
+    const file = input.files?.[0];
+    if (!widget || !form || !file) return;
+
+    clearExcelImportErrors(form);
+    const data = new FormData();
+    data.append('file', file);
+    data.append('token', widget.dataset.excelImportToken || '');
+
+    input.disabled = true;
+    try {
+        const response = await fetch(widget.dataset.excelImportUrl, {
+            method: 'POST',
+            body: data,
+            headers: {'X-Requested-With': 'XMLHttpRequest'},
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.success) {
+            throw new Error(payload.message || 'Import Excel impossible.');
+        }
+
+        const result = payload.data || {};
+        Object.entries(result.values || {}).forEach(([fieldName, value]) => setExcelImportedValue(form, fieldName, value));
+        Object.entries(result.errors || {}).forEach(([fieldName, messages]) => {
+            if (fieldName !== '_file') setExcelFieldError(form, fieldName, messages);
+        });
+        if (result.errors?._file) {
+            renderExcelFileErrors(widget, result.errors._file);
+        } else {
+            renderExcelImportFeedback(widget, result.rows || [], Boolean(result.hasErrors));
+        }
+
+        if (form.matches('[data-treatment-box-form]')) {
+            syncTreatmentBoxCounts(form);
+        }
+        if (form.matches('[data-freezing-capacity-form], [data-factory-capacity-form]')) {
+            checkFreezingCapacity(form).catch((error) => showAlert(error.message, 'danger'));
+        }
+
+        showAlert(payload.message, result.hasErrors ? 'warning' : 'success');
+    } catch (error) {
+        renderExcelImportFeedback(widget, [], true);
+        showAlert(error.message, 'danger');
+    } finally {
+        input.value = '';
+        input.disabled = false;
+    }
+}
+
 function cleanInterimPhone(value) {
     return String(value || '').replace(/[\s().-]+/g, '').trim();
 }
@@ -2753,6 +2906,12 @@ document.addEventListener('click', async (event) => {
 });
 
 document.addEventListener('change', (event) => {
+    const excelImportInput = event.target.closest('[data-excel-import-input]');
+    if (excelImportInput) {
+        handleFishReceptionExcelImport(excelImportInput);
+        return;
+    }
+
     const choiceTagsInput = event.target.closest('[data-choice-tags-input]');
     if (choiceTagsInput) {
         const field = choiceTagsInput.closest('[data-choice-tags]');

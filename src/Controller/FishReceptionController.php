@@ -14,14 +14,19 @@ use App\Form\FishReceptionType;
 use App\Security\Voter\FishReceptionVoter;
 use App\Security\Voter\ModuleAccessVoter;
 use App\Service\FactoryUnitService;
+use App\Service\FishReception\FishReceptionExcelFormService;
 use App\Service\FishReception\FishReceptionService;
 use App\Service\JsonResponder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Twig\Environment;
 
@@ -32,6 +37,8 @@ final class FishReceptionController extends AbstractController
     public function __construct(
         private readonly FishReceptionService $receptionService,
         private readonly FactoryUnitService $factoryUnitService,
+        private readonly FishReceptionExcelFormService $excelFormService,
+        private readonly CsrfTokenManagerInterface $csrfTokenManager,
         private readonly JsonResponder $jsonResponder,
         private readonly Environment $twig,
     ) {
@@ -138,7 +145,32 @@ final class FishReceptionController extends AbstractController
             'item' => $reception,
             'title' => 'Nouvelle reception',
             'submit_label' => 'Enregistrer la reception',
+            'excel_template_url' => $this->generateUrl('app_fish_reception_excel_template', ['stage' => 'reception']),
+            'excel_import_url' => $this->generateUrl('app_fish_reception_excel_import', ['stage' => 'reception']),
+            'excel_import_token' => $this->excelImportToken('reception'),
         ]);
+    }
+
+    #[Route('/excel/{stage}/modele', name: 'app_fish_reception_excel_template', requirements: ['stage' => 'reception|traitement|emballage|congelation|stockage|expedition'], methods: ['GET'])]
+    public function excelTemplate(string $stage): BinaryFileResponse
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
+        if ($stage !== 'reception') {
+            throw $this->createNotFoundException('Cette phase necessite une reception existante.');
+        }
+
+        return $this->downloadExcelTemplate($stage, null);
+    }
+
+    #[Route('/excel/{stage}/import', name: 'app_fish_reception_excel_import', requirements: ['stage' => 'reception|traitement|emballage|congelation|stockage|expedition'], methods: ['POST'])]
+    public function importExcel(string $stage, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
+        if ($stage !== 'reception') {
+            return $this->jsonResponder->error('Cette phase necessite une reception existante.', [], 404);
+        }
+
+        return $this->importExcelTemplate($stage, $request, null);
     }
 
     #[Route('/nouveau', name: 'app_fish_reception_create', methods: ['POST'])]
@@ -197,7 +229,26 @@ final class FishReceptionController extends AbstractController
             'item' => $reception,
             'title' => sprintf('Modifier %s', $reception->getNumeroReception()),
             'submit_label' => 'Enregistrer',
+            'excel_template_url' => $this->generateUrl('app_fish_reception_excel_template_item', ['id' => $reception->getId(), 'stage' => 'reception']),
+            'excel_import_url' => $this->generateUrl('app_fish_reception_excel_import_item', ['id' => $reception->getId(), 'stage' => 'reception']),
+            'excel_import_token' => $this->excelImportToken('reception', $reception),
         ]);
+    }
+
+    #[Route('/{id}/excel/{stage}/modele', name: 'app_fish_reception_excel_template_item', requirements: ['id' => '\d+', 'stage' => 'reception|traitement|emballage|congelation|stockage|expedition'], methods: ['GET'])]
+    public function excelTemplateItem(FishReception $reception, string $stage): BinaryFileResponse
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::VIEW, $reception);
+
+        return $this->downloadExcelTemplate($stage, $reception);
+    }
+
+    #[Route('/{id}/excel/{stage}/import', name: 'app_fish_reception_excel_import_item', requirements: ['id' => '\d+', 'stage' => 'reception|traitement|emballage|congelation|stockage|expedition'], methods: ['POST'])]
+    public function importExcelItem(FishReception $reception, string $stage, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::VIEW, $reception);
+
+        return $this->importExcelTemplate($stage, $request, $reception);
     }
 
     #[Route('/{id}/modifier', name: 'app_fish_reception_update', requirements: ['id' => '\d+'], methods: ['POST'])]
@@ -539,15 +590,27 @@ final class FishReceptionController extends AbstractController
     private function renderStageModal(FishReception $reception, string $formType, string $route, string $title, string $message, string $icon, string $buttonClass, float $available): Response
     {
         $this->denyAccessUnlessGranted(FishReceptionVoter::TRANSITION, $reception);
+        $excelStage = $this->stageForFormType($formType);
 
-        return $this->render('fish_reception/_stage_action_modal.html.twig', [
+        $parameters = [
             'item' => $reception,
             'form' => $this->buildStageForm($reception, $formType, $route, $available),
             'title' => $title,
             'message' => $message,
             'icon' => $icon,
             'button_class' => $buttonClass,
-        ]);
+        ];
+
+        if ($excelStage !== null) {
+            $parameters += [
+                'excel_stage' => $excelStage,
+                'excel_template_url' => $this->generateUrl('app_fish_reception_excel_template_item', ['id' => $reception->getId(), 'stage' => $excelStage]),
+                'excel_import_url' => $this->generateUrl('app_fish_reception_excel_import_item', ['id' => $reception->getId(), 'stage' => $excelStage]),
+                'excel_import_token' => $this->excelImportToken($excelStage, $reception),
+            ];
+        }
+
+        return $this->render('fish_reception/_stage_action_modal.html.twig', $parameters);
     }
 
     /**
@@ -599,6 +662,85 @@ final class FishReceptionController extends AbstractController
         }
 
         return $this->createForm($formType, $reception, $options);
+    }
+
+    private function downloadExcelTemplate(string $stage, ?FishReception $reception): BinaryFileResponse
+    {
+        $path = $this->excelFormService->exportTemplate($stage, $reception, $this->currentUser(), $this->excelChoices($stage, $reception));
+        $filename = 'modele-'.$stage.'-reception'.($reception instanceof FishReception ? '-'.$reception->getNumeroReception() : '').'.xlsx';
+        $response = new BinaryFileResponse($path);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $filename);
+        $response->deleteFileAfterSend(true);
+
+        return $response;
+    }
+
+    private function importExcelTemplate(string $stage, Request $request, ?FishReception $reception): JsonResponse
+    {
+        if (!$this->isCsrfTokenValid($this->excelImportTokenId($stage, $reception), (string) $request->request->get('token'))) {
+            return $this->jsonResponder->error('Jeton de securite invalide. Rechargez la page.', [], 422);
+        }
+
+        $file = $request->files->get('file');
+        if (!$file instanceof UploadedFile || !$file->isValid()) {
+            return $this->jsonResponder->error('Fichier Excel invalide ou manquant.', [], 422);
+        }
+
+        try {
+            $result = $this->excelFormService->importTemplate($stage, $file->getPathname(), $this->excelChoices($stage, $reception));
+        } catch (\Throwable $exception) {
+            return $this->jsonResponder->error('Impossible de lire ce fichier Excel. Telechargez un nouveau modele puis reessayez.', [
+                'detail' => $exception->getMessage(),
+            ], 422);
+        }
+
+        return $this->jsonResponder->success(
+            $result['hasErrors'] ? 'Import effectue avec des erreurs a corriger.' : 'Import effectue. Verifiez puis validez le formulaire.',
+            $result,
+        );
+    }
+
+    /** @return array<string, list<string>> */
+    private function excelChoices(string $stage, ?FishReception $reception = null): array
+    {
+        $choiceLists = $this->receptionService->formChoiceLists($this->currentUser());
+        $choices = [];
+        foreach ($choiceLists as $key => $values) {
+            $choices[$key] = array_values(array_filter(array_map('strval', is_array($values) ? $values : [])));
+        }
+
+        if ($stage === 'congelation') {
+            $choices['tunnel'] = array_values($this->factoryUnitService->tunnelChoices($this->currentUser(), $reception?->getTunnel()));
+        }
+
+        if ($stage === 'stockage') {
+            $choices['chambreFroide'] = array_values($this->factoryUnitService->storageChoices($this->currentUser(), $reception?->getChambreFroide()));
+        }
+
+        return $choices;
+    }
+
+    private function excelImportToken(string $stage, ?FishReception $reception = null): string
+    {
+        return $this->csrfTokenManager->getToken($this->excelImportTokenId($stage, $reception))->getValue();
+    }
+
+    private function excelImportTokenId(string $stage, ?FishReception $reception = null): string
+    {
+        return 'fish_reception_excel_'.$stage.'_'.($reception?->getId() ?? 'new');
+    }
+
+    /** @param class-string $formType */
+    private function stageForFormType(string $formType): ?string
+    {
+        return match ($formType) {
+            FishReceptionTreatmentType::class => 'traitement',
+            FishReceptionPackagingType::class => 'emballage',
+            FishReceptionFreezingType::class => 'congelation',
+            FishReceptionStorageType::class => 'stockage',
+            FishReceptionShippingType::class => 'expedition',
+            default => null,
+        };
     }
 
     private function quantityFromForm(FormInterface $form): float
