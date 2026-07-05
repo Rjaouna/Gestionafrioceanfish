@@ -8,6 +8,7 @@ use App\Form\FishReceptionFreezingType;
 use App\Form\FishReceptionPackagingType;
 use App\Form\FishReceptionShippingType;
 use App\Form\FishReceptionStorageType;
+use App\Form\FishReceptionTreatmentCancelType;
 use App\Form\FishReceptionTreatmentType;
 use App\Form\FishReceptionType;
 use App\Security\Voter\FishReceptionVoter;
@@ -22,6 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Twig\Environment;
 
 #[Route('/receptions')]
 #[IsGranted('ROLE_USER')]
@@ -31,6 +33,7 @@ final class FishReceptionController extends AbstractController
         private readonly FishReceptionService $receptionService,
         private readonly FactoryUnitService $factoryUnitService,
         private readonly JsonResponder $jsonResponder,
+        private readonly Environment $twig,
     ) {
     }
 
@@ -172,6 +175,18 @@ final class FishReceptionController extends AbstractController
         return $this->render('fish_reception/show.html.twig', ['item' => $reception]);
     }
 
+    #[Route('/{id}/voir/fragment', name: 'app_fish_reception_view_fragment', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function viewFragment(FishReception $reception): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::VIEW, $reception);
+
+        return $this->jsonResponder->success('Fiche reception mise a jour.', [
+            'html' => $this->twig->load('fish_reception/show.html.twig')->renderBlock('reception_show_content', [
+                'item' => $reception,
+            ]),
+        ]);
+    }
+
     #[Route('/{id}/modifier', name: 'app_fish_reception_edit', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function editForm(FishReception $reception): Response
     {
@@ -247,6 +262,53 @@ final class FishReceptionController extends AbstractController
         );
     }
 
+    #[Route('/{id}/traitement/annulation/formulaire', name: 'app_fish_reception_cancel_treatment_form', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function cancelTreatmentForm(FishReception $reception): Response
+    {
+        return $this->renderStageModal(
+            $reception,
+            FishReceptionTreatmentCancelType::class,
+            'app_fish_reception_cancel_treatment',
+            'Annuler du traitement',
+            'Cette quantite sera retiree du traitement et remise dans le disponible reception.',
+            'bi-arrow-counterclockwise',
+            'btn-danger',
+            $reception->getQuantiteDisponibleTraitementValue(),
+        );
+    }
+
+    #[Route('/{id}/traitement/annuler', name: 'app_fish_reception_cancel_treatment', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function cancelTreatment(FishReception $reception, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::TRANSITION, $reception);
+        $form = $this->buildStageForm(
+            $reception,
+            FishReceptionTreatmentCancelType::class,
+            'app_fish_reception_cancel_treatment',
+            $reception->getQuantiteDisponibleTraitementValue(),
+        );
+        $form->handleRequest($request);
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->jsonResponder->invalidForm($form);
+        }
+
+        try {
+            $this->receptionService->cancelTreatment(
+                $reception,
+                $this->quantityFromForm($form),
+                $this->currentUser(),
+                (string) $form->get('reason')->getData(),
+            );
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
+
+        return $this->jsonResponder->success('Quantite retiree du traitement et remise en disponible reception.', [
+            'closeModal' => true,
+            'refreshRegions' => ['fishReceptionGrid', 'fishReceptionFactoryOverview', 'fishReceptionShow'],
+        ]);
+    }
+
     #[Route('/{id}/congelation/formulaire', name: 'app_fish_reception_freezing_form', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function freezingForm(FishReception $reception): Response
     {
@@ -260,6 +322,20 @@ final class FishReceptionController extends AbstractController
             'btn-primary',
             $reception->getQuantiteDisponibleEmballageValue(),
         );
+    }
+
+    #[Route('/{id}/congelation/capacite-tunnel', name: 'app_fish_reception_freezing_capacity_check', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function freezingCapacityCheck(FishReception $reception, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::TRANSITION, $reception);
+
+        $quantity = (float) str_replace(',', '.', (string) $request->query->get('quantity', '0'));
+
+        return $this->jsonResponder->success('Capacite tunnel verifiee.', $this->factoryUnitService->tunnelCapacityDiagnostic(
+            $this->currentUser(),
+            (string) $request->query->get('tunnel', $request->query->get('location', '')),
+            $quantity,
+        ));
     }
 
     #[Route('/{id}/congelation/enregistrer', name: 'app_fish_reception_register_freezing', requirements: ['id' => '\d+'], methods: ['POST'])]
@@ -295,6 +371,20 @@ final class FishReceptionController extends AbstractController
             'btn-success',
             $reception->getQuantiteDisponibleCongelationValue(),
         );
+    }
+
+    #[Route('/{id}/stockage/capacite-espace', name: 'app_fish_reception_storage_capacity_check', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function storageCapacityCheck(FishReception $reception, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::TRANSITION, $reception);
+
+        $quantity = (float) str_replace(',', '.', (string) $request->query->get('quantity', '0'));
+
+        return $this->jsonResponder->success('Capacite espace stockage verifiee.', $this->factoryUnitService->storageCapacityDiagnostic(
+            $this->currentUser(),
+            (string) $request->query->get('location', $request->query->get('chambreFroide', '')),
+            $quantity,
+        ));
     }
 
     #[Route('/{id}/stockage/enregistrer', name: 'app_fish_reception_register_storage', requirements: ['id' => '\d+'], methods: ['POST'])]
@@ -394,7 +484,10 @@ final class FishReceptionController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Reception bloquee.', ['reload' => true]);
+        return $this->jsonResponder->success('Reception bloquee.', [
+            'closeModal' => true,
+            'refreshRegions' => ['fishReceptionGrid', 'fishReceptionFactoryOverview', 'fishReceptionShow'],
+        ]);
     }
 
     #[Route('/{id}/supprimer', name: 'app_fish_reception_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
@@ -420,6 +513,7 @@ final class FishReceptionController extends AbstractController
     {
         return $this->createForm(FishReceptionType::class, $reception, [
             'action' => $this->generateUrl($route, $routeParameters),
+            'choice_lists' => $this->receptionService->formChoiceLists($this->currentUser()),
         ]);
     }
 
@@ -477,7 +571,7 @@ final class FishReceptionController extends AbstractController
 
         return $this->jsonResponder->success($message, [
             'closeModal' => true,
-            'refreshRegions' => ['fishReceptionGrid', 'fishReceptionFactoryOverview'],
+            'refreshRegions' => ['fishReceptionGrid', 'fishReceptionFactoryOverview', 'fishReceptionShow'],
         ]);
     }
 
@@ -492,8 +586,14 @@ final class FishReceptionController extends AbstractController
 
         if ($formType === FishReceptionFreezingType::class) {
             $options['factory_unit_choices'] = $this->factoryUnitService->tunnelChoices($this->currentUser(), $reception->getTunnel());
+            $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_freezing_capacity_check', ['id' => $reception->getId()]);
+            $options['attr'] = ['data-freezing-capacity-form' => 'true'];
         } elseif ($formType === FishReceptionStorageType::class) {
             $options['factory_unit_choices'] = $this->factoryUnitService->storageChoices($this->currentUser(), $reception->getChambreFroide());
+            $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_storage_capacity_check', ['id' => $reception->getId()]);
+            $options['attr'] = ['data-factory-capacity-form' => 'true'];
+        } elseif (in_array($formType, [FishReceptionPackagingType::class, FishReceptionShippingType::class], true)) {
+            $options['choice_lists'] = $this->receptionService->formChoiceLists($this->currentUser());
         }
 
         return $this->createForm($formType, $reception, $options);
@@ -586,7 +686,9 @@ final class FishReceptionController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success($message, ['reload' => true]);
+        return $this->jsonResponder->success($message, [
+            'refreshRegions' => ['fishReceptionGrid', 'fishReceptionFactoryOverview', 'fishReceptionShow'],
+        ]);
     }
 
     private function assertCsrf(string $token, string $id): void

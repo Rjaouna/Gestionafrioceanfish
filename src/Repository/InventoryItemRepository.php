@@ -125,6 +125,25 @@ class InventoryItemRepository extends ServiceEntityRepository
             ->getSingleScalarResult() + 1;
     }
 
+    /** @return list<string> */
+    public function distinctValues(string $field): array
+    {
+        if (!in_array($field, ['unit', 'dimensions', 'color', 'brand', 'model', 'ownerName'], true)) {
+            throw new \InvalidArgumentException(sprintf('Unsupported inventory item field "%s".', $field));
+        }
+
+        $rows = $this->createQueryBuilder('i')
+            ->select(sprintf('DISTINCT i.%s AS value', $field))
+            ->andWhere('i.isDeleted = false')
+            ->andWhere(sprintf('i.%s IS NOT NULL', $field))
+            ->andWhere(sprintf("i.%s <> ''", $field))
+            ->orderBy(sprintf('i.%s', $field), 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_values(array_filter(array_map(static fn (mixed $value): string => trim((string) $value), array_column($rows, 'value'))));
+    }
+
     /** @return array<int, int> */
     public function countActiveBySite(): array
     {

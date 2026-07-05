@@ -800,6 +800,34 @@ function initializeExpenseForms(root = document) {
     });
 }
 
+function syncSmartChoice(control) {
+    const wrapper = control.closest('[data-smart-choice], [data-reception-smart-choice]');
+    const select = wrapper?.querySelector('[data-smart-choice-select], [data-reception-smart-select]');
+    const customInput = wrapper?.querySelector('[data-smart-choice-custom-input], [data-reception-smart-custom-input]');
+    if (!select || !customInput) return;
+
+    const customMode = select.value === '__other__';
+    customInput.classList.toggle('d-none', !customMode);
+    customInput.required = customMode && select.required;
+    if (!customMode) {
+        customInput.value = '';
+    }
+}
+
+function syncReceptionSmartChoice(control) {
+    syncSmartChoice(control);
+}
+
+function initializeSmartChoices(root = document) {
+    root.querySelectorAll('[data-smart-choice-select], [data-reception-smart-select]').forEach((select) => {
+        syncSmartChoice(select);
+    });
+}
+
+function initializeReceptionSmartChoices(root = document) {
+    initializeSmartChoices(root);
+}
+
 function cleanInterimPhone(value) {
     return String(value || '').replace(/[\s().-]+/g, '').trim();
 }
@@ -1538,6 +1566,142 @@ function syncInventoryMoveLocations(root = document) {
     });
 }
 
+function parseDecimalInput(value) {
+    const normalized = String(value ?? '').replace(/\s/g, '').replace(',', '.');
+    const parsed = Number(normalized);
+
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function setFreezingCapacitySubmitState(form, canSubmit, message = '') {
+    form.dataset.freezingCapacityAllowed = canSubmit ? '1' : '0';
+    form.dataset.freezingCapacityMessage = message;
+    form.dataset.factoryCapacityAllowed = canSubmit ? '1' : '0';
+    form.dataset.factoryCapacityMessage = message;
+
+    const submitButton = form.querySelector('[type="submit"]');
+    if (submitButton) submitButton.disabled = !canSubmit;
+}
+
+function renderFreezingCapacityFeedback(form, data) {
+    const feedback = form.querySelector('[data-freezing-capacity-feedback], [data-factory-capacity-feedback]');
+    if (!feedback) return;
+
+    const tone = data.tone || 'secondary';
+    const title = data.title || 'Controle capacite espace usine';
+    const message = data.message || '';
+    const statusLabel = data.canSubmit ? (tone === 'success' ? 'OK' : 'A surveiller') : 'Bloque';
+    const details = [
+        ['Occupe', data.loadDisplay],
+        ['A ajouter', data.requestedDisplay],
+        ['Apres validation', data.projectedLoadDisplay],
+        ['Capacite', data.capacityDisplay],
+        ['Libre apres', data.freeAfterDisplay],
+        ['Remplissage', data.percentAfterDisplay],
+    ].filter(([, value]) => value !== undefined && value !== null && value !== '');
+
+    feedback.innerHTML = `
+        <div class="alert alert-${escapeHtml(tone)} small mb-0" role="status">
+            <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+                <div>
+                    <strong>${escapeHtml(title)}</strong>
+                    <div>${escapeHtml(message)}</div>
+                </div>
+                <span class="badge text-bg-${tone === 'warning' ? 'warning' : tone === 'danger' ? 'danger' : tone === 'success' ? 'success' : 'secondary'}">
+                    ${statusLabel}
+                </span>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+                ${details.map(([label, value]) => `<span class="badge text-bg-light border text-dark">${escapeHtml(label)} : ${escapeHtml(value)}</span>`).join('')}
+            </div>
+        </div>
+    `;
+}
+
+async function checkFreezingCapacity(form) {
+    const quantityField = form.querySelector('[data-freezing-capacity-quantity], [data-factory-capacity-quantity]');
+    const locationField = form.querySelector('[data-freezing-capacity-tunnel], [data-factory-capacity-location]');
+    const feedback = form.querySelector('[data-freezing-capacity-feedback], [data-factory-capacity-feedback]');
+    const url = locationField?.dataset.freezingCapacityUrl || locationField?.dataset.factoryCapacityUrl;
+    if (!quantityField || !locationField || !feedback || !url) return true;
+
+    const quantity = parseDecimalInput(quantityField.value);
+    const location = String(locationField.value || '').trim();
+    if (!location || quantity <= 0.001) {
+        const data = {
+            canSubmit: false,
+            tone: 'danger',
+            title: !location ? 'Espace obligatoire' : 'Quantite obligatoire',
+            message: !location ? 'Selectionnez un espace usine pour verifier la capacite.' : 'Renseignez une quantite superieure a 0 kg.',
+            loadDisplay: '-',
+            requestedDisplay: `${quantity.toLocaleString('fr-FR', {maximumFractionDigits: 3})} kg`,
+            projectedLoadDisplay: '-',
+            capacityDisplay: '-',
+            freeAfterDisplay: '-',
+            percentAfterDisplay: '-',
+        };
+        renderFreezingCapacityFeedback(form, data);
+        setFreezingCapacitySubmitState(form, false, data.message);
+
+        return false;
+    }
+
+    setFreezingCapacitySubmitState(form, false, 'Verification de la capacite espace usine en cours.');
+    feedback.innerHTML = '<div class="alert alert-info small mb-0"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Verification de la capacite espace usine...</div>';
+
+    const checkUrl = new URL(url, window.location.origin);
+    checkUrl.searchParams.set('location', location);
+    checkUrl.searchParams.set('quantity', String(quantity));
+
+    try {
+        const payload = await readJson(await fetch(checkUrl, {
+            headers: {Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+        }));
+        renderFreezingCapacityFeedback(form, payload.data);
+        setFreezingCapacitySubmitState(form, payload.data.canSubmit !== false, payload.data.message || '');
+
+        return payload.data.canSubmit !== false;
+    } catch (error) {
+        const data = {
+            canSubmit: false,
+            tone: 'danger',
+            title: 'Verification impossible',
+            message: error.message,
+            loadDisplay: '-',
+            requestedDisplay: '-',
+            projectedLoadDisplay: '-',
+            capacityDisplay: '-',
+            freeAfterDisplay: '-',
+            percentAfterDisplay: '-',
+        };
+        renderFreezingCapacityFeedback(form, data);
+        setFreezingCapacitySubmitState(form, false, error.message);
+
+        return false;
+    }
+}
+
+function initializeFreezingCapacityChecks(root = document) {
+    root.querySelectorAll('form[data-freezing-capacity-form], form[data-factory-capacity-form]').forEach((form) => {
+        if (form.dataset.freezingCapacityInitialized === '1') return;
+        form.dataset.freezingCapacityInitialized = '1';
+
+        const quantityField = form.querySelector('[data-freezing-capacity-quantity], [data-factory-capacity-quantity]');
+        const locationField = form.querySelector('[data-freezing-capacity-tunnel], [data-factory-capacity-location]');
+        if (!quantityField || !locationField) return;
+
+        const scheduleCheck = () => {
+            scheduleDebounce(form, () => {
+                checkFreezingCapacity(form).catch((error) => showAlert(error.message, 'danger'));
+            }, 250);
+        };
+
+        quantityField.addEventListener('input', scheduleCheck);
+        locationField.addEventListener('change', scheduleCheck);
+        checkFreezingCapacity(form).catch((error) => showAlert(error.message, 'danger'));
+    });
+}
+
 async function searchInventoryContacts(input) {
     const form = input.closest('[data-inventory-whatsapp-form]');
     const results = form?.querySelector('[data-inventory-contact-results]');
@@ -1883,6 +2047,8 @@ function initializePageBehaviors() {
     if (targetSelector) openNavigationModal(targetSelector);
     initializeMaintenanceSmartForms();
     initializeExpenseForms();
+    initializeReceptionSmartChoices();
+    initializeFreezingCapacityChecks();
     initializeInterimWorkerForms();
     initializeCoutRevientForms();
     initializeCoutRevientDashboard();
@@ -1902,6 +2068,13 @@ document.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (ajaxForm.matches('[data-maintenance-contract-form]') && !validateMaintenanceContractDates(ajaxForm)) {
             return;
+        }
+        if (ajaxForm.matches('[data-freezing-capacity-form], [data-factory-capacity-form]')) {
+            const capacityOk = await checkFreezingCapacity(ajaxForm);
+            if (!capacityOk) {
+                showAlert(ajaxForm.dataset.freezingCapacityMessage || ajaxForm.dataset.factoryCapacityMessage || 'Capacite espace usine insuffisante.', 'danger');
+                return;
+            }
         }
 
         const button = event.submitter?.matches?.('[type="submit"]') ? event.submitter : ajaxForm.querySelector('[type="submit"]');
@@ -2356,6 +2529,8 @@ document.addEventListener('click', async (event) => {
             content.innerHTML = await response.text();
             initializeMaintenanceSmartForms(content);
             initializeExpenseForms(content);
+            initializeReceptionSmartChoices(content);
+            initializeFreezingCapacityChecks(content);
             initializeInterimWorkerForms(content);
             initializeCoutRevientForms(content);
             initializeCoutRevientDashboard(content);
@@ -2414,6 +2589,12 @@ document.addEventListener('change', (event) => {
     if (choiceTagsInput) {
         const field = choiceTagsInput.closest('[data-choice-tags]');
         if (field) syncChoiceTags(field);
+        return;
+    }
+
+    const smartChoiceSelect = event.target.closest('[data-smart-choice-select], [data-reception-smart-select]');
+    if (smartChoiceSelect) {
+        syncSmartChoice(smartChoiceSelect);
         return;
     }
 

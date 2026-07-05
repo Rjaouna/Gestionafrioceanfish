@@ -71,7 +71,11 @@
             <div class="sidebar-open-body">
                 <a class="sidebar-sub-link {{ current_route == 'app_fish_reception_index' ? 'active' : '' }}" href="{{ path('app_fish_reception_index') }}">
                     <i class="bi bi-clipboard2-check"></i>
-                    <span>Reception</span>
+                    <span>Liste receptions</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_new' ? 'active' : '' }}" href="{{ path('app_fish_reception_new') }}">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Nouvelle reception</span>
                 </a>
                 <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'traitement' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'traitement'}) }}">
                     <i class="bi bi-arrow-repeat"></i>
@@ -92,10 +96,6 @@
                 <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'expedition' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'expedition'}) }}">
                     <i class="bi bi-truck"></i>
                     <span>Expedition</span>
-                </a>
-                <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_new' ? 'active' : '' }}" href="{{ path('app_fish_reception_new') }}">
-                    <i class="bi bi-plus-circle"></i>
-                    <span>Nouvelle reception</span>
                 </a>
             </div>
         </section>
@@ -153,7 +153,8 @@
 {% set module_admin_modules = modules|filter(module => module.slug == 'modules') %}
 {% set agenda_modules = modules|filter(module => module.slug == 'agenda') %}
 {% set inventory_modules = modules|filter(module => module.slug == 'inventory') %}
-{% set business_modules = modules|filter(module => module.slug not in ['passwords', 'users', 'modules', 'agenda', 'inventory']) %}
+{% set factory_modules = modules|filter(module => module.slug == 'factory') %}
+{% set business_modules = modules|filter(module => module.slug not in ['passwords', 'users', 'modules', 'agenda', 'inventory', 'factory']) %}
 {% set can_manage_users = user_modules|length > 0 and is_granted('ROLE_ADMIN') %}
 {% set can_manage_modules = module_admin_modules|length > 0 and is_granted('ROLE_SUPER_ADMIN') %}
 {% set security_active = current_route starts with 'app_password' %}
@@ -164,11 +165,18 @@
 {% set configuration_active = current_route starts with 'app_module' %}
 {% set trash_active = current_route starts with 'app_trash' %}
 {% set deleted_items_count = is_granted('ROLE_SUPER_ADMIN') ? trash_deleted_count(app.user) : 0 %}
-{% set primary_business_slugs = ['cout-revient', 'factory', 'receptions', 'interimaires', 'expenses', 'contacts'] %}
+{% set primary_business_slugs = ['receptions', 'cout-revient', 'interimaires', 'expenses', 'contacts'] %}
 {% set secondary_business_slugs = ['documents', 'maintenance'] %}
 {% set ordered_business_slugs = primary_business_slugs|merge(secondary_business_slugs) %}
 
 <div class="sidebar-navigation">
+    <a class="sidebar-brand-panel" href="{{ path('app_dashboard') }}" aria-label="AFRIOCEAN FISH">
+        <span class="sidebar-brand-copy">
+            <strong>AFRIOCEAN</strong>
+            <span>FISH</span>
+        </span>
+    </a>
+
     <div class="sidebar-menu-search" data-sidebar-search>
         <label class="visually-hidden" for="{{ item_prefix }}MenuSearch">Rechercher dans le menu</label>
         <div class="input-group input-group-sm">
@@ -343,6 +351,14 @@
                         </a>
                     </div>
                 </section>
+            </div>
+        {% endif %}
+
+        {% if factory_modules|length > 0 %}
+            <div class="sidebar-configuration">
+                {% for module in factory_modules %}
+                    {{ menu.business_module(module, current_route) }}
+                {% endfor %}
             </div>
         {% endif %}
 

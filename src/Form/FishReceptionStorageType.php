@@ -18,7 +18,7 @@ final class FishReceptionStorageType extends AbstractType
     {
         $builder
             ->add('quantity', NumberType::class, $this->quantityOptions('Quantite a entrer en stock (kg)', (float) $options['available_quantity']))
-            ->add('chambreFroide', empty($options['factory_unit_choices']) ? TextType::class : ChoiceType::class, $this->factoryUnitOptions('Chambre froide / zone de stockage', $options['factory_unit_choices'], 'Ex. Chambre negative 1'))
+            ->add('chambreFroide', empty($options['factory_unit_choices']) ? TextType::class : ChoiceType::class, $this->factoryUnitOptions('Chambre froide / zone de stockage', $options['factory_unit_choices'], 'Ex. Chambre negative 1', $options['capacity_check_url']))
             ->add('temperatureChambre', NumberType::class, $this->numberOptions('Temperature chambre', 2, '0.01', false, true))
             ->add('temperatureStockage', NumberType::class, $this->numberOptions('Temperature produit stocke', 2, '0.01', false, true))
             ->add('dateEntreeStockage', DateType::class, $this->dateOptions('Date entree stockage', false))
@@ -31,9 +31,11 @@ final class FishReceptionStorageType extends AbstractType
             'data_class' => FishReception::class,
             'available_quantity' => 0.0,
             'factory_unit_choices' => [],
+            'capacity_check_url' => null,
         ]);
         $resolver->setAllowedTypes('available_quantity', ['float', 'int']);
         $resolver->setAllowedTypes('factory_unit_choices', ['array']);
+        $resolver->setAllowedTypes('capacity_check_url', ['null', 'string']);
     }
 
     /** @return array<string, mixed> */
@@ -44,7 +46,12 @@ final class FishReceptionStorageType extends AbstractType
             'mapped' => false,
             'required' => true,
             'data' => $available > 0 ? round($available, 3) : null,
-            'attr' => ['min' => 0.001, 'max' => max(0.001, round($available, 3)), 'step' => '0.001'],
+            'attr' => [
+                'min' => 0.001,
+                'max' => max(0.001, round($available, 3)),
+                'step' => '0.001',
+                'data-factory-capacity-quantity' => 'true',
+            ],
             'help' => sprintf('Disponible apres congelation : %.3f kg', max(0.0, $available)),
         ];
     }
@@ -88,13 +95,20 @@ final class FishReceptionStorageType extends AbstractType
     }
 
     /** @param array<string, string> $choices @return array<string, mixed> */
-    private function factoryUnitOptions(string $label, array $choices, string $placeholder): array
+    private function factoryUnitOptions(string $label, array $choices, string $placeholder, ?string $capacityCheckUrl): array
     {
+        $attr = [
+            'data-factory-capacity-location' => 'true',
+        ];
+        if ($capacityCheckUrl !== null) {
+            $attr['data-factory-capacity-url'] = $capacityCheckUrl;
+        }
+
         if ($choices === []) {
             return [
                 'label' => $label,
                 'required' => true,
-                'attr' => ['maxlength' => 120, 'placeholder' => $placeholder],
+                'attr' => $attr + ['maxlength' => 120, 'placeholder' => $placeholder],
             ];
         }
 
@@ -103,6 +117,7 @@ final class FishReceptionStorageType extends AbstractType
             'required' => true,
             'placeholder' => 'Selectionner...',
             'choices' => $choices,
+            'attr' => $attr,
             'help' => 'Liste issue de Composition usine. Les pieces arretees, inactives ou saturees ne sont pas proposees.',
         ];
     }

@@ -12,7 +12,7 @@
             <div class="col-md-4">{{ form_row(form.quantity) }}</div>
             <div class="col-md-4">{{ form_row(form.movementDate) }}</div>
             <div class="col-md-4">{{ form_row(form.unitCost) }}</div>
-            <div class="col-md-6">{{ form_row(form.supplier) }}</div>
+            <div class="col-md-6">{% include 'inventory/_smart_choice_field.html.twig' with {form: form, field: form.supplier} %}</div>
             <div class="col-12">{{ form_row(form.reason) }}</div>
         </div>
         {{ form_rest(form) }}

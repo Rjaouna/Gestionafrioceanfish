@@ -18,7 +18,7 @@ final class FishReceptionFreezingType extends AbstractType
     {
         $builder
             ->add('quantity', NumberType::class, $this->quantityOptions('Quantite a congeler (kg)', (float) $options['available_quantity']))
-            ->add('tunnel', empty($options['factory_unit_choices']) ? TextType::class : ChoiceType::class, $this->factoryUnitOptions('Tunnel', $options['factory_unit_choices'], 'Ex. Tunnel 3'))
+            ->add('tunnel', empty($options['factory_unit_choices']) ? TextType::class : ChoiceType::class, $this->factoryUnitOptions('Tunnel', $options['factory_unit_choices'], 'Ex. Tunnel 3', $options['capacity_check_url']))
             ->add('heureEntreeTunnel', TimeType::class, $this->timeOptions('Heure entree tunnel'))
             ->add('temperatureTunnel', NumberType::class, $this->numberOptions('Temperature tunnel', 2, '0.01', false, true))
             ->add('dateSortieTunnel', DateType::class, $this->dateOptions('Date sortie tunnel', false))
@@ -31,9 +31,11 @@ final class FishReceptionFreezingType extends AbstractType
             'data_class' => FishReception::class,
             'available_quantity' => 0.0,
             'factory_unit_choices' => [],
+            'capacity_check_url' => null,
         ]);
         $resolver->setAllowedTypes('available_quantity', ['float', 'int']);
         $resolver->setAllowedTypes('factory_unit_choices', ['array']);
+        $resolver->setAllowedTypes('capacity_check_url', ['null', 'string']);
     }
 
     /** @return array<string, mixed> */
@@ -44,7 +46,12 @@ final class FishReceptionFreezingType extends AbstractType
             'mapped' => false,
             'required' => true,
             'data' => $available > 0 ? round($available, 3) : null,
-            'attr' => ['min' => 0.001, 'max' => max(0.001, round($available, 3)), 'step' => '0.001'],
+            'attr' => [
+                'min' => 0.001,
+                'max' => max(0.001, round($available, 3)),
+                'step' => '0.001',
+                'data-freezing-capacity-quantity' => 'true',
+            ],
             'help' => sprintf('Disponible apres traitement : %.3f kg', max(0.0, $available)),
         ];
     }
@@ -88,13 +95,20 @@ final class FishReceptionFreezingType extends AbstractType
     }
 
     /** @param array<string, string> $choices @return array<string, mixed> */
-    private function factoryUnitOptions(string $label, array $choices, string $placeholder): array
+    private function factoryUnitOptions(string $label, array $choices, string $placeholder, ?string $capacityCheckUrl): array
     {
+        $attr = [
+            'data-freezing-capacity-tunnel' => 'true',
+        ];
+        if ($capacityCheckUrl !== null) {
+            $attr['data-freezing-capacity-url'] = $capacityCheckUrl;
+        }
+
         if ($choices === []) {
             return [
                 'label' => $label,
                 'required' => true,
-                'attr' => ['maxlength' => 80, 'placeholder' => $placeholder],
+                'attr' => $attr + ['maxlength' => 80, 'placeholder' => $placeholder],
             ];
         }
 
@@ -103,6 +117,7 @@ final class FishReceptionFreezingType extends AbstractType
             'required' => true,
             'placeholder' => 'Selectionner...',
             'choices' => $choices,
+            'attr' => $attr,
             'help' => 'Seuls les tunnels operationnels, actifs et non satures sont proposes.',
         ];
     }

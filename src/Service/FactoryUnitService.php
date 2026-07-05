@@ -183,6 +183,152 @@ final readonly class FactoryUnitService
         ];
     }
 
+    /** @return array<string, mixed> */
+    public function tunnelCapacityDiagnostic(User $actor, ?string $tunnel, float $requestedQuantity): array
+    {
+        return $this->factoryUnitCapacityDiagnostic(
+            $actor,
+            $tunnel,
+            $requestedQuantity,
+            [FactoryUnit::TYPE_TUNNEL],
+            'Tunnel',
+            'Selectionnez un tunnel avant de valider la congelation.',
+            'Ce tunnel n existe pas dans Composition usine. Selectionnez un tunnel declare pour controler la capacite.',
+        );
+    }
+
+    public function assertTunnelCanReceive(User $actor, ?string $tunnel, float $requestedQuantity): void
+    {
+        $diagnostic = $this->tunnelCapacityDiagnostic($actor, $tunnel, $requestedQuantity);
+        if (($diagnostic['canSubmit'] ?? false) !== true) {
+            throw new \DomainException((string) ($diagnostic['message'] ?? 'Capacite tunnel insuffisante.'));
+        }
+    }
+
+    /** @return array<string, mixed> */
+    public function storageCapacityDiagnostic(User $actor, ?string $location, float $requestedQuantity): array
+    {
+        return $this->factoryUnitCapacityDiagnostic(
+            $actor,
+            $location,
+            $requestedQuantity,
+            [],
+            'Espace de stockage',
+            'Selectionnez la chambre froide ou la zone de stockage avant de valider.',
+            'Cet espace n existe pas dans Composition usine. Selectionnez une piece declaree pour controler la capacite.',
+        );
+    }
+
+    public function assertStorageCanReceive(User $actor, ?string $location, float $requestedQuantity): void
+    {
+        $diagnostic = $this->storageCapacityDiagnostic($actor, $location, $requestedQuantity);
+        if (($diagnostic['canSubmit'] ?? false) !== true) {
+            throw new \DomainException((string) ($diagnostic['message'] ?? 'Capacite espace stockage insuffisante.'));
+        }
+    }
+
+    /**
+     * @param list<string> $types
+     *
+     * @return array<string, mixed>
+     */
+    private function factoryUnitCapacityDiagnostic(User $actor, ?string $location, float $requestedQuantity, array $types, string $spaceLabel, string $missingMessage, string $notFoundMessage): array
+    {
+        $this->assertUsageAccess($actor);
+
+        $location = trim((string) $location);
+        $requestedQuantity = max(0.0, $requestedQuantity);
+        if ($location === '') {
+            return $this->capacityDiagnosticPayload(
+                null,
+                $requestedQuantity,
+                0.0,
+                false,
+                'danger',
+                $spaceLabel.' obligatoire',
+                $missingMessage,
+            );
+        }
+
+        $unit = $this->findUnitByLocationValue($location, $types);
+        if (!$unit instanceof FactoryUnit) {
+            return $this->capacityDiagnosticPayload(
+                null,
+                $requestedQuantity,
+                0.0,
+                false,
+                'danger',
+                $spaceLabel.' introuvable',
+                $notFoundMessage,
+            );
+        }
+
+        $currentLoad = $this->currentLoadForUnit($unit);
+        $capacity = (float) $unit->getCapacityKg();
+        $projectedLoad = $currentLoad + $requestedQuantity;
+        $percentAfter = $capacity > 0.001 ? ($projectedLoad / $capacity) * 100 : 0.0;
+        $canSubmit = true;
+        $tone = 'success';
+        $title = 'Capacite OK';
+        $message = sprintf(
+            '%s peut recevoir %s. Charge actuelle %s, apres validation %s sur %s.',
+            $unit->getDisplayName(),
+            $this->formatKg($requestedQuantity),
+            $this->formatKg($currentLoad),
+            $this->formatKg($projectedLoad),
+            $capacity > 0.001 ? $this->formatKg($capacity) : 'capacite non renseignee',
+        );
+
+        if (!$unit->isActive()) {
+            $canSubmit = false;
+            $tone = 'danger';
+            $title = $spaceLabel.' masque';
+            $message = sprintf('%s est masque dans Composition usine.', $unit->getDisplayName());
+        } elseif ($unit->getStatus() !== FactoryUnit::STATUS_OPERATIONAL) {
+            $canSubmit = false;
+            $tone = 'danger';
+            $title = $spaceLabel.' non operationnel';
+            $message = sprintf('%s est %s.', $unit->getDisplayName(), mb_strtolower($unit->getStatusLabel()));
+        } elseif ($unit->isSaturated()) {
+            $canSubmit = false;
+            $tone = 'danger';
+            $title = $spaceLabel.' sature';
+            $message = sprintf('%s est marque sature dans Composition usine.', $unit->getDisplayName());
+        } elseif ($capacity <= 0.001) {
+            $canSubmit = false;
+            $tone = 'danger';
+            $title = 'Capacite manquante';
+            $message = sprintf('Renseignez la capacite kg de %s dans Composition usine avant de valider.', $unit->getDisplayName());
+        } elseif ($requestedQuantity <= 0.001) {
+            $canSubmit = false;
+            $tone = 'danger';
+            $title = 'Quantite obligatoire';
+            $message = 'Renseignez une quantite superieure a 0 kg.';
+        } elseif ($projectedLoad - $capacity > 0.001) {
+            $canSubmit = false;
+            $tone = 'danger';
+            $title = 'Capacite depassee';
+            $message = sprintf(
+                '%s ne peut pas recevoir %s : charge actuelle %s, capacite %s, disponible %s.',
+                $unit->getDisplayName(),
+                $this->formatKg($requestedQuantity),
+                $this->formatKg($currentLoad),
+                $this->formatKg($capacity),
+                $this->formatKg(max(0.0, $capacity - $currentLoad)),
+            );
+        } elseif ($percentAfter > 60) {
+            $tone = 'danger';
+            $title = $spaceLabel.' tres charge';
+            $message .= ' L espace depassera 60 %, a surveiller avant de continuer.';
+        } elseif ($percentAfter > 40) {
+            $tone = 'warning';
+            $title = $spaceLabel.' a surveiller';
+            $message .= ' L espace depassera 40 %.';
+        }
+
+        return $this->capacityDiagnosticPayload($unit, $requestedQuantity, $currentLoad, $canSubmit, $tone, $title, $message);
+    }
+
     /** @param list<FactoryUnit> $units @return array<string, string> */
     private function choicesFromUnits(array $units, ?string $current = null): array
     {
@@ -243,6 +389,72 @@ final readonly class FactoryUnitService
         ];
 
         return array_values(array_unique(array_filter($keys)));
+    }
+
+    /** @param list<string> $types */
+    private function findUnitByLocationValue(string $value, array $types): ?FactoryUnit
+    {
+        $key = $this->normalizeLocationKey($value);
+        if ($key === '') {
+            return null;
+        }
+
+        foreach ($this->repository->search() as $unit) {
+            if ($types !== [] && !in_array($unit->getType(), $types, true)) {
+                continue;
+            }
+
+            if (in_array($key, $this->unitLocationKeys($unit), true)) {
+                return $unit;
+            }
+        }
+
+        return null;
+    }
+
+    private function currentLoadForUnit(FactoryUnit $unit): float
+    {
+        $stockByLocationKey = $this->loadRowsByLocation($this->fishReceptionRepository->currentStockByStorageLocation());
+        $load = $this->stockForUnit($unit, $stockByLocationKey);
+
+        if ($unit->getType() === FactoryUnit::TYPE_TUNNEL) {
+            $tunnelByLocationKey = $this->loadRowsByLocation($this->fishReceptionRepository->currentLoadByTunnel());
+            $load += $this->stockForUnit($unit, $tunnelByLocationKey);
+        }
+
+        return $load;
+    }
+
+    /** @return array<string, mixed> */
+    private function capacityDiagnosticPayload(?FactoryUnit $unit, float $requestedQuantity, float $currentLoad, bool $canSubmit, string $tone, string $title, string $message): array
+    {
+        $capacity = $unit instanceof FactoryUnit ? (float) $unit->getCapacityKg() : 0.0;
+        $projectedLoad = $currentLoad + max(0.0, $requestedQuantity);
+        $freeBefore = $capacity > 0.001 ? max(0.0, $capacity - $currentLoad) : 0.0;
+        $freeAfter = $capacity > 0.001 ? max(0.0, $capacity - $projectedLoad) : 0.0;
+        $percentAfter = $capacity > 0.001 ? ($projectedLoad / $capacity) * 100 : 0.0;
+
+        return [
+            'canSubmit' => $canSubmit,
+            'tone' => $tone,
+            'title' => $title,
+            'message' => $message,
+            'unitName' => $unit instanceof FactoryUnit ? $unit->getDisplayName() : null,
+            'load' => round($currentLoad, 3),
+            'loadDisplay' => $this->formatKg($currentLoad),
+            'requested' => round(max(0.0, $requestedQuantity), 3),
+            'requestedDisplay' => $this->formatKg(max(0.0, $requestedQuantity)),
+            'projectedLoad' => round($projectedLoad, 3),
+            'projectedLoadDisplay' => $this->formatKg($projectedLoad),
+            'capacity' => round($capacity, 3),
+            'capacityDisplay' => $capacity > 0.001 ? $this->formatKg($capacity) : 'Non renseignee',
+            'freeBefore' => round($freeBefore, 3),
+            'freeBeforeDisplay' => $capacity > 0.001 ? $this->formatKg($freeBefore) : '-',
+            'freeAfter' => round($freeAfter, 3),
+            'freeAfterDisplay' => $capacity > 0.001 ? $this->formatKg($freeAfter) : '-',
+            'percentAfter' => round($percentAfter, 1),
+            'percentAfterDisplay' => $capacity > 0.001 ? number_format(min(999.0, $percentAfter), 1, ',', ' ').' %' : '-',
+        ];
     }
 
     private function normalizeLocationKey(string $value): string

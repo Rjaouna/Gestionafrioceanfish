@@ -28,15 +28,25 @@ class ConsumableStockItemRepository extends ServiceEntityRepository
     /** @return list<string> */
     public function distinctCategories(): array
     {
+        return $this->distinctValues('category');
+    }
+
+    /** @return list<string> */
+    public function distinctValues(string $field): array
+    {
+        if (!in_array($field, ['category', 'unit', 'storageLocation', 'preferredSupplier', 'supplierPhone'], true)) {
+            throw new \InvalidArgumentException(sprintf('Unsupported consumable stock field "%s".', $field));
+        }
+
         $rows = $this->createQueryBuilder('i')
-            ->select('DISTINCT i.category AS category')
-            ->andWhere('i.category IS NOT NULL')
-            ->andWhere("i.category <> ''")
-            ->orderBy('i.category', 'ASC')
+            ->select(sprintf('DISTINCT i.%s AS value', $field))
+            ->andWhere(sprintf('i.%s IS NOT NULL', $field))
+            ->andWhere(sprintf("i.%s <> ''", $field))
+            ->orderBy(sprintf('i.%s', $field), 'ASC')
             ->getQuery()
             ->getArrayResult();
 
-        return array_values(array_filter(array_map(static fn (mixed $value): string => trim((string) $value), array_column($rows, 'category'))));
+        return array_values(array_filter(array_map(static fn (mixed $value): string => trim((string) $value), array_column($rows, 'value'))));
     }
 
     public function countActive(): int

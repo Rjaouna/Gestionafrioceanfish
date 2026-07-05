@@ -56,4 +56,22 @@ class ConsumableStockMovementRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /** @return list<string> */
+    public function distinctValues(string $field): array
+    {
+        if (!in_array($field, ['supplier', 'recipient'], true)) {
+            throw new \InvalidArgumentException(sprintf('Unsupported consumable movement field "%s".', $field));
+        }
+
+        $rows = $this->createQueryBuilder('m')
+            ->select(sprintf('DISTINCT m.%s AS value', $field))
+            ->andWhere(sprintf('m.%s IS NOT NULL', $field))
+            ->andWhere(sprintf("m.%s <> ''", $field))
+            ->orderBy(sprintf('m.%s', $field), 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_values(array_filter(array_map(static fn (mixed $value): string => trim((string) $value), array_column($rows, 'value'))));
+    }
 }

@@ -51,16 +51,29 @@ final readonly class ConsumableStockService
     public function filterChoices(User $actor): array
     {
         $this->denyUnlessAccess($actor);
-        $categories = array_values(ConsumableStockItem::CATEGORY_CHOICES);
-        foreach ($this->itemRepository->distinctCategories() as $category) {
-            if (!in_array($category, $categories, true)) {
-                $categories[] = $category;
-            }
-        }
 
         return [
-            'categories' => $categories,
+            'categories' => $this->itemRepository->distinctCategories(),
             'statuses' => ConsumableStockItem::LEVEL_LABELS + ['alert' => 'A commander'],
+        ];
+    }
+
+    /** @return array{categories: list<string>, units: list<string>, storageLocations: list<string>, preferredSuppliers: list<string>, entrySuppliers: list<string>, recipients: list<string>} */
+    public function formChoiceLists(User $actor): array
+    {
+        $this->denyUnlessAccess($actor);
+        $suppliers = $this->mergeChoiceValues(
+            $this->itemRepository->distinctValues('preferredSupplier'),
+            $this->movementRepository->distinctValues('supplier'),
+        );
+
+        return [
+            'categories' => $this->itemRepository->distinctValues('category'),
+            'units' => $this->itemRepository->distinctValues('unit'),
+            'storageLocations' => $this->itemRepository->distinctValues('storageLocation'),
+            'preferredSuppliers' => $suppliers,
+            'entrySuppliers' => $suppliers,
+            'recipients' => $this->movementRepository->distinctValues('recipient'),
         ];
     }
 
@@ -249,6 +262,26 @@ final readonly class ConsumableStockService
         if ($quantity <= 0) {
             throw new \DomainException('La quantite doit etre superieure a zero.');
         }
+    }
+
+    /** @param list<string> ...$groups @return list<string> */
+    private function mergeChoiceValues(array ...$groups): array
+    {
+        $values = [];
+        foreach ($groups as $group) {
+            foreach ($group as $value) {
+                $value = trim((string) $value);
+                if ($value === '') {
+                    continue;
+                }
+
+                $values[mb_strtolower($value)] ??= $value;
+            }
+        }
+
+        natcasesort($values);
+
+        return array_values($values);
     }
 
     private function denyUnlessAccess(User $actor): void

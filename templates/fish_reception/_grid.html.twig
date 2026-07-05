@@ -28,9 +28,9 @@
 {% set available_label = available_labels[stage]|default('Reste reception') %}
 
 {% if items|length > 0 %}
-    <div class="card border-0 shadow-sm">
+    <div class="card border-0 shadow-sm fish-reception-grid-card">
         <div class="table-responsive">
-            <table class="table align-middle mb-0">
+            <table class="table align-middle mb-0 fish-reception-table">
                 <thead class="table-light">
                 <tr>
                     <th>Date</th>
@@ -91,7 +91,7 @@
                         <td>
                             {% if stage == 'traitement' %}
                                 <div>Prepare {{ item.quantiteTotalePreparee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>
-                                <div class="small text-secondary">{{ item.heureDebutTraitement ? 'Debut ' ~ item.heureDebutTraitement|date('H:i') : 'Traitement non lance' }}</div>
+                                <div class="small text-secondary">{{ item.quantiteTotalePrepareeValue > 0.001 and item.heureDebutTraitement ? 'Debut ' ~ item.heureDebutTraitement|date('H:i') : 'Aucune quantite en traitement' }}</div>
                             {% elseif stage == 'emballage' %}
                                 <div>{{ item.produitConditionne ?: 'Produit non renseigne' }}</div>
                                 <div class="small text-secondary">{{ item.quantiteConditionnee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg emballes</div>
@@ -148,6 +148,9 @@
                                     {% if item.quantiteDisponibleTraitementValue > 0.001 %}
                                         <button class="btn btn-outline-warning" title="Emballer" aria-label="Emballer" data-remote-modal="{{ path('app_fish_reception_packaging_form', {id: item.id}) }}">
                                             <i class="bi bi-box"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" title="Annuler traitement" aria-label="Annuler traitement" data-remote-modal="{{ path('app_fish_reception_cancel_treatment_form', {id: item.id}) }}">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
                                         </button>
                                     {% endif %}
                                     {% if item.quantiteDisponibleEmballageValue > 0.001 %}

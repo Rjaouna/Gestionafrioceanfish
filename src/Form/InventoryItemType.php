@@ -24,22 +24,18 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final class InventoryItemType extends AbstractType
 {
+    use SmartChoiceTrait;
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $item = $builder->getData();
+        $isExisting = $item instanceof InventoryItem && null !== $item->getId();
+        $choiceLists = $options['choice_lists'];
+
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Nom du matériel',
                 'attr' => ['placeholder' => 'Ex. Ordinateur portable, imprimante, caisse...'],
-            ])
-            ->add('categoryName', TextType::class, [
-                'label' => 'Catégorie',
-                'mapped' => false,
-                'required' => false,
-                'data' => $options['category_name'],
-                'attr' => [
-                    'list' => 'inventory-category-suggestions',
-                    'placeholder' => 'Ex. Caisse, palette, machine...',
-                ],
             ])
             ->add('dimensions', TextType::class, [
                 'label' => 'Dimensions',
@@ -92,10 +88,6 @@ final class InventoryItemType extends AbstractType
             ->add('availableQuantity', IntegerType::class, [
                 'label' => 'Quantité disponible',
                 'attr' => ['min' => 0],
-            ])
-            ->add('unit', TextType::class, [
-                'label' => 'Unite',
-                'attr' => ['placeholder' => 'pièce, lot, carton...'],
             ])
             ->add('serialNumber', TextType::class, [
                 'label' => 'Numéro de série',
@@ -176,6 +168,16 @@ final class InventoryItemType extends AbstractType
                 ],
                 'data' => 'document',
             ]);
+
+        $categoryName = trim((string) $options['category_name']);
+        $configs = [
+            'categoryName' => ['label' => 'Categorie', 'values' => $choiceLists['categories'] ?? [], 'required' => false, 'maxlength' => 120, 'choice_options' => ['mapped' => false]],
+            'unit' => ['label' => 'Unite', 'values' => $choiceLists['units'] ?? [], 'required' => true, 'maxlength' => 40],
+        ];
+
+        $this->addSmartChoice($builder, 'categoryName', 'Categorie', $configs['categoryName']['values'], false, 120, $categoryName !== '' ? $categoryName : null, ['mapped' => false, 'data' => $categoryName !== '' ? $categoryName : null]);
+        $this->addSmartChoice($builder, 'unit', 'Unite', $configs['unit']['values'], true, 40, $isExisting ? $item->getUnit() : null, $isExisting ? [] : ['data' => null]);
+        $this->addSmartChoiceSubmitListener($builder, $configs);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -186,10 +188,12 @@ final class InventoryItemType extends AbstractType
             'max_file_size' => '10M',
             'category_name' => '',
             'category_suggestions' => [],
+            'choice_lists' => [],
         ]);
         $resolver->setAllowedTypes('allowed_mime_types', 'array');
         $resolver->setAllowedTypes('max_file_size', ['int', 'string']);
         $resolver->setAllowedTypes('category_name', ['string', 'null']);
         $resolver->setAllowedTypes('category_suggestions', 'array');
+        $resolver->setAllowedTypes('choice_lists', 'array');
     }
 }

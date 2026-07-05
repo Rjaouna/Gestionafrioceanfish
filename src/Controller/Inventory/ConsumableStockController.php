@@ -137,6 +137,7 @@ final class ConsumableStockController extends AbstractController
             'item' => $item,
             'form' => $this->createForm(ConsumableStockEntryType::class, null, [
                 'action' => $this->generateUrl('app_inventory_consumable_stock_entry', ['id' => $item->getId()]),
+                'choice_lists' => $this->stockService->formChoiceLists($this->currentUser()),
             ]),
         ]);
     }
@@ -147,6 +148,7 @@ final class ConsumableStockController extends AbstractController
         $this->denyAccessUnlessGranted(InventoryVoter::ACCESS);
         $form = $this->createForm(ConsumableStockEntryType::class, null, [
             'action' => $this->generateUrl('app_inventory_consumable_stock_entry', ['id' => $item->getId()]),
+            'choice_lists' => $this->stockService->formChoiceLists($this->currentUser()),
         ]);
         $form->handleRequest($request);
         if (!$form->isSubmitted() || !$form->isValid()) {
@@ -171,6 +173,7 @@ final class ConsumableStockController extends AbstractController
             'item' => $item,
             'form' => $this->createForm(ConsumableStockExitType::class, null, [
                 'action' => $this->generateUrl('app_inventory_consumable_stock_exit', ['id' => $item->getId()]),
+                'choice_lists' => $this->stockService->formChoiceLists($this->currentUser()),
             ]),
         ]);
     }
@@ -181,6 +184,7 @@ final class ConsumableStockController extends AbstractController
         $this->denyAccessUnlessGranted(InventoryVoter::ACCESS);
         $form = $this->createForm(ConsumableStockExitType::class, null, [
             'action' => $this->generateUrl('app_inventory_consumable_stock_exit', ['id' => $item->getId()]),
+            'choice_lists' => $this->stockService->formChoiceLists($this->currentUser()),
         ]);
         $form->handleRequest($request);
         if (!$form->isSubmitted() || !$form->isValid()) {
@@ -290,6 +294,7 @@ final class ConsumableStockController extends AbstractController
             'action' => $this->generateUrl($route, $parameters),
             'include_initial_quantity' => $includeInitialQuantity,
             'show_reference' => $showReference,
+            'choice_lists' => $this->stockService->formChoiceLists($this->currentUser()),
         ]);
     }
 

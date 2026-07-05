@@ -16,11 +16,6 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body">
         {{ form_start(form) }}
-            <datalist id="inventory-category-suggestions">
-                {% for category in category_suggestions|default([]) %}
-                    <option value="{{ category }}"></option>
-                {% endfor %}
-            </datalist>
             <div class="alert alert-light border d-flex justify-content-between align-items-center">
                 <div>
                     <span class="text-secondary small d-block">Référence</span>
@@ -36,10 +31,10 @@
                     </div>
                     <div class="row g-3">
                         <div class="col-md-6">{{ form_row(form.name) }}</div>
-                        <div class="col-md-3">{{ form_row(form.categoryName) }}</div>
+                        <div class="col-md-3">{% include 'inventory/_smart_choice_field.html.twig' with {form: form, field: form.categoryName} %}</div>
                         <div class="col-md-3">{{ form_row(form.quantity) }}</div>
                         <div class="col-md-3">{{ form_row(form.availableQuantity) }}</div>
-                        <div class="col-md-3">{{ form_row(form.unit) }}</div>
+                        <div class="col-md-3">{% include 'inventory/_smart_choice_field.html.twig' with {form: form, field: form.unit} %}</div>
                         <div class="col-md-3">{{ form_row(form.dimensions) }}</div>
                         <div class="col-md-3">{{ form_row(form.color) }}</div>
                         <div class="col-md-6">{{ form_row(form.site) }}</div>

@@ -9,14 +9,14 @@
                 <div class="col-md-4">{{ form_row(form.reference) }}</div>
             {% endif %}
             <div class="col-md-8">{{ form_row(form.name) }}</div>
-            <div class="col-md-4">{{ form_row(form.category) }}</div>
-            <div class="col-md-4">{{ form_row(form.unit) }}</div>
+            <div class="col-md-4">{% include 'inventory/_smart_choice_field.html.twig' with {form: form, field: form.category} %}</div>
+            <div class="col-md-4">{% include 'inventory/_smart_choice_field.html.twig' with {form: form, field: form.unit} %}</div>
             {% if form.initialQuantity is defined %}
                 <div class="col-md-4">{{ form_row(form.initialQuantity) }}</div>
             {% endif %}
             <div class="col-md-4">{{ form_row(form.minimumQuantity) }}</div>
-            <div class="col-md-4">{{ form_row(form.storageLocation) }}</div>
-            <div class="col-md-4">{{ form_row(form.preferredSupplier) }}</div>
+            <div class="col-md-4">{% include 'inventory/_smart_choice_field.html.twig' with {form: form, field: form.storageLocation} %}</div>
+            <div class="col-md-4">{% include 'inventory/_smart_choice_field.html.twig' with {form: form, field: form.preferredSupplier} %}</div>
             <div class="col-md-4">{{ form_row(form.supplierPhone) }}</div>
             <div class="col-12">{{ form_row(form.notes) }}</div>
             <div class="col-12">{{ form_row(form.isActive) }}</div>

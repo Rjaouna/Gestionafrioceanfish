@@ -6,14 +6,18 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final class ConsumableStockEntryType extends AbstractType
 {
+    use SmartChoiceTrait;
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $choiceLists = $options['choice_lists'];
+
         $builder
             ->add('quantity', NumberType::class, [
                 'label' => 'Quantite recue',
@@ -29,11 +33,6 @@ final class ConsumableStockEntryType extends AbstractType
                 'widget' => 'single_text',
                 'data' => new \DateTimeImmutable(),
             ])
-            ->add('supplier', TextType::class, [
-                'label' => 'Fournisseur',
-                'mapped' => false,
-                'required' => false,
-            ])
             ->add('unitCost', NumberType::class, [
                 'label' => 'Prix unitaire',
                 'mapped' => false,
@@ -48,5 +47,18 @@ final class ConsumableStockEntryType extends AbstractType
                 'required' => false,
                 'attr' => ['rows' => 3, 'placeholder' => 'Ex. achat facture, livraison fournisseur...'],
             ]);
+
+        $configs = [
+            'supplier' => ['label' => 'Fournisseur', 'values' => $choiceLists['entrySuppliers'] ?? [], 'required' => false, 'maxlength' => 180, 'choice_options' => ['mapped' => false]],
+        ];
+
+        $this->addSmartChoice($builder, 'supplier', 'Fournisseur', $configs['supplier']['values'], false, 180, null, ['mapped' => false]);
+        $this->addSmartChoiceSubmitListener($builder, $configs);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults(['choice_lists' => []]);
+        $resolver->setAllowedTypes('choice_lists', 'array');
     }
 }

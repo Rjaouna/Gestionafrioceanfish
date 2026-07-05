@@ -45,6 +45,17 @@ final readonly class InventoryItemService
         return sprintf('%s-%03d', $prefix, $this->repository->nextReferenceNumber($prefix));
     }
 
+    /** @return array{categories: list<string>, units: list<string>} */
+    public function formChoiceLists(User $actor): array
+    {
+        $this->assertAccess($actor);
+
+        return [
+            'categories' => array_map(static fn (InventoryCategory $category): string => (string) $category->getName(), $this->categoryRepository->activeList()),
+            'units' => $this->repository->distinctValues('unit'),
+        ];
+    }
+
     public function create(InventoryItem $item, User $actor, ?UploadedFile $file = null, string $fileType = 'document', ?string $categoryName = null): InventoryItem
     {
         if (!$this->access->canCreate($actor)) {

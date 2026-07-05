@@ -83,7 +83,17 @@ class FishReceptionRepository extends ServiceEntityRepository
     /** @return list<string> */
     public function distinctValues(string $field): array
     {
-        if (!in_array($field, ['fournisseur', 'especePoisson', 'provenance', 'chambreFroide', 'destinationFinaleClient'], true)) {
+        if (!in_array($field, [
+            'fournisseur',
+            'provenance',
+            'especePoisson',
+            'presentationProduit',
+            'etatProduit',
+            'categorieFraicheur',
+            'produitConditionne',
+            'chambreFroide',
+            'destinationFinaleClient',
+        ], true)) {
             throw new \InvalidArgumentException('Champ de filtre reception invalide.');
         }
 

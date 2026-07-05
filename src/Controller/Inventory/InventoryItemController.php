@@ -405,6 +405,7 @@ final class InventoryItemController extends AbstractController
             'max_file_size' => $this->fileService->maxFileSize(),
             'category_name' => $item->getCategory()?->getName() ?? '',
             'category_suggestions' => $this->categorySuggestions(),
+            'choice_lists' => $this->itemService->formChoiceLists($this->currentUser()),
         ]);
     }
 

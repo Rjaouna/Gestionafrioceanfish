@@ -16,33 +16,33 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class FishReceptionType extends AbstractType
 {
-    private const FOURNISSEURS = ['Hiba', 'Fournisseur import', 'Grossiste partenaire', 'Peche artisanale'];
-    private const ESPECES = ['Sardine', 'Maquereau', 'Merlu', 'Poulpe', 'Crevette', 'Calamar', 'Sole', 'Thon', 'Anchois'];
-    private const PRESENTATIONS = ['Entier', 'Filet', 'Tranche', 'HG', 'HGT', 'Sale', 'Marine', 'Sec', 'Fume'];
-    private const ETATS = ['Frais', 'Refrigere', 'Congele', 'Transforme', 'A controler'];
-    private const FRAICHEURS = ['Extra', 'A', 'B', 'Conforme', 'A controler', 'A renvoyer'];
-    private const PROVENANCES = ['Port Casablanca', 'Port Rabat', 'Port Tanger', 'Port Agadir', 'Espagne', 'Afrique', 'Bouskoura'];
+    use ReceptionSmartChoiceTrait;
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $reception = $builder->getData();
+        $choiceLists = $options['choice_lists'];
+        $smartFields = [
+            'fournisseur' => ['label' => 'Fournisseur', 'values' => $choiceLists['fournisseur'] ?? [], 'required' => true, 'maxlength' => 150],
+            'provenance' => ['label' => 'Provenance', 'values' => $choiceLists['provenance'] ?? [], 'required' => false, 'maxlength' => 150],
+            'especePoisson' => ['label' => 'Espece poisson', 'values' => $choiceLists['especePoisson'] ?? [], 'required' => true, 'maxlength' => 120],
+            'presentationProduit' => ['label' => 'Presentation produit', 'values' => $choiceLists['presentationProduit'] ?? [], 'required' => true, 'maxlength' => 120],
+            'etatProduit' => ['label' => 'Etat du produit', 'values' => $choiceLists['etatProduit'] ?? [], 'required' => true, 'maxlength' => 120],
+            'categorieFraicheur' => ['label' => 'Categorie fraicheur', 'values' => $choiceLists['categorieFraicheur'] ?? [], 'required' => true, 'maxlength' => 80],
+        ];
+
         $builder
             ->add('dateReception', DateType::class, $this->dateOptions('Date de reception'))
             ->add('heureDebutReception', TimeType::class, $this->timeOptions('Heure debut reception'))
             ->add('heureFinReception', TimeType::class, $this->timeOptions('Heure fin reception'))
-            ->add('fournisseur', ChoiceType::class, $this->choiceOptions('Fournisseur', self::FOURNISSEURS))
-            ->add('provenance', ChoiceType::class, $this->choiceOptions('Provenance', self::PROVENANCES, false))
             ->add('matriculeVehicule', TextType::class, $this->textOptions('Matricule vehicule', false, 80))
             ->add('chauffeur', TextType::class, $this->textOptions('Chauffeur', false, 150))
-            ->add('especePoisson', ChoiceType::class, $this->choiceOptions('Espece poisson', self::ESPECES))
             ->add('nomScientifique', TextType::class, $this->textOptions('Nom scientifique', false, 150))
-            ->add('presentationProduit', ChoiceType::class, $this->choiceOptions('Presentation produit', self::PRESENTATIONS))
-            ->add('etatProduit', ChoiceType::class, $this->choiceOptions('Etat du produit', self::ETATS))
             ->add('numeroBonLivraison', TextType::class, $this->textOptions('N Bon de livraison', false, 120))
             ->add('quantiteIndiqueeBl', NumberType::class, $this->numberOptions('Quantite indiquee sur BL (kg)', 3, '0.001', false))
             ->add('quantiteReceptionnee', NumberType::class, $this->numberOptions('Quantite receptionnee (kg)', 3, '0.001'))
             ->add('nombreCaissesReception', IntegerType::class, $this->integerOptions('Nombre de caisses reception', false))
             ->add('temperaturePoissonReception', NumberType::class, $this->numberOptions('Temperature poisson reception', 2, '0.01', false, true))
-            ->add('categorieFraicheur', ChoiceType::class, $this->choiceOptions('Categorie fraicheur', self::FRAICHEURS))
             ->add('presenceGlace', ChoiceType::class, [
                 'label' => 'Presence de glace',
                 'choices' => ['Oui' => true, 'Non' => false],
@@ -56,24 +56,23 @@ final class FishReceptionType extends AbstractType
                 'required' => false,
                 'attr' => ['rows' => 4, 'maxlength' => 2000],
             ]);
+
+        $this->addReceptionSmartChoice($builder, 'fournisseur', 'Fournisseur', $smartFields['fournisseur']['values'], true, 150, $reception instanceof FishReception ? $reception->getFournisseur() : null);
+        $this->addReceptionSmartChoice($builder, 'provenance', 'Provenance', $smartFields['provenance']['values'], false, 150, $reception instanceof FishReception ? $reception->getProvenance() : null);
+        $this->addReceptionSmartChoice($builder, 'especePoisson', 'Espece poisson', $smartFields['especePoisson']['values'], true, 120, $reception instanceof FishReception ? $reception->getEspecePoisson() : null);
+        $this->addReceptionSmartChoice($builder, 'presentationProduit', 'Presentation produit', $smartFields['presentationProduit']['values'], true, 120, $reception instanceof FishReception ? $reception->getPresentationProduit() : null);
+        $this->addReceptionSmartChoice($builder, 'etatProduit', 'Etat du produit', $smartFields['etatProduit']['values'], true, 120, $reception instanceof FishReception ? $reception->getEtatProduit() : null);
+        $this->addReceptionSmartChoice($builder, 'categorieFraicheur', 'Categorie fraicheur', $smartFields['categorieFraicheur']['values'], true, 80, $reception instanceof FishReception ? $reception->getCategorieFraicheur() : null);
+        $this->addReceptionSmartChoiceSubmitListener($builder, $smartFields);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => FishReception::class,
+            'choice_lists' => [],
         ]);
-    }
-
-    /** @return array<string, mixed> */
-    private function choiceOptions(string $label, array $choices, bool $required = true): array
-    {
-        return [
-            'label' => $label,
-            'choices' => array_combine($choices, $choices),
-            'placeholder' => $required ? 'Choisir...' : 'Non renseigne',
-            'required' => $required,
-        ];
+        $resolver->setAllowedTypes('choice_lists', 'array');
     }
 
     /** @return array<string, mixed> */

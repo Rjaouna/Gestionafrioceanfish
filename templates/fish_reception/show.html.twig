@@ -1,20 +1,335 @@
 {% extends 'base.html.twig' %}
 
+{% import _self as ui %}
+
+{% macro kg(value) %}{{ value|number_format(3, ',', ' ')|replace({',000': ''}) }} kg{% endmacro %}
+{% macro temp(value) %}{{ value is not null ? value|number_format(2, ',', ' ') ~ ' C' : '-' }}{% endmacro %}
+{% macro date(value) %}{{ value ? value|date('d/m/Y') : '-' }}{% endmacro %}
+{% macro time(value) %}{{ value ? value|date('H:i') : '-' }}{% endmacro %}
+{% macro datetime(value) %}{{ value ? value|date('d/m/Y H:i') : '-' }}{% endmacro %}
+{% macro text(value) %}{{ value ?: '-' }}{% endmacro %}
+{% macro row(label, value, class = '') %}
+    <div class="reception-info-row">
+        <span>{{ label }}</span>
+        <strong class="{{ class }}">{{ value }}</strong>
+    </div>
+{% endmacro %}
+{% macro metric(label, value, icon, tone = 'primary', detail = null) %}
+    <div class="reception-metric">
+        <span class="reception-metric-icon reception-tone-{{ tone }}"><i class="bi {{ icon }}"></i></span>
+        <span class="reception-metric-copy">
+            <span>{{ label }}</span>
+            <strong>{{ value }}</strong>
+            {% if detail %}<small>{{ detail }}</small>{% endif %}
+        </span>
+    </div>
+{% endmacro %}
+
 {% block title %}Reception {{ item.numeroReception }}{% endblock %}
 
 {% block body %}
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-    <div>
-        <h1 class="h3 mb-1">Reception {{ item.numeroReception }}</h1>
-        <p class="text-secondary mb-0">{{ item.fournisseur }} - {{ item.especePoisson }}</p>
-    </div>
-    <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-outline-secondary" href="{{ path('app_fish_reception_index') }}">
-            <i class="bi bi-arrow-left me-2"></i>Retour
-        </a>
-        {% include 'fish_reception/_actions.html.twig' with {item: item, size: ''} %}
-    </div>
+<div data-ajax-region="fishReceptionShow" data-refresh-url="{{ path('app_fish_reception_view_fragment', {id: item.id}) }}">
+    {{ block('reception_show_content') }}
 </div>
+{% endblock %}
 
-{% include 'fish_reception/_details_content.html.twig' with {item: item} %}
+{% block reception_show_content %}
+{% import _self as ui %}
+{% set receivedWeight = item.quantiteReceptionneeValue %}
+{% set treatmentRate = receivedWeight > 0 ? (item.quantiteTotalePrepareeValue / receivedWeight * 100) : 0 %}
+{% set packagedRate = item.quantiteTotalePrepareeValue > 0 ? (item.quantiteConditionneeValue / item.quantiteTotalePrepareeValue * 100) : 0 %}
+{% set frozenRate = item.quantiteConditionneeValue > 0 ? (item.quantiteCongeleeValue / item.quantiteConditionneeValue * 100) : 0 %}
+{% set storedRate = item.quantiteCongeleeValue > 0 ? (item.quantiteStockeeValue / item.quantiteCongeleeValue * 100) : 0 %}
+{% set shippedRate = item.quantiteStockeeValue > 0 ? (item.quantiteTotaleExpedieeValue / item.quantiteStockeeValue * 100) : 0 %}
+{% set workflow = [
+    {label: 'Reception', icon: 'bi-clipboard2-check', done: item.receivedAt or item.statut != 'brouillon', detail: item.receivedAt ? item.receivedAt|date('d/m H:i') : item.statutLabel},
+    {label: 'Traitement', icon: 'bi-arrow-repeat', done: item.quantiteTotalePrepareeValue > 0.001, detail: ui.kg(item.quantiteTotalePreparee)},
+    {label: 'Emballage', icon: 'bi-box', done: item.quantiteConditionneeValue > 0.001, detail: ui.kg(item.quantiteConditionnee)},
+    {label: 'Congelation', icon: 'bi-snow', done: item.quantiteCongeleeValue > 0.001, detail: ui.kg(item.quantiteCongelee)},
+    {label: 'Stockage', icon: 'bi-box-seam', done: item.quantiteStockeeValue > 0.001, detail: ui.kg(item.quantiteStockee)},
+    {label: 'Expedition', icon: 'bi-truck', done: item.quantiteTotaleExpedieeValue > 0.001 or item.expeditedAt, detail: ui.kg(item.quantiteTotaleExpediee)}
+] %}
+
+<div class="reception-show">
+    <section class="reception-show-hero">
+        <div class="reception-show-hero-main">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                <span class="badge text-bg-light border">Fiche reception</span>
+                <span class="badge {{ item.statutBadgeClass }}">{{ item.statutLabel }}</span>
+                {% if item.locked %}
+                    <span class="badge text-bg-dark"><i class="bi bi-lock me-1"></i>Verrouillee</span>
+                {% endif %}
+            </div>
+            <h1>Reception {{ item.numeroReception }}</h1>
+            <div class="reception-show-subtitle">
+                <span>{{ item.numeroLot }}</span>
+                <span>{{ item.fournisseur }}</span>
+                <span>{{ item.especePoisson }}</span>
+            </div>
+            <div class="reception-show-chips">
+                <span><i class="bi bi-calendar3"></i>{{ ui.date(item.dateReception) }}</span>
+                <span><i class="bi bi-geo-alt"></i>{{ item.provenance ?: 'Provenance non renseignee' }}</span>
+                <span><i class="bi bi-truck-front"></i>{{ item.matriculeVehicule ?: 'Camion non renseigne' }}</span>
+            </div>
+        </div>
+        <div class="reception-show-actions">
+            <a class="btn btn-light" href="{{ path('app_fish_reception_index') }}">
+                <i class="bi bi-arrow-left me-2"></i>Liste receptions
+            </a>
+            {% include 'fish_reception/_actions.html.twig' with {item: item, size: ''} %}
+        </div>
+    </section>
+
+    {% if item.statut == 'bloquee' %}
+        <div class="alert alert-danger d-flex gap-3 align-items-start">
+            <i class="bi bi-slash-circle fs-4"></i>
+            <div>
+                <strong>Reception bloquee</strong>
+                <div>{{ item.blockReason ?: 'Reception bloquee.' }}</div>
+            </div>
+        </div>
+    {% endif %}
+
+    <section class="reception-metric-grid">
+        {{ ui.metric('Quantite recue', ui.kg(item.quantiteReceptionnee), 'bi-basket2', 'primary', item.nombreCaissesReception ~ ' caisses') }}
+        {{ ui.metric('Preparee', ui.kg(item.quantiteTotalePreparee), 'bi-arrow-repeat', 'info', treatmentRate|number_format(1, ',', ' ') ~ ' % traitement') }}
+        {{ ui.metric('Emballee', ui.kg(item.quantiteConditionnee), 'bi-box', 'warning', packagedRate|number_format(1, ',', ' ') ~ ' % emballage') }}
+        {{ ui.metric('Stockee', ui.kg(item.quantiteStockee), 'bi-box-seam', 'success', storedRate|number_format(1, ',', ' ') ~ ' % stockage') }}
+        {{ ui.metric('Expediee', ui.kg(item.quantiteTotaleExpediee), 'bi-truck', 'dark', shippedRate|number_format(1, ',', ' ') ~ ' % expedition') }}
+    </section>
+
+    <section class="reception-workflow">
+        {% for step in workflow %}
+            <div class="reception-step {{ step.done ? 'done' : 'pending' }}">
+                <span class="reception-step-icon"><i class="bi {{ step.icon }}"></i></span>
+                <span class="reception-step-copy">
+                    <strong>{{ step.label }}</strong>
+                    <small>{{ step.done ? step.detail : 'En attente' }}</small>
+                </span>
+            </div>
+        {% endfor %}
+    </section>
+
+    <div class="reception-show-layout">
+        <div class="reception-show-main">
+            <section class="reception-panel">
+                <div class="reception-panel-heading">
+                    <span><i class="bi bi-clipboard2-pulse"></i></span>
+                    <div>
+                        <h2>Reception matiere premiere</h2>
+                        <p>Controle fournisseur, transport, quantite BL et qualite a l'arrivee.</p>
+                    </div>
+                </div>
+                <div class="reception-info-grid">
+                    {{ ui.row('Fournisseur', ui.text(item.fournisseur)) }}
+                    {{ ui.row('Provenance', ui.text(item.provenance)) }}
+                    {{ ui.row('Chauffeur', ui.text(item.chauffeur)) }}
+                    {{ ui.row('Matricule camion', ui.text(item.matriculeVehicule)) }}
+                    {{ ui.row('BL fournisseur', ui.text(item.numeroBonLivraison)) }}
+                    {{ ui.row('Quantite BL', ui.kg(item.quantiteIndiqueeBl)) }}
+                    {{ ui.row('Quantite receptionnee', ui.kg(item.quantiteReceptionnee), 'text-primary') }}
+                    {{ ui.row('Ecart BL / reception', ui.kg(item.ecartBlReceptionValue), item.ecartBlReceptionValue < 0 ? 'text-danger' : 'text-success') }}
+                    {{ ui.row('Espece poisson', ui.text(item.especePoisson)) }}
+                    {{ ui.row('Nom scientifique', ui.text(item.nomScientifique)) }}
+                    {{ ui.row('Presentation', ui.text(item.presentationProduit)) }}
+                    {{ ui.row('Etat produit', ui.text(item.etatProduit)) }}
+                    {{ ui.row('Categorie fraicheur', ui.text(item.categorieFraicheur)) }}
+                    {{ ui.row('Presence glace', item.presenceGlace ? 'Oui' : 'Non') }}
+                    {{ ui.row('Temperature poisson', ui.temp(item.temperaturePoissonReception)) }}
+                    {{ ui.row('Heure reception', ui.time(item.heureDebutReception) ~ ' - ' ~ ui.time(item.heureFinReception)) }}
+                </div>
+            </section>
+
+            <section class="reception-panel">
+                <div class="reception-panel-heading">
+                    <span><i class="bi bi-arrow-repeat"></i></span>
+                    <div>
+                        <h2>Traitement / Production</h2>
+                        <p>Suivi des quantites preparees avant conditionnement.</p>
+                    </div>
+                </div>
+                <div class="reception-progress-list">
+                    <div>
+                        <div class="d-flex justify-content-between gap-3 small mb-1"><span>Taux traitement</span><strong>{{ treatmentRate|number_format(2, ',', ' ') }} %</strong></div>
+                        <div class="progress"><div class="progress-bar" style="width: {{ treatmentRate > 100 ? 100 : treatmentRate }}%"></div></div>
+                    </div>
+                </div>
+                <div class="reception-info-grid mt-3">
+                    {{ ui.row('Heure debut', ui.time(item.heureDebutTraitement)) }}
+                    {{ ui.row('Temperature eau glacee', ui.temp(item.temperatureEauGlacee)) }}
+                    {{ ui.row('Caisses apres traitement', item.nombreCaissesApresTraitement) }}
+                    {{ ui.row('Poids moyen caisse', ui.kg(item.poidsMoyenParCaisse)) }}
+                    {{ ui.row('Moules', item.nombreMoules) }}
+                    {{ ui.row('Caisses / palette', item.nombreCaissesParPalette) }}
+                    {{ ui.row('Palettes', item.nombreTotalPalettes) }}
+                    {{ ui.row('Quantite preparee', ui.kg(item.quantiteTotalePreparee), 'text-primary') }}
+                    {{ ui.row('Reste reception', ui.kg(item.quantiteDisponibleReceptionValue), 'text-warning') }}
+                    {{ ui.row('Reste a emballer', ui.kg(item.quantiteDisponibleTraitementValue), 'text-warning') }}
+                </div>
+            </section>
+
+            <section class="reception-panel">
+                <div class="reception-panel-heading">
+                    <span><i class="bi bi-box"></i></span>
+                    <div>
+                        <h2>Conditionnement et congelation</h2>
+                        <p>Emballage, tunnel, temperature et sortie tunnel.</p>
+                    </div>
+                </div>
+                <div class="reception-info-grid">
+                    {{ ui.row('Date conditionnement', ui.date(item.dateConditionnement)) }}
+                    {{ ui.row('Heure conditionnement', ui.time(item.heureDebutConditionnement) ~ ' - ' ~ ui.time(item.heureFinConditionnement)) }}
+                    {{ ui.row('Produit conditionne', ui.text(item.produitConditionne)) }}
+                    {{ ui.row('Quantite emballee', ui.kg(item.quantiteConditionnee), 'text-primary') }}
+                    {{ ui.row('Poids net', ui.kg(item.poidsNet)) }}
+                    {{ ui.row('Reste a congeler', ui.kg(item.quantiteDisponibleEmballageValue), 'text-warning') }}
+                    {{ ui.row('Tunnel', ui.text(item.tunnel)) }}
+                    {{ ui.row('Heure entree tunnel', ui.time(item.heureEntreeTunnel)) }}
+                    {{ ui.row('Temperature tunnel', ui.temp(item.temperatureTunnel)) }}
+                    {{ ui.row('Date sortie tunnel', ui.date(item.dateSortieTunnel)) }}
+                    {{ ui.row('Temperature coeur produit', ui.temp(item.temperatureCoeurProduit)) }}
+                    {{ ui.row('Quantite congelee', ui.kg(item.quantiteCongelee), 'text-primary') }}
+                </div>
+            </section>
+
+            <section class="reception-panel">
+                <div class="reception-panel-heading">
+                    <span><i class="bi bi-box-seam"></i></span>
+                    <div>
+                        <h2>Stockage et expedition</h2>
+                        <p>Chambre froide, stock restant, camion et responsable de chargement.</p>
+                    </div>
+                </div>
+                <div class="reception-info-grid">
+                    {{ ui.row('Chambre froide', ui.text(item.chambreFroide)) }}
+                    {{ ui.row('Date entree stockage', ui.date(item.dateEntreeStockage)) }}
+                    {{ ui.row('Heure entree stockage', ui.time(item.heureEntreeStockage)) }}
+                    {{ ui.row('Temperature chambre', ui.temp(item.temperatureChambre)) }}
+                    {{ ui.row('Temperature produit stocke', ui.temp(item.temperatureStockage)) }}
+                    {{ ui.row('Quantite stockee', ui.kg(item.quantiteStockee), 'text-success') }}
+                    {{ ui.row('Reste a expedier', ui.kg(item.quantiteDisponibleStockageValue), 'text-warning') }}
+                    {{ ui.row('Destination', ui.text(item.destinationFinaleClient)) }}
+                    {{ ui.row('Date depart', ui.date(item.expeditionDateDepart)) }}
+                    {{ ui.row('Heure depart', ui.time(item.expeditionHeureDepart)) }}
+                    {{ ui.row('Camion expedition', ui.text(item.expeditionMatriculeVehicule)) }}
+                    {{ ui.row('Chauffeur expedition', ui.text(item.expeditionChauffeur)) }}
+                    {{ ui.row('Responsable chargement', ui.text(item.expeditionResponsableChargement)) }}
+                    {{ ui.row('Temperature chargement', ui.temp(item.expeditionTemperatureProduit)) }}
+                    {{ ui.row('Plomb / scelle', ui.text(item.expeditionNumeroPlomb)) }}
+                    {{ ui.row('Quantite expediee', ui.kg(item.quantiteTotaleExpediee), 'text-primary') }}
+                </div>
+                {% if item.expeditionObservations %}
+                    <div class="reception-note mt-3">
+                        <span>Observation expedition</span>
+                        <p>{{ item.expeditionObservations }}</p>
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+
+        <aside class="reception-show-side">
+            <section class="reception-panel">
+                <div class="reception-panel-heading compact">
+                    <span><i class="bi bi-shield-check"></i></span>
+                    <h2>Etat du lot</h2>
+                </div>
+                <div class="reception-status-stack">
+                    <div>
+                        <span>Statut</span>
+                        <strong><span class="badge {{ item.statutBadgeClass }}">{{ item.statutLabel }}</span></strong>
+                    </div>
+                    <div>
+                        <span>Utilisation</span>
+                        <strong><span class="badge {{ item.usageBadgeClass }}">{{ item.usageLabel }}</span></strong>
+                    </div>
+                    <div>
+                        <span>Lot verrouille</span>
+                        <strong>{{ item.locked ? 'Oui' : 'Non' }}</strong>
+                    </div>
+                    <div>
+                        <span>Cree par</span>
+                        <strong>{{ item.createdBy ? item.createdBy.displayName : '-' }}</strong>
+                    </div>
+                    <div>
+                        <span>Derniere mise a jour</span>
+                        <strong>{{ ui.datetime(item.updatedAt) }}</strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="reception-panel">
+                <div class="reception-panel-heading compact">
+                    <span><i class="bi bi-clock-history"></i></span>
+                    <h2>Tracabilite actions</h2>
+                </div>
+                <div class="reception-timeline">
+                    <div class="{{ item.receivedAt ? 'done' : '' }}"><span></span><strong>Reception validee</strong><small>{{ ui.datetime(item.receivedAt) }}{% if item.receivedBy %} par {{ item.receivedBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.treatmentStartedAt ? 'done' : '' }}"><span></span><strong>Traitement lance</strong><small>{{ ui.datetime(item.treatmentStartedAt) }}{% if item.treatmentStartedBy %} par {{ item.treatmentStartedBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.storedAt ? 'done' : '' }}"><span></span><strong>Stockage valide</strong><small>{{ ui.datetime(item.storedAt) }}{% if item.storedBy %} par {{ item.storedBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.expeditedAt ? 'done' : '' }}"><span></span><strong>Expedition validee</strong><small>{{ ui.datetime(item.expeditedAt) }}{% if item.expeditedBy %} par {{ item.expeditedBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.closedAt ? 'done' : '' }}"><span></span><strong>Cloture</strong><small>{{ ui.datetime(item.closedAt) }}{% if item.closedBy %} par {{ item.closedBy.displayName }}{% endif %}</small></div>
+                </div>
+            </section>
+
+            <section class="reception-panel">
+                <div class="reception-panel-heading compact">
+                    <span><i class="bi bi-person-badge"></i></span>
+                    <h2>Responsables</h2>
+                </div>
+                <div class="reception-info-grid one-col">
+                    {{ ui.row('Responsable production', ui.text(item.responsableProduction)) }}
+                    {{ ui.row('Signature responsable', ui.text(item.signatureResponsable)) }}
+                </div>
+            </section>
+
+            <section class="reception-panel">
+                <div class="reception-panel-heading compact">
+                    <span><i class="bi bi-chat-left-text"></i></span>
+                    <h2>Observations</h2>
+                </div>
+                <div class="reception-note">
+                    <p>{{ item.observations ?: 'Aucune observation.' }}</p>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <section class="reception-panel">
+        <div class="reception-panel-heading">
+            <span><i class="bi bi-calculator"></i></span>
+            <div>
+                <h2>Lots de production lies</h2>
+                <p>Utilisation de cette reception dans les couts de revient.</p>
+            </div>
+        </div>
+        {% if item.coutRevients|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Lot cout de revient</th>
+                            <th>Produit</th>
+                            <th class="text-end">Kg utilises</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for lot in item.coutRevients %}
+                        <tr>
+                            <td>{{ ui.date(lot.dateProduction) }}</td>
+                            <td><a href="{{ path('app_cout_revient_view', {id: lot.id}) }}">{{ lot.numeroLot }}</a></td>
+                            <td>{{ lot.produit }}</td>
+                            <td class="text-end">{{ ui.kg(lot.poidsMisEnProduction) }}</td>
+                            <td><span class="badge {{ lot.statutBadgeClass }}">{{ lot.statutLabel }}</span></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-secondary mb-0">Aucun lot de production n'utilise encore cette reception.</p>
+        {% endif %}
+    </section>
+</div>
 {% endblock %}

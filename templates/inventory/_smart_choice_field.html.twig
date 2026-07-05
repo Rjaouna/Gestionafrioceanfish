@@ -1,0 +1,17 @@
+{% set custom_name = field.vars.attr['data-smart-choice-custom']|default(field.vars.name ~ 'Custom') %}
+{% set custom = attribute(form, custom_name) %}
+{% set is_other = field.vars.value|default('') == '__other__' %}
+{% set custom_class = (custom.vars.attr.class|default('') ~ ' form-control mt-2 ' ~ (is_other ? '' : 'd-none'))|trim %}
+
+<div data-smart-choice>
+    {{ form_label(field) }}
+    {{ form_widget(field) }}
+    {{ form_errors(field) }}
+    {{ form_widget(custom, {
+        attr: custom.vars.attr|merge({
+            class: custom_class,
+            'data-smart-choice-custom-input': 'true'
+        })
+    }) }}
+    {{ form_errors(custom) }}
+</div>

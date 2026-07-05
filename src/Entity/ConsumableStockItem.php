@@ -128,7 +128,7 @@ class ConsumableStockItem
     public function setCategory(?string $category): static { $category = trim((string) $category); $this->category = $category !== '' ? $category : null; return $this; }
     public function getCategoryLabel(): string { return $this->category ?: 'Sans categorie'; }
     public function getUnit(): string { return $this->unit; }
-    public function setUnit(string $unit): static { $unit = trim($unit); $this->unit = in_array($unit, self::UNIT_CHOICES, true) ? $unit : 'piece'; return $this; }
+    public function setUnit(string $unit): static { $unit = trim($unit); $this->unit = $unit !== '' ? $unit : 'piece'; return $this; }
     public function getUnitLabel(): string { return array_flip(self::UNIT_CHOICES)[$this->unit] ?? $this->unit; }
     public function getQuantity(): string { return $this->quantity; }
     public function setQuantity(float|int|string $quantity): static { $this->quantity = $this->normalizeQuantity($quantity); return $this; }

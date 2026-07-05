@@ -6,6 +6,7 @@ use App\Entity\CoutRevient;
 use App\Entity\FishReception;
 use App\Entity\User;
 use App\Repository\FishReceptionRepository;
+use App\Service\FactoryUnitService;
 use App\Service\Trash\TrashService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -25,6 +26,7 @@ final readonly class FishReceptionService
         private FishReceptionRepository $repository,
         private EntityManagerInterface $entityManager,
         private FishReceptionPermissionService $permission,
+        private FactoryUnitService $factoryUnitService,
         private TrashService $trashService,
     ) {
     }
@@ -86,6 +88,29 @@ final readonly class FishReceptionService
                 'received' => 'Quantite recue',
             ],
         ];
+    }
+
+    /** @return array<string, list<string>> */
+    public function formChoiceLists(User $actor): array
+    {
+        $this->denyUnlessAccess($actor);
+
+        $fields = [
+            'fournisseur',
+            'provenance',
+            'especePoisson',
+            'presentationProduit',
+            'etatProduit',
+            'categorieFraicheur',
+            'produitConditionne',
+            'destinationFinaleClient',
+        ];
+        $choices = [];
+        foreach ($fields as $field) {
+            $choices[$field] = $this->repository->distinctValues($field);
+        }
+
+        return $choices;
     }
 
     /** @return array<string, string> */
@@ -172,6 +197,21 @@ final readonly class FishReceptionService
         return $reception;
     }
 
+    public function cancelTreatment(FishReception $reception, float $quantity, User $actor, ?string $reason = null): FishReception
+    {
+        $this->denyUnlessTransition($actor, $reception);
+        $this->assertReceptionReady($reception);
+        $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleTraitementValue(), 'le traitement non emballe');
+
+        $reception->setQuantiteTotalePreparee(max(0.0, $reception->getQuantiteTotalePrepareeValue() - $quantity));
+        $this->appendTreatmentCancelTrace($reception, $quantity, $actor, $reason);
+        $this->autoRefreshStatus($reception);
+        $this->assertQuantitiesCoherent($reception);
+        $this->entityManager->flush();
+
+        return $reception;
+    }
+
     public function markStored(FishReception $reception, User $actor): FishReception
     {
         return $this->registerStorage($reception, $reception->getQuantiteDisponibleCongelationValue(), $actor);
@@ -213,6 +253,7 @@ final readonly class FishReceptionService
         if (!$reception->getTunnel()) {
             throw new \DomainException('Selectionnez le tunnel avant de valider la congelation.');
         }
+        $this->factoryUnitService->assertTunnelCanReceive($actor, $reception->getTunnel(), $quantity);
         $now = new \DateTimeImmutable();
 
         $reception
@@ -237,6 +278,7 @@ final readonly class FishReceptionService
         if (!$reception->getChambreFroide()) {
             throw new \DomainException('Selectionnez la chambre froide ou la zone de stockage.');
         }
+        $this->factoryUnitService->assertStorageCanReceive($actor, $reception->getChambreFroide(), $quantity);
         $now = new \DateTimeImmutable();
 
         $reception
@@ -466,7 +508,7 @@ final readonly class FishReceptionService
             (float) $reception->getQuantiteStockee() > 0 || $reception->getChambreFroide() !== null => FishReception::STATUS_STORED,
             (float) $reception->getQuantiteCongelee() > 0 || $reception->getTunnel() !== null => FishReception::STATUS_FROZEN,
             (float) $reception->getQuantiteConditionnee() > 0 || (float) $reception->getPoidsNet() > 0 || $reception->getProduitConditionne() !== null => FishReception::STATUS_PACKAGED,
-            (float) $reception->getQuantiteTotalePreparee() > 0 || $reception->getHeureDebutTraitement() !== null => FishReception::STATUS_PROCESSING,
+            (float) $reception->getQuantiteTotalePreparee() > 0 => FishReception::STATUS_PROCESSING,
             $reception->getQuantiteReceptionneeValue() > 0 => FishReception::STATUS_RECEIVED,
             default => FishReception::STATUS_DRAFT,
         };
@@ -499,6 +541,30 @@ final readonly class FishReceptionService
         if ($reception->getQuantiteTotaleExpedieeValue() - $reception->getQuantiteStockeeValue() > 0.001) {
             throw new \DomainException('La quantite expediee ne peut pas depasser la quantite stockee.');
         }
+    }
+
+    private function appendTreatmentCancelTrace(FishReception $reception, float $quantity, User $actor, ?string $reason): void
+    {
+        $line = sprintf(
+            '[%s] Annulation traitement : %.3f kg remis en disponible reception par %s.',
+            (new \DateTimeImmutable())->format('d/m/Y H:i'),
+            $quantity,
+            $actor->getDisplayName(),
+        );
+
+        $reason = trim((string) $reason);
+        if ($reason !== '') {
+            $line .= ' Motif : '.$reason;
+        }
+
+        $observations = trim((string) $reception->getObservations());
+        $observations = $observations !== '' ? $observations."\n".$line : $line;
+
+        if (mb_strlen($observations) > 1900) {
+            $observations = '...'.mb_substr($observations, -1897);
+        }
+
+        $reception->setObservations($observations);
     }
 
     private function assertReceptionReady(FishReception $reception): void

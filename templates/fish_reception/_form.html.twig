@@ -21,20 +21,20 @@
                         <div class="col-12 col-md-4">{{ form_row(form.dateReception) }}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.heureDebutReception) }}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.heureFinReception) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.fournisseur) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.provenance) }}</div>
+                        <div class="col-12 col-md-4">{% include 'fish_reception/_smart_choice_field.html.twig' with {form: form, field: form.fournisseur} %}</div>
+                        <div class="col-12 col-md-4">{% include 'fish_reception/_smart_choice_field.html.twig' with {form: form, field: form.provenance} %}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.numeroBonLivraison) }}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.matriculeVehicule) }}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.chauffeur) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.especePoisson) }}</div>
+                        <div class="col-12 col-md-4">{% include 'fish_reception/_smart_choice_field.html.twig' with {form: form, field: form.especePoisson} %}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.nomScientifique) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.presentationProduit) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.etatProduit) }}</div>
+                        <div class="col-12 col-md-4">{% include 'fish_reception/_smart_choice_field.html.twig' with {form: form, field: form.presentationProduit} %}</div>
+                        <div class="col-12 col-md-4">{% include 'fish_reception/_smart_choice_field.html.twig' with {form: form, field: form.etatProduit} %}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.quantiteIndiqueeBl) }}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.quantiteReceptionnee) }}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.nombreCaissesReception) }}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.temperaturePoissonReception) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.categorieFraicheur) }}</div>
+                        <div class="col-12 col-md-4">{% include 'fish_reception/_smart_choice_field.html.twig' with {form: form, field: form.categorieFraicheur} %}</div>
                         <div class="col-12 col-md-4">{{ form_row(form.presenceGlace) }}</div>
                     </div>
                 </div>

@@ -14,6 +14,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class FishReceptionShippingType extends AbstractType
 {
+    use ReceptionSmartChoiceTrait;
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $reception = $builder->getData();
@@ -24,14 +26,17 @@ final class FishReceptionShippingType extends AbstractType
         $heureDepart = $reception instanceof FishReception && $reception->getExpeditionHeureDepart() instanceof \DateTimeImmutable
             ? $reception->getExpeditionHeureDepart()
             : $now;
+        $smartFields = [
+            'destinationFinaleClient' => [
+                'label' => 'Destination finale / Client',
+                'values' => $options['choice_lists']['destinationFinaleClient'] ?? [],
+                'required' => true,
+                'maxlength' => 150,
+            ],
+        ];
 
         $builder
             ->add('quantity', NumberType::class, $this->quantityOptions('Quantite a expedier (kg)', (float) $options['available_quantity']))
-            ->add('destinationFinaleClient', TextType::class, [
-                'label' => 'Destination finale / Client',
-                'required' => true,
-                'attr' => ['maxlength' => 150, 'placeholder' => 'Ex. Client, export, depot...'],
-            ])
             ->add('expeditionDateDepart', DateType::class, [
                 'label' => 'Date expedition',
                 'required' => true,
@@ -56,6 +61,9 @@ final class FishReceptionShippingType extends AbstractType
                 'required' => false,
                 'attr' => ['rows' => 3, 'maxlength' => 2000, 'placeholder' => 'Etat camion, remarques chargement, documents remis...'],
             ]);
+
+        $this->addReceptionSmartChoice($builder, 'destinationFinaleClient', 'Destination finale / Client', $smartFields['destinationFinaleClient']['values'], true, 150, $reception instanceof FishReception ? $reception->getDestinationFinaleClient() : null);
+        $this->addReceptionSmartChoiceSubmitListener($builder, $smartFields);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -63,8 +71,10 @@ final class FishReceptionShippingType extends AbstractType
         $resolver->setDefaults([
             'data_class' => FishReception::class,
             'available_quantity' => 0.0,
+            'choice_lists' => [],
         ]);
         $resolver->setAllowedTypes('available_quantity', ['float', 'int']);
+        $resolver->setAllowedTypes('choice_lists', 'array');
     }
 
     /** @return array<string, mixed> */
