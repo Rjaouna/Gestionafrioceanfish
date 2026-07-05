@@ -8,8 +8,27 @@
     </a>
 </div>
 
-{{ form_start(form, {attr: {'data-ajax-form': 'true', 'data-fish-reception-excel-form': 'true'}}) }}
+{{ form_start(form, {attr: {'data-ajax-form': 'true', 'data-fish-reception-excel-form': 'true', 'data-fish-reception-cost-form': 'true'}}) }}
     {% include 'fish_reception/_excel_import_toolbar.html.twig' %}
+    <section class="card border-0 shadow-sm mb-4 fish-reception-operation-panel">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-lg-5">
+                    {{ form_row(form.operationType, {attr: form.operationType.vars.attr|merge({'data-fish-reception-operation': 'true'})}) }}
+                </div>
+                <div class="col-12 col-lg-7">
+                    <div class="fish-reception-operation-summary">
+                        <span class="fish-reception-operation-icon"><i class="bi bi-cash-coin"></i></span>
+                        <div>
+                            <strong data-fish-reception-operation-badge>{{ item.operationTypeLabel }}</strong>
+                            <small data-fish-reception-operation-note></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <div class="row g-4 align-items-start">
         <div class="col-12 col-xl-8">
             <section class="card border-0 shadow-sm mb-4">
@@ -47,17 +66,56 @@
                     <p class="text-secondary small mb-0">Base de calcul reutilisee ensuite dans le cout de revient.</p>
                 </div>
                 <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12 col-md-4">{{ form_row(form.operationType) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.receptionPrixAchatKg) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.receptionMontantAchatTotal) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.receptionFraisTransport) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.receptionFraisDechargement) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.receptionFraisGlaceConsommables) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.receptionFraisControleQualite) }}</div>
-                        <div class="col-12 col-md-4">{{ form_row(form.receptionAutresFrais) }}</div>
-                        <div class="col-12 col-md-2">{{ form_row(form.receptionDevise) }}</div>
-                        <div class="col-12 col-md-6">{{ form_row(form.receptionReferenceFacture) }}</div>
+                    <div class="fish-reception-cost-summary mb-3">
+                        <div>
+                            <span>Achat matiere</span>
+                            <strong><span data-fish-reception-cost-output="purchase">0,00</span> <span data-fish-reception-cost-currency>{{ item.receptionDevise }}</span></strong>
+                        </div>
+                        <div>
+                            <span>Frais directs</span>
+                            <strong><span data-fish-reception-cost-output="fees">0,00</span> <span data-fish-reception-cost-currency>{{ item.receptionDevise }}</span></strong>
+                        </div>
+                        <div>
+                            <span>Cout reception</span>
+                            <strong><span data-fish-reception-cost-output="total">0,00</span> <span data-fish-reception-cost-currency>{{ item.receptionDevise }}</span></strong>
+                        </div>
+                        <div>
+                            <span>Cout / kg recu</span>
+                            <strong><span data-fish-reception-cost-output="kg">0,00</span> <span data-fish-reception-cost-currency>{{ item.receptionDevise }}</span></strong>
+                        </div>
+                    </div>
+
+                    <div class="fish-reception-cost-block mb-3" data-fish-reception-purchase-section>
+                        <div class="fish-reception-cost-heading">
+                            <span><i class="bi bi-basket2"></i></span>
+                            <div>
+                                <h3>Achat matiere premiere</h3>
+                                <p>Prix d'achat calcule avec la quantite receptionnee.</p>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-12 col-lg-4">{{ form_row(form.receptionPrixAchatKg, {attr: form.receptionPrixAchatKg.vars.attr|merge({'data-fish-reception-purchase-unit': 'true'})}) }}</div>
+                            <div class="col-12 col-lg-4">{{ form_row(form.receptionMontantAchatTotal, {attr: form.receptionMontantAchatTotal.vars.attr|merge({'data-fish-reception-purchase-total': 'true'})}) }}</div>
+                            <div class="col-12 col-lg-4">{{ form_row(form.receptionReferenceFacture) }}</div>
+                        </div>
+                    </div>
+
+                    <div class="fish-reception-cost-block">
+                        <div class="fish-reception-cost-heading">
+                            <span><i class="bi bi-receipt"></i></span>
+                            <div>
+                                <h3>Frais directs reception</h3>
+                                <p>Transport, manutention, glace, controle et autres frais.</p>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-12 col-lg-4">{{ form_row(form.receptionFraisTransport, {attr: form.receptionFraisTransport.vars.attr|merge({'data-fish-reception-fee': 'true'})}) }}</div>
+                            <div class="col-12 col-lg-4">{{ form_row(form.receptionFraisDechargement, {attr: form.receptionFraisDechargement.vars.attr|merge({'data-fish-reception-fee': 'true'})}) }}</div>
+                            <div class="col-12 col-lg-4">{{ form_row(form.receptionFraisGlaceConsommables, {attr: form.receptionFraisGlaceConsommables.vars.attr|merge({'data-fish-reception-fee': 'true'})}) }}</div>
+                            <div class="col-12 col-lg-4">{{ form_row(form.receptionFraisControleQualite, {attr: form.receptionFraisControleQualite.vars.attr|merge({'data-fish-reception-fee': 'true'})}) }}</div>
+                            <div class="col-12 col-lg-4">{{ form_row(form.receptionAutresFrais, {attr: form.receptionAutresFrais.vars.attr|merge({'data-fish-reception-fee': 'true'})}) }}</div>
+                            <div class="col-12 col-lg-4">{{ form_row(form.receptionDevise, {attr: form.receptionDevise.vars.attr|merge({'data-fish-reception-currency-input': 'true'})}) }}</div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -98,9 +156,9 @@
                             <dt class="col-6 text-secondary">Reserve cout</dt>
                             <dd class="col-6 text-end">{{ item.quantiteUtiliseeProduction|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                             <dt class="col-6 text-secondary">Cout reception</dt>
-                            <dd class="col-6 text-end fw-semibold">{{ item.coutTotalReceptionValue|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
+                            <dd class="col-6 text-end fw-semibold"><span data-fish-reception-cost-output="total">{{ item.coutTotalReceptionValue|number_format(2, ',', ' ') }}</span> <span data-fish-reception-cost-currency>{{ item.receptionDevise }}</span></dd>
                             <dt class="col-6 text-secondary">Cout / kg</dt>
-                            <dd class="col-6 text-end">{{ item.coutKgReceptionValue|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
+                            <dd class="col-6 text-end"><span data-fish-reception-cost-output="kg">{{ item.coutKgReceptionValue|number_format(2, ',', ' ') }}</span> <span data-fish-reception-cost-currency>{{ item.receptionDevise }}</span></dd>
                         </dl>
                         {% if item.locked %}
                             <div class="alert alert-warning small mb-0 mt-3">Cette reception est verrouillee.</div>

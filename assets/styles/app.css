@@ -3822,6 +3822,115 @@ code {
     border-radius: 0.8rem;
 }
 
+.fish-reception-operation-panel {
+    overflow: hidden;
+    border: 1px solid rgba(135, 163, 190, 0.18) !important;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(239, 248, 252, 0.92)) !important;
+}
+
+.fish-reception-operation-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-height: 3.25rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid rgba(135, 163, 190, 0.18);
+    border-radius: 0.8rem;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.fish-reception-operation-icon,
+.fish-reception-cost-heading > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 0.72rem;
+    color: var(--afriocean-navy);
+    background: rgba(21, 43, 99, 0.08);
+}
+
+.fish-reception-operation-summary strong,
+.fish-reception-operation-summary small {
+    display: block;
+}
+
+.fish-reception-operation-summary strong {
+    color: #0f172a;
+    font-size: 0.98rem;
+}
+
+.fish-reception-operation-summary small {
+    margin-top: 0.12rem;
+    color: #64748b;
+}
+
+.fish-reception-cost-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.fish-reception-cost-summary > div {
+    min-width: 0;
+    padding: 0.72rem 0.82rem;
+    border: 1px solid rgba(135, 163, 190, 0.18);
+    border-radius: 0.75rem;
+    background: linear-gradient(180deg, #ffffff, #f7fbfe);
+}
+
+.fish-reception-cost-summary span,
+.fish-reception-cost-summary strong {
+    display: block;
+}
+
+.fish-reception-cost-summary > div > span {
+    color: #64748b;
+    font-size: 0.76rem;
+    font-weight: 750;
+}
+
+.fish-reception-cost-summary strong {
+    margin-top: 0.18rem;
+    color: #0f172a;
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+.fish-reception-cost-summary strong span {
+    display: inline;
+}
+
+.fish-reception-cost-block {
+    padding: 0.95rem;
+    border: 1px solid rgba(135, 163, 190, 0.18);
+    border-radius: 0.85rem;
+    background: rgba(248, 252, 255, 0.74);
+}
+
+.fish-reception-cost-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+
+.fish-reception-cost-heading h3 {
+    margin: 0;
+    color: #10213a;
+    font-size: 0.96rem;
+    font-weight: 850;
+}
+
+.fish-reception-cost-heading p {
+    margin: 0.16rem 0 0;
+    color: #64748b;
+    font-size: 0.82rem;
+}
+
 .reception-show {
     display: grid;
     gap: 1.25rem;
@@ -4229,6 +4338,10 @@ footer {
         max-width: none;
     }
 
+    .fish-reception-cost-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .reception-metric-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -4262,6 +4375,7 @@ footer {
         padding: 0.65rem;
     }
 
+    .fish-reception-cost-summary,
     .reception-metric-grid,
     .reception-workflow,
     .reception-info-grid {

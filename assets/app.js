@@ -828,6 +828,101 @@ function initializeReceptionSmartChoices(root = document) {
     initializeSmartChoices(root);
 }
 
+function fishReceptionField(form, name) {
+    return form.querySelector(`[name$="[${name}]"]`);
+}
+
+function fishReceptionValue(form, name) {
+    return coutNumber(fishReceptionField(form, name)?.value);
+}
+
+function setFishReceptionNumber(input, value, decimals = 2) {
+    if (!input) return;
+
+    input.value = Number(value || 0).toFixed(decimals);
+}
+
+function syncFishReceptionCostForm(form, source = null) {
+    const operationInput = fishReceptionField(form, 'operationType');
+    const isPurchase = operationInput?.value === 'achat_matiere';
+    const quantity = fishReceptionValue(form, 'quantiteReceptionnee');
+    const priceInput = fishReceptionField(form, 'receptionPrixAchatKg');
+    const amountInput = fishReceptionField(form, 'receptionMontantAchatTotal');
+    const currencyInput = fishReceptionField(form, 'receptionDevise');
+    const currency = String(currencyInput?.value || 'MAD').trim() || 'MAD';
+
+    form.querySelectorAll('[data-fish-reception-purchase-section]').forEach((section) => {
+        section.classList.toggle('d-none', !isPurchase);
+    });
+
+    const badge = form.querySelector('[data-fish-reception-operation-badge]');
+    const note = form.querySelector('[data-fish-reception-operation-note]');
+    if (badge) badge.textContent = isPurchase ? 'Achat matiere premiere' : 'Transformation / stockage seulement';
+    if (note) {
+        note.textContent = isPurchase
+            ? 'Achat poisson + frais directs integres au cout de revient.'
+            : 'Aucun achat matiere : seuls les frais directs de reception sont retenus.';
+    }
+
+    let purchaseAmount = fishReceptionValue(form, 'receptionMontantAchatTotal');
+    const price = fishReceptionValue(form, 'receptionPrixAchatKg');
+    const sourceName = source?.name || '';
+
+    if (!isPurchase) {
+        purchaseAmount = 0;
+        setFishReceptionNumber(priceInput, 0);
+        setFishReceptionNumber(amountInput, 0);
+    } else if (sourceName.endsWith('[receptionMontantAchatTotal]')) {
+        purchaseAmount = fishReceptionValue(form, 'receptionMontantAchatTotal');
+        if (quantity > 0) {
+            setFishReceptionNumber(priceInput, purchaseAmount / quantity);
+        }
+    } else if (quantity > 0 && price > 0) {
+        purchaseAmount = quantity * price;
+        setFishReceptionNumber(amountInput, purchaseAmount);
+    } else if (quantity > 0 && purchaseAmount > 0) {
+        setFishReceptionNumber(priceInput, purchaseAmount / quantity);
+    }
+
+    const fees = [
+        'receptionFraisTransport',
+        'receptionFraisDechargement',
+        'receptionFraisGlaceConsommables',
+        'receptionFraisControleQualite',
+        'receptionAutresFrais',
+    ].reduce((total, field) => total + fishReceptionValue(form, field), 0);
+    const total = purchaseAmount + fees;
+    const kg = quantity > 0 ? total / quantity : 0;
+
+    const values = {purchase: purchaseAmount, fees, total, kg};
+    form.querySelectorAll('[data-fish-reception-cost-output]').forEach((output) => {
+        output.textContent = coutFormat(values[output.dataset.fishReceptionCostOutput] ?? 0);
+    });
+    form.querySelectorAll('[data-fish-reception-cost-currency]').forEach((output) => {
+        output.textContent = currency;
+    });
+}
+
+function initializeFishReceptionCostForms(root = document) {
+    root.querySelectorAll('[data-fish-reception-cost-form]').forEach((form) => {
+        syncFishReceptionCostForm(form);
+        if (form.dataset.fishReceptionCostInitialized === 'true') return;
+
+        form.dataset.fishReceptionCostInitialized = 'true';
+        form.addEventListener('input', (event) => {
+            if (event.target.matches('input, textarea')) {
+                syncFishReceptionCostForm(form, event.target);
+            }
+        });
+        form.addEventListener('change', (event) => {
+            if (event.target.matches('select, input')) {
+                syncFishReceptionCostForm(form, event.target);
+            }
+        });
+        form.addEventListener('submit', () => syncFishReceptionCostForm(form));
+    });
+}
+
 function clearExcelImportErrors(form) {
     form.querySelectorAll('.is-invalid[data-excel-import-invalid]').forEach((field) => {
         field.classList.remove('is-invalid');
@@ -2393,6 +2488,7 @@ function initializePageBehaviors() {
     initializeMaintenanceSmartForms();
     initializeExpenseForms();
     initializeReceptionSmartChoices();
+    initializeFishReceptionCostForms();
     initializeFactoryUnitForms();
     initializeTreatmentBoxForms();
     initializeFreezingCapacityChecks();
@@ -2880,6 +2976,7 @@ document.addEventListener('click', async (event) => {
             initializeMaintenanceSmartForms(content);
             initializeExpenseForms(content);
             initializeReceptionSmartChoices(content);
+            initializeFishReceptionCostForms(content);
             initializeFactoryUnitForms(content);
             initializeTreatmentBoxForms(content);
             initializeFreezingCapacityChecks(content);
