@@ -191,6 +191,7 @@ final readonly class FishReceptionService
             $reception->setHeureDebutTraitement($now);
         }
 
+        $this->syncTreatmentBoxCounts($reception, $quantity);
         $this->assertQuantitiesCoherent($reception);
         $this->entityManager->flush();
 
@@ -565,6 +566,24 @@ final readonly class FishReceptionService
         }
 
         $reception->setObservations($observations);
+    }
+
+    private function syncTreatmentBoxCounts(FishReception $reception, float $quantity): void
+    {
+        $boxWeight = (float) $reception->getPoidsMoyenParCaisse();
+        if ($quantity <= 0.001 || $boxWeight <= 0.001) {
+            $reception
+                ->setNombreCaissesApresTraitement(0)
+                ->setNombreTotalPalettes(0);
+
+            return;
+        }
+
+        $boxCount = (int) ceil($quantity / $boxWeight);
+        $reception->setNombreCaissesApresTraitement($boxCount);
+
+        $boxesPerPallet = $reception->getNombreCaissesParPalette();
+        $reception->setNombreTotalPalettes($boxesPerPallet > 0 ? (int) ceil($boxCount / $boxesPerPallet) : 0);
     }
 
     private function assertReceptionReady(FishReception $reception): void

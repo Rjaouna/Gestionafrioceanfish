@@ -1573,6 +1573,39 @@ function parseDecimalInput(value) {
     return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function syncTreatmentBoxCounts(form) {
+    const totalWeightField = form.querySelector('[data-treatment-total-weight]');
+    const boxWeightField = form.querySelector('[data-treatment-box-weight]');
+    const boxCountField = form.querySelector('[data-treatment-box-count]');
+    const boxesPerPalletField = form.querySelector('[data-treatment-boxes-per-pallet]');
+    const palletCountField = form.querySelector('[data-treatment-pallet-count]');
+    if (!totalWeightField || !boxWeightField || !boxCountField) return;
+
+    const totalWeight = parseDecimalInput(totalWeightField.value);
+    const boxWeight = parseDecimalInput(boxWeightField.value);
+    const boxCount = totalWeight > 0 && boxWeight > 0 ? Math.ceil(totalWeight / boxWeight) : 0;
+    boxCountField.value = String(boxCount);
+
+    if (palletCountField) {
+        const boxesPerPallet = parseDecimalInput(boxesPerPalletField?.value);
+        palletCountField.value = String(boxCount > 0 && boxesPerPallet > 0 ? Math.ceil(boxCount / boxesPerPallet) : 0);
+    }
+}
+
+function initializeTreatmentBoxForms(root = document) {
+    root.querySelectorAll('[data-treatment-box-form]').forEach((form) => {
+        if (form.dataset.treatmentBoxInitialized === '1') return;
+        form.dataset.treatmentBoxInitialized = '1';
+
+        form.querySelectorAll('[data-treatment-total-weight], [data-treatment-box-weight], [data-treatment-boxes-per-pallet]').forEach((field) => {
+            field.addEventListener('input', () => syncTreatmentBoxCounts(form));
+            field.addEventListener('change', () => syncTreatmentBoxCounts(form));
+        });
+
+        syncTreatmentBoxCounts(form);
+    });
+}
+
 const factoryTemperatureDefaults = {
     tunnel: {target: -40, min: -45, max: -30},
     chambre_negative: {target: -20, min: -25, max: -18},
@@ -2169,6 +2202,7 @@ function initializePageBehaviors() {
     initializeExpenseForms();
     initializeReceptionSmartChoices();
     initializeFactoryUnitForms();
+    initializeTreatmentBoxForms();
     initializeFreezingCapacityChecks();
     initializeInterimWorkerForms();
     initializeCoutRevientForms();
@@ -2189,6 +2223,9 @@ document.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (ajaxForm.matches('[data-maintenance-contract-form]') && !validateMaintenanceContractDates(ajaxForm)) {
             return;
+        }
+        if (ajaxForm.matches('[data-treatment-box-form]')) {
+            syncTreatmentBoxCounts(ajaxForm);
         }
         if (ajaxForm.matches('[data-freezing-capacity-form], [data-factory-capacity-form]')) {
             const capacityOk = await checkFreezingCapacity(ajaxForm);
@@ -2652,6 +2689,7 @@ document.addEventListener('click', async (event) => {
             initializeExpenseForms(content);
             initializeReceptionSmartChoices(content);
             initializeFactoryUnitForms(content);
+            initializeTreatmentBoxForms(content);
             initializeFreezingCapacityChecks(content);
             initializeInterimWorkerForms(content);
             initializeCoutRevientForms(content);

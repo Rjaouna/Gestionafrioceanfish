@@ -588,6 +588,8 @@ final class FishReceptionController extends AbstractController
             $options['factory_unit_choices'] = $this->factoryUnitService->tunnelChoices($this->currentUser(), $reception->getTunnel());
             $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_freezing_capacity_check', ['id' => $reception->getId()]);
             $options['attr'] = ['data-freezing-capacity-form' => 'true'];
+        } elseif ($formType === FishReceptionTreatmentType::class) {
+            $options['attr'] = ['data-treatment-box-form' => 'true'];
         } elseif ($formType === FishReceptionStorageType::class) {
             $options['factory_unit_choices'] = $this->factoryUnitService->storageChoices($this->currentUser(), $reception->getChambreFroide());
             $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_storage_capacity_check', ['id' => $reception->getId()]);
