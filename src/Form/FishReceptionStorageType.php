@@ -17,6 +17,7 @@ final class FishReceptionStorageType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('heureSortieTunnel', TimeType::class, $this->timeOptions('Heure sortie tunnel', true))
             ->add('quantity', NumberType::class, $this->quantityOptions('Quantité à entrer en stock (kg)', (float) $options['available_quantity']))
             ->add('chambreFroide', empty($options['factory_unit_choices']) ? TextType::class : ChoiceType::class, $this->factoryUnitOptions('Chambre froide / zone de stockage', $options['factory_unit_choices'], 'Ex. Chambre negative 1', $options['capacity_check_url']))
             ->add('temperatureChambre', NumberType::class, $this->numberOptions('Température chambre', 2, '0.01', false, true))
@@ -84,11 +85,11 @@ final class FishReceptionStorageType extends AbstractType
     }
 
     /** @return array<string, mixed> */
-    private function timeOptions(string $label): array
+    private function timeOptions(string $label, bool $required = false): array
     {
         return [
             'label' => $label,
-            'required' => false,
+            'required' => $required,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
         ];

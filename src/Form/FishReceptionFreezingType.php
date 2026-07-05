@@ -19,7 +19,6 @@ final class FishReceptionFreezingType extends AbstractType
             ->add('quantity', NumberType::class, $this->quantityOptions('Quantité à congeler (kg)', (float) $options['available_quantity']))
             ->add('tunnel', empty($options['factory_unit_choices']) ? TextType::class : ChoiceType::class, $this->factoryUnitOptions('Tunnel', $options['factory_unit_choices'], 'Ex. Tunnel 3', $options['capacity_check_url']))
             ->add('heureEntreeTunnel', TimeType::class, $this->timeOptions('Heure entrée tunnel'))
-            ->add('heureSortieTunnel', TimeType::class, $this->timeOptions('Heure sortie tunnel'))
             ->add('temperatureTunnel', NumberType::class, $this->numberOptions('Température tunnel', 2, '0.01', false, true))
             ->add('temperatureCoeurProduit', NumberType::class, $this->numberOptions('Température à coeur produit', 2, '0.01', false, true));
     }

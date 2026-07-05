@@ -647,13 +647,13 @@ final class FishReceptionController extends AbstractController
         if ($formType === FishReceptionFreezingType::class) {
             $options['factory_unit_choices'] = $this->factoryUnitService->tunnelChoices($this->currentUser(), $reception->getTunnel());
             $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_freezing_capacity_check', ['id' => $reception->getId()]);
-            $options['attr'] = ['data-freezing-capacity-form' => 'true', 'data-fish-freezing-form' => 'true'];
+            $options['attr'] = ['data-freezing-capacity-form' => 'true'];
         } elseif ($formType === FishReceptionTreatmentType::class) {
             $options['attr'] = ['data-treatment-box-form' => 'true'];
         } elseif ($formType === FishReceptionStorageType::class) {
             $options['factory_unit_choices'] = $this->factoryUnitService->storageChoices($this->currentUser(), $reception->getChambreFroide());
             $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_storage_capacity_check', ['id' => $reception->getId()]);
-            $options['attr'] = ['data-factory-capacity-form' => 'true'];
+            $options['attr'] = ['data-factory-capacity-form' => 'true', 'data-fish-tunnel-exit-form' => 'true'];
         } elseif ($formType === FishReceptionPackagingType::class) {
             $options['choice_lists'] = $this->receptionService->formChoiceLists($this->currentUser());
             $options['attr'] = ['data-fish-packaging-form' => 'true'];

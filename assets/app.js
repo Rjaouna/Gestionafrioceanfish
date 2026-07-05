@@ -1008,8 +1008,9 @@ function initializeFishPackagingForms(root = document) {
     });
 }
 
-function fishFreezingDurationHours(form) {
-    const start = fishPackagingTimeToMinutes(fishReceptionField(form, 'heureEntreeTunnel')?.value);
+function fishTunnelExitDurationHours(form) {
+    const summary = form.querySelector('[data-fish-tunnel-exit-summary]');
+    const start = fishPackagingTimeToMinutes(fishReceptionField(form, 'heureEntreeTunnel')?.value || summary?.dataset.entryTime);
     let end = fishPackagingTimeToMinutes(fishReceptionField(form, 'heureSortieTunnel')?.value);
     if (start === null || end === null) return 0;
     if (end < start) end += 1440;
@@ -1017,20 +1018,25 @@ function fishFreezingDurationHours(form) {
     return Math.max(0, end - start) / 60;
 }
 
-function syncFishFreezingForm(form) {
-    const duration = fishFreezingDurationHours(form);
-    const output = form.querySelector('[data-fish-freezing-output="duration"]');
-    const status = form.querySelector('[data-fish-freezing-status]');
+function syncFishTunnelExitForm(form) {
+    const summary = form.querySelector('[data-fish-tunnel-exit-summary]');
+    const hasEntryTime = Boolean(fishReceptionField(form, 'heureEntreeTunnel')?.value || summary?.dataset.entryTime);
+    const duration = fishTunnelExitDurationHours(form);
+    const output = form.querySelector('[data-fish-tunnel-exit-output="duration"]');
+    const status = form.querySelector('[data-fish-tunnel-exit-status]');
     if (output) output.textContent = `${coutFormat(duration)} h`;
     if (!status) return;
 
     status.classList.remove('alert-secondary', 'alert-success', 'alert-warning', 'alert-danger');
-    if (duration <= 0) {
+    if (!hasEntryTime) {
+        status.classList.add('alert-danger');
+        status.textContent = "Heure d'entrée tunnel manquante. Renseignez l'étape congélation avant d'entrer en stockage.";
+    } else if (duration <= 0) {
         status.classList.add('alert-secondary');
-        status.textContent = "Renseignez l'heure d'entrée et l'heure de sortie tunnel pour calculer la durée utilisée dans les charges horaires.";
+        status.textContent = "Renseignez l'heure de sortie tunnel pour calculer la durée utilisée dans les charges horaires.";
     } else if (duration <= 3) {
         status.classList.add('alert-success');
-        status.textContent = `Congélation cohérente : ${coutFormat(duration)} h de tunnel. Cette durée sera retenue dans l'estimation des charges horaires.`;
+        status.textContent = `Sortie tunnel cohérente : ${coutFormat(duration)} h de tunnel. Cette durée sera retenue dans l'estimation des charges horaires.`;
     } else if (duration <= 4) {
         status.classList.add('alert-warning');
         status.textContent = `Durée tunnel à surveiller : ${coutFormat(duration)} h. Vérifiez que la marchandise est bien sortie à cette heure.`;
@@ -1040,20 +1046,20 @@ function syncFishFreezingForm(form) {
     }
 }
 
-function initializeFishFreezingForms(root = document) {
-    root.querySelectorAll('[data-fish-freezing-form]').forEach((form) => {
-        syncFishFreezingForm(form);
-        if (form.dataset.fishFreezingInitialized === 'true') return;
+function initializeFishTunnelExitForms(root = document) {
+    root.querySelectorAll('[data-fish-tunnel-exit-form]').forEach((form) => {
+        syncFishTunnelExitForm(form);
+        if (form.dataset.fishTunnelExitInitialized === 'true') return;
 
-        form.dataset.fishFreezingInitialized = 'true';
+        form.dataset.fishTunnelExitInitialized = 'true';
         form.addEventListener('input', (event) => {
             if (event.target.matches('input, textarea')) {
-                syncFishFreezingForm(form);
+                syncFishTunnelExitForm(form);
             }
         });
         form.addEventListener('change', (event) => {
             if (event.target.matches('select, input')) {
-                syncFishFreezingForm(form);
+                syncFishTunnelExitForm(form);
             }
         });
     });
@@ -1201,8 +1207,8 @@ async function handleFishReceptionExcelImport(input) {
         if (form.matches('[data-fish-packaging-form]')) {
             syncFishPackagingForm(form);
         }
-        if (form.matches('[data-fish-freezing-form]')) {
-            syncFishFreezingForm(form);
+        if (form.matches('[data-fish-tunnel-exit-form]')) {
+            syncFishTunnelExitForm(form);
         }
         if (form.matches('[data-freezing-capacity-form], [data-factory-capacity-form]')) {
             checkFreezingCapacity(form).catch((error) => showAlert(error.message, 'danger'));
@@ -2632,7 +2638,7 @@ function initializePageBehaviors() {
     initializeReceptionSmartChoices();
     initializeFishReceptionCostForms();
     initializeFishPackagingForms();
-    initializeFishFreezingForms();
+    initializeFishTunnelExitForms();
     initializeFactoryUnitForms();
     initializeTreatmentBoxForms();
     initializeFreezingCapacityChecks();
@@ -3122,7 +3128,7 @@ document.addEventListener('click', async (event) => {
             initializeReceptionSmartChoices(content);
             initializeFishReceptionCostForms(content);
             initializeFishPackagingForms(content);
-            initializeFishFreezingForms(content);
+            initializeFishTunnelExitForms(content);
             initializeFactoryUnitForms(content);
             initializeTreatmentBoxForms(content);
             initializeFreezingCapacityChecks(content);

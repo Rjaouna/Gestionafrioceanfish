@@ -163,12 +163,12 @@ final readonly class FishReceptionExcelFormService
                 $this->field('quantity', 'Quantité à congeler (kg)', 'number', true),
                 $this->field('tunnel', 'Tunnel', 'text', true, null, 'tunnel'),
                 $this->field('heureEntreeTunnel', 'Heure entrée tunnel', 'time', true),
-                $this->field('heureSortieTunnel', 'Heure sortie tunnel', 'time', true, 'Permet de calculer la durée tunnel.'),
                 $this->field('temperatureTunnel', 'Température tunnel', 'number', false, 'Valeur négative autorisée.'),
                 $this->field('temperatureCoeurProduit', 'Température à coeur produit', 'number', false, 'Valeur négative autorisée.'),
             ],
             'stockage' => [
                 $this->field('quantity', 'Quantité à entrer en stock (kg)', 'number', true),
+                $this->field('heureSortieTunnel', 'Heure sortie tunnel', 'time', true, 'Permet de calculer la durée tunnel avant stockage.'),
                 $this->field('chambreFroide', 'Chambre froide / zone de stockage', 'text', true, null, 'chambreFroide'),
                 $this->field('temperatureChambre', 'Température chambre', 'number', false, 'Valeur négative autorisée.'),
                 $this->field('temperatureStockage', 'Température produit stocké', 'number', false, 'Valeur négative autorisée.'),

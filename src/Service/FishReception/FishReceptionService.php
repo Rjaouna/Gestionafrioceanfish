@@ -262,19 +262,12 @@ final readonly class FishReceptionService
         if (!$reception->getHeureEntreeTunnel()) {
             throw new \DomainException('Indiquez l\'heure d\'entrée du tunnel pour calculer la durée de congélation.');
         }
-        if (!$reception->getHeureSortieTunnel()) {
-            throw new \DomainException('Indiquez l\'heure de sortie du tunnel pour calculer la durée de congélation.');
-        }
         $this->factoryUnitService->assertTunnelCanReceive($actor, $reception->getTunnel(), $quantity);
         $now = new \DateTimeImmutable();
 
         $reception
             ->setQuantiteCongelee($reception->getQuantiteCongeleeValue() + $quantity)
             ->setStatut(FishReception::STATUS_FROZEN);
-
-        if ($reception->getDateSortieTunnel() === null) {
-            $reception->setDateSortieTunnel($now);
-        }
 
         $this->assertQuantitiesCoherent($reception);
         $this->entityManager->flush();
@@ -290,6 +283,12 @@ final readonly class FishReceptionService
         if (!$reception->getChambreFroide()) {
             throw new \DomainException('Sélectionnez la chambre froide ou la zone de stockage.');
         }
+        if (!$reception->getHeureEntreeTunnel()) {
+            throw new \DomainException('Heure d\'entrée tunnel manquante. Renseignez-la à l\'étape congélation avant de stocker.');
+        }
+        if (!$reception->getHeureSortieTunnel()) {
+            throw new \DomainException('Indiquez l\'heure de sortie du tunnel avant l\'entrée en stockage.');
+        }
         $this->factoryUnitService->assertStorageCanReceive($actor, $reception->getChambreFroide(), $quantity);
         $now = new \DateTimeImmutable();
 
@@ -302,6 +301,8 @@ final readonly class FishReceptionService
         if ($reception->getDateEntreeStockage() === null) {
             $reception->setDateEntreeStockage($now);
         }
+
+        $reception->setDateSortieTunnel($reception->getDateEntreeStockage() ?? $now);
 
         if ($reception->getHeureEntreeStockage() === null) {
             $reception->setHeureEntreeStockage($now);
