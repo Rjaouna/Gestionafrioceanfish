@@ -203,6 +203,16 @@ final readonly class FishReceptionExcelFormService
                 $this->field('temperaturePoissonReception', 'Temperature poisson reception', 'number', false, 'Valeur negative autorisee.'),
                 $this->field('categorieFraicheur', 'Categorie fraicheur', 'text', true, null, 'categorieFraicheur'),
                 $this->field('presenceGlace', 'Presence de glace', 'bool', false, 'Oui ou Non.'),
+                $this->field('operationType', 'Type operation', 'text', true, 'Valeurs : achat_matiere ou prestation_service.'),
+                $this->field('receptionPrixAchatKg', 'Prix achat / kg', 'number', false),
+                $this->field('receptionMontantAchatTotal', 'Montant achat total', 'number', false),
+                $this->field('receptionFraisTransport', 'Frais transport reception', 'number', false),
+                $this->field('receptionFraisDechargement', 'Frais dechargement / manutention', 'number', false),
+                $this->field('receptionFraisGlaceConsommables', 'Glace / consommables reception', 'number', false),
+                $this->field('receptionFraisControleQualite', 'Controle qualite / analyse', 'number', false),
+                $this->field('receptionAutresFrais', 'Autres frais reception', 'number', false),
+                $this->field('receptionReferenceFacture', 'Reference facture', 'text', false),
+                $this->field('receptionDevise', 'Devise', 'text', false, 'Par defaut : MAD.'),
                 $this->field('responsableProduction', 'Responsable production', 'text', false),
                 $this->field('signatureResponsable', 'Signature', 'text', false),
                 $this->field('observations', 'Observations', 'text', false),
@@ -304,6 +314,12 @@ final readonly class FishReceptionExcelFormService
         if ($field === 'presenceGlace') {
             return 'Oui';
         }
+        if ($field === 'operationType') {
+            return FishReception::OPERATION_PURCHASE;
+        }
+        if ($field === 'receptionDevise') {
+            return 'MAD';
+        }
 
         if (!$reception instanceof FishReception) {
             return $type === 'date' ? (new \DateTimeImmutable())->format('d/m/Y') : null;
@@ -388,6 +404,18 @@ final readonly class FishReceptionExcelFormService
         $text = trim((string) $value);
         if ($text === '' && $field['required']) {
             return [null, 'Champ obligatoire non renseigne.'];
+        }
+
+        if ($field['name'] === 'operationType') {
+            $normalized = mb_strtolower($text);
+            if (in_array($normalized, ['achat_matiere', 'achat', 'achat matiere premiere'], true)) {
+                return [FishReception::OPERATION_PURCHASE, null];
+            }
+            if (in_array($normalized, ['prestation_service', 'prestation', 'service', 'transformation', 'transformation / stockage seulement'], true)) {
+                return [FishReception::OPERATION_SERVICE, null];
+            }
+
+            return [null, 'Valeur attendue : achat_matiere ou prestation_service.'];
         }
 
         $choiceKey = (string) ($field['choices'] ?? '');

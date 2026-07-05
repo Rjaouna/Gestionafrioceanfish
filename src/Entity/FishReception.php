@@ -46,6 +46,14 @@ class FishReception
     public const STATUS_CLOSED = 'cloturee';
     public const STATUS_BLOCKED = 'bloquee';
 
+    public const OPERATION_PURCHASE = 'achat_matiere';
+    public const OPERATION_SERVICE = 'prestation_service';
+
+    public const OPERATION_LABELS = [
+        self::OPERATION_PURCHASE => 'Achat matiere premiere',
+        self::OPERATION_SERVICE => 'Transformation / stockage seulement',
+    ];
+
     public const STATUS_LABELS = [
         self::STATUS_DRAFT => 'Brouillon',
         self::STATUS_RECEIVED => 'Receptionnee',
@@ -155,6 +163,46 @@ class FishReception
 
     #[ORM\Column(options: ['default' => true])]
     private bool $presenceGlace = true;
+
+    #[ORM\Column(length: 40, options: ['default' => self::OPERATION_PURCHASE])]
+    #[Assert\Choice(choices: [self::OPERATION_PURCHASE, self::OPERATION_SERVICE])]
+    private string $operationType = self::OPERATION_PURCHASE;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => '0.00'])]
+    #[Assert\PositiveOrZero]
+    private string $receptionPrixAchatKg = '0.00';
+
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 2, options: ['default' => '0.00'])]
+    #[Assert\PositiveOrZero]
+    private string $receptionMontantAchatTotal = '0.00';
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => '0.00'])]
+    #[Assert\PositiveOrZero]
+    private string $receptionFraisTransport = '0.00';
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => '0.00'])]
+    #[Assert\PositiveOrZero]
+    private string $receptionFraisDechargement = '0.00';
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => '0.00'])]
+    #[Assert\PositiveOrZero]
+    private string $receptionFraisGlaceConsommables = '0.00';
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => '0.00'])]
+    #[Assert\PositiveOrZero]
+    private string $receptionFraisControleQualite = '0.00';
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => '0.00'])]
+    #[Assert\PositiveOrZero]
+    private string $receptionAutresFrais = '0.00';
+
+    #[ORM\Column(length: 120, nullable: true)]
+    #[Assert\Length(max: 120)]
+    private ?string $receptionReferenceFacture = null;
+
+    #[ORM\Column(length: 10, options: ['default' => 'MAD'])]
+    #[Assert\Length(max: 10)]
+    private string $receptionDevise = 'MAD';
 
     #[ORM\Column(type: 'date_immutable', nullable: true)]
     private ?\DateTimeImmutable $dateDebutTraitement = null;
@@ -619,6 +667,195 @@ class FishReception
         $this->presenceGlace = filter_var($presenceGlace, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false;
 
         return $this;
+    }
+
+    public function getOperationType(): string
+    {
+        return $this->operationType;
+    }
+
+    public function setOperationType(?string $operationType): static
+    {
+        $operationType = (string) $operationType;
+        $this->operationType = isset(self::OPERATION_LABELS[$operationType]) ? $operationType : self::OPERATION_PURCHASE;
+
+        return $this;
+    }
+
+    public function getOperationTypeLabel(): string
+    {
+        return self::OPERATION_LABELS[$this->operationType] ?? $this->operationType;
+    }
+
+    public function isPurchaseOperation(): bool
+    {
+        return $this->operationType === self::OPERATION_PURCHASE;
+    }
+
+    public function getReceptionPrixAchatKg(): string
+    {
+        return $this->receptionPrixAchatKg;
+    }
+
+    public function setReceptionPrixAchatKg(int|float|string|null $receptionPrixAchatKg): static
+    {
+        $this->receptionPrixAchatKg = $this->decimal($receptionPrixAchatKg);
+
+        return $this;
+    }
+
+    public function getReceptionMontantAchatTotal(): string
+    {
+        return $this->receptionMontantAchatTotal;
+    }
+
+    public function setReceptionMontantAchatTotal(int|float|string|null $receptionMontantAchatTotal): static
+    {
+        $this->receptionMontantAchatTotal = $this->decimal($receptionMontantAchatTotal);
+
+        return $this;
+    }
+
+    public function getReceptionFraisTransport(): string
+    {
+        return $this->receptionFraisTransport;
+    }
+
+    public function setReceptionFraisTransport(int|float|string|null $receptionFraisTransport): static
+    {
+        $this->receptionFraisTransport = $this->decimal($receptionFraisTransport);
+
+        return $this;
+    }
+
+    public function getReceptionFraisDechargement(): string
+    {
+        return $this->receptionFraisDechargement;
+    }
+
+    public function setReceptionFraisDechargement(int|float|string|null $receptionFraisDechargement): static
+    {
+        $this->receptionFraisDechargement = $this->decimal($receptionFraisDechargement);
+
+        return $this;
+    }
+
+    public function getReceptionFraisGlaceConsommables(): string
+    {
+        return $this->receptionFraisGlaceConsommables;
+    }
+
+    public function setReceptionFraisGlaceConsommables(int|float|string|null $receptionFraisGlaceConsommables): static
+    {
+        $this->receptionFraisGlaceConsommables = $this->decimal($receptionFraisGlaceConsommables);
+
+        return $this;
+    }
+
+    public function getReceptionFraisControleQualite(): string
+    {
+        return $this->receptionFraisControleQualite;
+    }
+
+    public function setReceptionFraisControleQualite(int|float|string|null $receptionFraisControleQualite): static
+    {
+        $this->receptionFraisControleQualite = $this->decimal($receptionFraisControleQualite);
+
+        return $this;
+    }
+
+    public function getReceptionAutresFrais(): string
+    {
+        return $this->receptionAutresFrais;
+    }
+
+    public function setReceptionAutresFrais(int|float|string|null $receptionAutresFrais): static
+    {
+        $this->receptionAutresFrais = $this->decimal($receptionAutresFrais);
+
+        return $this;
+    }
+
+    public function getReceptionReferenceFacture(): ?string
+    {
+        return $this->receptionReferenceFacture;
+    }
+
+    public function setReceptionReferenceFacture(?string $receptionReferenceFacture): static
+    {
+        $this->receptionReferenceFacture = $this->nullableString($receptionReferenceFacture);
+
+        return $this;
+    }
+
+    public function getReceptionDevise(): string
+    {
+        return $this->receptionDevise;
+    }
+
+    public function setReceptionDevise(?string $receptionDevise): static
+    {
+        $receptionDevise = strtoupper(trim((string) $receptionDevise));
+        $this->receptionDevise = $receptionDevise !== '' ? mb_substr($receptionDevise, 0, 10) : 'MAD';
+
+        return $this;
+    }
+
+    public function getCoutAchatReceptionValue(): float
+    {
+        if (!$this->isPurchaseOperation()) {
+            return 0.0;
+        }
+
+        $total = (float) $this->receptionMontantAchatTotal;
+        if ($total > 0.001) {
+            return $total;
+        }
+
+        return $this->getQuantiteReceptionneeValue() * (float) $this->receptionPrixAchatKg;
+    }
+
+    public function getCoutAchatKgReceptionValue(): float
+    {
+        $quantity = $this->getQuantiteReceptionneeValue();
+
+        return $quantity > 0.001 ? $this->getCoutAchatReceptionValue() / $quantity : 0.0;
+    }
+
+    public function getCoutFraisReceptionValue(): float
+    {
+        return (float) $this->receptionFraisTransport
+            + (float) $this->receptionFraisDechargement
+            + (float) $this->receptionFraisGlaceConsommables
+            + (float) $this->receptionFraisControleQualite
+            + (float) $this->receptionAutresFrais;
+    }
+
+    public function getCoutFraisTransportKgReceptionValue(): float
+    {
+        $quantity = $this->getQuantiteReceptionneeValue();
+
+        return $quantity > 0.001 ? (float) $this->receptionFraisTransport / $quantity : 0.0;
+    }
+
+    public function getCoutAutresFraisKgReceptionValue(): float
+    {
+        $quantity = $this->getQuantiteReceptionneeValue();
+        $fees = $this->getCoutFraisReceptionValue() - (float) $this->receptionFraisTransport;
+
+        return $quantity > 0.001 ? max(0.0, $fees) / $quantity : 0.0;
+    }
+
+    public function getCoutTotalReceptionValue(): float
+    {
+        return $this->getCoutAchatReceptionValue() + $this->getCoutFraisReceptionValue();
+    }
+
+    public function getCoutKgReceptionValue(): float
+    {
+        $quantity = $this->getQuantiteReceptionneeValue();
+
+        return $quantity > 0.001 ? $this->getCoutTotalReceptionValue() / $quantity : 0.0;
     }
 
     public function getDateDebutTraitement(): ?\DateTimeImmutable

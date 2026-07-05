@@ -1133,6 +1133,31 @@ function applyCoutReceptionDefaults(form) {
     if (productInput && productInput.value.trim() === '' && option.dataset.product) {
         productInput.value = option.dataset.product;
     }
+
+    syncCoutReceptionCostDefaults(form);
+}
+
+function syncCoutReceptionCostDefaults(form) {
+    const option = selectedCoutReceptionOption(form);
+    if (!option?.value) return;
+
+    const totalCost = coutNumber(option.dataset.receptionTotalCost);
+    if (totalCost <= 0) return;
+
+    const requested = coutValue(form, 'poidsMisEnProduction');
+    const priceInput = coutField(form, 'prixAchatKg');
+    const transportInput = coutField(form, 'fraisTransportAchat');
+    const otherFeesInput = coutField(form, 'autresFraisAchat');
+
+    if (priceInput) {
+        priceInput.value = coutNumber(option.dataset.receptionPurchaseCostKg).toFixed(2);
+    }
+    if (transportInput) {
+        transportInput.value = (requested * coutNumber(option.dataset.receptionTransportFeeKg)).toFixed(2);
+    }
+    if (otherFeesInput) {
+        otherFeesInput.value = (requested * coutNumber(option.dataset.receptionOtherFeesKg)).toFixed(2);
+    }
 }
 
 function syncCoutReceptionInfo(form) {
@@ -1151,6 +1176,10 @@ function syncCoutReceptionInfo(form) {
     const available = coutNumber(option.dataset.available);
     const requested = coutValue(form, 'poidsMisEnProduction');
     const receptionNumber = option.dataset.receptionNumber || 'Reception';
+    const costKg = coutNumber(option.dataset.receptionCostKg);
+    const currency = option.dataset.receptionCurrency || 'MAD';
+    const operation = option.dataset.operationLabel || '';
+    const costText = costKg > 0 ? ` Cout reception ${coutFormat(costKg)} ${currency}/kg${operation ? ` (${operation})` : ''}.` : '';
 
     if (requested > available + 0.001) {
         info.className = 'alert alert-danger small mb-0 mt-3';
@@ -1160,12 +1189,12 @@ function syncCoutReceptionInfo(form) {
 
     if (requested > 0) {
         info.className = 'alert alert-success small mb-0 mt-3';
-        info.textContent = `${receptionNumber} : ${coutFormat(received)} kg recus, ${coutFormat(used)} kg deja utilises, ${coutFormat(available)} kg disponibles. Ce lot utilisera ${coutFormat(requested)} kg.`;
+        info.textContent = `${receptionNumber} : ${coutFormat(received)} kg recus, ${coutFormat(used)} kg deja utilises, ${coutFormat(available)} kg disponibles. Ce lot utilisera ${coutFormat(requested)} kg.${costText}`;
         return;
     }
 
     info.className = 'alert alert-warning small mb-0 mt-3';
-    info.textContent = `${receptionNumber} : ${coutFormat(received)} kg recus, ${coutFormat(available)} kg disponibles. Saisissez le poids mis en production pour deduire la reception.`;
+    info.textContent = `${receptionNumber} : ${coutFormat(received)} kg recus, ${coutFormat(available)} kg disponibles.${costText}`;
 }
 
 function syncCoutChargeLine(row) {
@@ -1279,7 +1308,8 @@ function calculateCoutRevient(form) {
     const poidsProduction = coutValue(form, 'poidsMisEnProduction');
     const poidsNormeReference = poidsProduction > 0 ? poidsProduction : poidsBrut;
     const poidsFini = coutValue(form, 'poidsProduitFini');
-    const coutAchatPoisson = poidsBrut * coutValue(form, 'prixAchatKg');
+    const poidsMatiereValorisee = poidsProduction > 0 ? poidsProduction : poidsBrut;
+    const coutAchatPoisson = poidsMatiereValorisee * coutValue(form, 'prixAchatKg');
     const coutFraisAchatTotal = coutValue(form, 'fraisTransportAchat') + coutValue(form, 'autresFraisAchat');
     const coutMatierePremiere = coutAchatPoisson + coutFraisAchatTotal;
 
@@ -1446,6 +1476,7 @@ function syncCoutRevientForm(form) {
         if (Number(input.value) < 0) input.value = '0';
     });
 
+    syncCoutReceptionCostDefaults(form);
     const result = calculateCoutRevient(form);
     syncCoutReceptionInfo(form);
     form.querySelectorAll('[data-cout-output]').forEach((output) => {

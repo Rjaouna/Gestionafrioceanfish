@@ -155,9 +155,6 @@ final class FishReceptionController extends AbstractController
     public function excelTemplate(string $stage): BinaryFileResponse
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
-        if ($stage !== 'reception') {
-            throw $this->createNotFoundException('Cette phase necessite une reception existante.');
-        }
 
         return $this->downloadExcelTemplate($stage, null);
     }

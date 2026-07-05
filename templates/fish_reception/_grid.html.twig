@@ -138,6 +138,11 @@
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                 {% endif %}
+                                {% if is_granted('FISH_RECEPTION_VIEW', item) %}
+                                    <a class="btn btn-outline-success" title="Telecharger fichier terrain Excel" aria-label="Telecharger fichier terrain Excel" href="{{ path('app_fish_reception_excel_template_item', {id: item.id, stage: stage|default('reception')}) }}">
+                                        <i class="bi bi-file-earmark-excel"></i>
+                                    </a>
+                                {% endif %}
                                 {% if is_granted('FISH_RECEPTION_TRANSITION', item) and not item.locked %}
                                     {% if item.statut == 'brouillon' %}
                                         <button class="btn btn-outline-success" title="Valider reception" aria-label="Valider reception" data-confirm-url="{{ path('app_fish_reception_validate', {id: item.id}) }}" data-token="{{ csrf_token('validate_fish_reception_' ~ item.id) }}" data-confirm-message="Valider cette reception ? Elle deviendra disponible dans le workflow.">

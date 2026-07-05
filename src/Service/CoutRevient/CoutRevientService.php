@@ -90,6 +90,7 @@ final readonly class CoutRevientService
         }
 
         $this->prepare($coutRevient);
+        $this->applyReceptionCostDefaults($coutRevient);
         $this->syncChargeLines($coutRevient, $chargeRows, $actor);
         $this->receptionService->syncProductionAllocation($coutRevient, null, 0.0);
         if ($validate) {
@@ -114,6 +115,7 @@ final readonly class CoutRevientService
         }
 
         $this->prepare($coutRevient);
+        $this->applyReceptionCostDefaults($coutRevient);
         $this->syncChargeLines($coutRevient, $chargeRows, $actor);
         $this->receptionService->syncProductionAllocation($coutRevient, $previousReception, $previousQuantity);
         if ($validate) {
@@ -287,6 +289,28 @@ final readonly class CoutRevientService
         if ($coutRevient->getNumeroLot() === null || $coutRevient->getNumeroLot() === '') {
             $coutRevient->setNumeroLot($this->nextLotNumber());
         }
+    }
+
+    private function applyReceptionCostDefaults(CoutRevient $coutRevient): void
+    {
+        $reception = $coutRevient->getReception();
+        if (!$reception instanceof FishReception || $reception->getCoutTotalReceptionValue() <= 0.001) {
+            return;
+        }
+
+        if ((float) $coutRevient->getPoidsBrutRecu() <= 0.001) {
+            $coutRevient->setPoidsBrutRecu($reception->getQuantiteReceptionnee());
+        }
+
+        $quantity = (float) $coutRevient->getPoidsMisEnProduction();
+        if ($quantity <= 0.001) {
+            return;
+        }
+
+        $coutRevient
+            ->setPrixAchatKg($reception->getCoutAchatKgReceptionValue())
+            ->setFraisTransportAchat($reception->getCoutFraisTransportKgReceptionValue() * $quantity)
+            ->setAutresFraisAchat($reception->getCoutAutresFraisKgReceptionValue() * $quantity);
     }
 
     /** @param array<int|string, mixed> $chargeRows */

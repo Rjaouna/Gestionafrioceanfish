@@ -116,6 +116,27 @@
 
     <div class="col-12 col-xl-6">
         <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Couts d'entree reception</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6 text-secondary">Type operation</dt><dd class="col-6 text-end">{{ item.operationTypeLabel }}</dd>
+                    <dt class="col-6 text-secondary">Prix achat / kg</dt><dd class="col-6 text-end">{{ item.receptionPrixAchatKg|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
+                    <dt class="col-6 text-secondary">Achat total</dt><dd class="col-6 text-end">{{ item.coutAchatReceptionValue|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
+                    <dt class="col-6 text-secondary">Transport</dt><dd class="col-6 text-end">{{ item.receptionFraisTransport|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
+                    <dt class="col-6 text-secondary">Dechargement</dt><dd class="col-6 text-end">{{ item.receptionFraisDechargement|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
+                    <dt class="col-6 text-secondary">Glace / consommables</dt><dd class="col-6 text-end">{{ item.receptionFraisGlaceConsommables|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
+                    <dt class="col-6 text-secondary">Controle qualite</dt><dd class="col-6 text-end">{{ item.receptionFraisControleQualite|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
+                    <dt class="col-6 text-secondary">Autres frais</dt><dd class="col-6 text-end">{{ item.receptionAutresFrais|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
+                    <dt class="col-6 text-secondary">Cout total reception</dt><dd class="col-6 text-end fw-semibold">{{ item.coutTotalReceptionValue|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
+                    <dt class="col-6 text-secondary">Cout / kg</dt><dd class="col-6 text-end fw-semibold">{{ item.coutKgReceptionValue|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
+                    <dt class="col-6 text-secondary">Facture</dt><dd class="col-6 text-end">{{ item.receptionReferenceFacture ?: '-' }}</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Conditionnement / Emballage</h2></div>
             <div class="card-body">
                 <dl class="row mb-0">

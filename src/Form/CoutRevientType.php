@@ -55,10 +55,12 @@ final class CoutRevientType extends AbstractType
                 'label' => 'Reception matiere premiere',
                 'class' => FishReception::class,
                 'choice_label' => static fn (FishReception $reception): string => sprintf(
-                    '%s - %s - %s kg dispo',
+                    '%s - %s - %s kg dispo - %s %s/kg',
                     (string) $reception->getNumeroReception(),
                     (string) $reception->getEspecePoisson(),
                     number_format($reception->getQuantiteDisponibleProductionValue(), 3, ',', ' '),
+                    number_format($reception->getCoutKgReceptionValue(), 2, ',', ' '),
+                    $reception->getReceptionDevise(),
                 ),
                 'query_builder' => static fn (FishReceptionRepository $repository) => $repository->createQueryBuilder('r')
                     ->andWhere('r.isDeleted = false')
@@ -84,6 +86,13 @@ final class CoutRevientType extends AbstractType
                         'data-received' => (string) $reception->getQuantiteReceptionnee(),
                         'data-used' => (string) $reception->getQuantiteUtiliseeProduction(),
                         'data-available' => (string) number_format($available, 3, '.', ''),
+                        'data-operation-label' => $reception->getOperationTypeLabel(),
+                        'data-reception-currency' => $reception->getReceptionDevise(),
+                        'data-reception-total-cost' => (string) number_format($reception->getCoutTotalReceptionValue(), 2, '.', ''),
+                        'data-reception-cost-kg' => (string) number_format($reception->getCoutKgReceptionValue(), 6, '.', ''),
+                        'data-reception-purchase-cost-kg' => (string) number_format($reception->getCoutAchatKgReceptionValue(), 6, '.', ''),
+                        'data-reception-transport-fee-kg' => (string) number_format($reception->getCoutFraisTransportKgReceptionValue(), 6, '.', ''),
+                        'data-reception-other-fees-kg' => (string) number_format($reception->getCoutAutresFraisKgReceptionValue(), 6, '.', ''),
                     ];
                 },
                 'placeholder' => 'Choisir une reception disponible',

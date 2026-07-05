@@ -49,6 +49,24 @@ final class FishReceptionType extends AbstractType
                 'expanded' => false,
                 'multiple' => false,
             ])
+            ->add('operationType', ChoiceType::class, [
+                'label' => 'Type operation',
+                'choices' => array_flip(FishReception::OPERATION_LABELS),
+            ])
+            ->add('receptionPrixAchatKg', NumberType::class, $this->numberOptions('Prix achat / kg', 2, '0.01', false))
+            ->add('receptionMontantAchatTotal', NumberType::class, $this->numberOptions('Montant achat total', 2, '0.01', false))
+            ->add('receptionFraisTransport', NumberType::class, $this->numberOptions('Frais transport reception', 2, '0.01', false))
+            ->add('receptionFraisDechargement', NumberType::class, $this->numberOptions('Frais dechargement / manutention', 2, '0.01', false))
+            ->add('receptionFraisGlaceConsommables', NumberType::class, $this->numberOptions('Glace / consommables reception', 2, '0.01', false))
+            ->add('receptionFraisControleQualite', NumberType::class, $this->numberOptions('Controle qualite / analyse', 2, '0.01', false))
+            ->add('receptionAutresFrais', NumberType::class, $this->numberOptions('Autres frais reception', 2, '0.01', false))
+            ->add('receptionReferenceFacture', TextType::class, $this->textOptions('Reference facture', false, 120))
+            ->add('receptionDevise', TextType::class, [
+                'label' => 'Devise',
+                'required' => true,
+                'empty_data' => 'MAD',
+                'attr' => ['maxlength' => 10, 'placeholder' => 'MAD'],
+            ])
             ->add('responsableProduction', TextType::class, $this->textOptions('Responsable production', false, 150))
             ->add('signatureResponsable', TextType::class, $this->textOptions('Signature', false, 150))
             ->add('observations', TextareaType::class, [

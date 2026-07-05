@@ -43,6 +43,27 @@
 
             <section class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">2. Couts d'entree</h2>
+                    <p class="text-secondary small mb-0">Base de calcul reutilisee ensuite dans le cout de revient.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.operationType) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.receptionPrixAchatKg) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.receptionMontantAchatTotal) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.receptionFraisTransport) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.receptionFraisDechargement) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.receptionFraisGlaceConsommables) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.receptionFraisControleQualite) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.receptionAutresFrais) }}</div>
+                        <div class="col-12 col-md-2">{{ form_row(form.receptionDevise) }}</div>
+                        <div class="col-12 col-md-6">{{ form_row(form.receptionReferenceFacture) }}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
                     <h2 class="h5 mb-1">Observations et responsable</h2>
                 </div>
                 <div class="card-body">
@@ -76,6 +97,10 @@
                             <dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleReceptionValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                             <dt class="col-6 text-secondary">Reserve cout</dt>
                             <dd class="col-6 text-end">{{ item.quantiteUtiliseeProduction|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                            <dt class="col-6 text-secondary">Cout reception</dt>
+                            <dd class="col-6 text-end fw-semibold">{{ item.coutTotalReceptionValue|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
+                            <dt class="col-6 text-secondary">Cout / kg</dt>
+                            <dd class="col-6 text-end">{{ item.coutKgReceptionValue|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
                         </dl>
                         {% if item.locked %}
                             <div class="alert alert-warning small mb-0 mt-3">Cette reception est verrouillee.</div>

@@ -1,4 +1,4 @@
-{% if excel_template_url is defined and excel_import_url is defined and excel_import_token is defined %}
+{% if excel_template_url|default('') and excel_import_url|default('') and excel_import_token|default('') %}
     <div
         class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3"
         data-excel-import-widget
@@ -9,11 +9,11 @@
             <i class="bi bi-file-earmark-spreadsheet me-1"></i>Fichier terrain Excel
         </div>
         <div class="btn-group btn-group-sm">
-            <a class="btn btn-outline-success" href="{{ excel_template_url }}" title="Telecharger le modele Excel" aria-label="Telecharger le modele Excel">
-                <i class="bi bi-file-earmark-excel"></i>
+            <a class="btn btn-outline-success" href="{{ excel_template_url }}" title="Telecharger le modele Excel">
+                <i class="bi bi-file-earmark-excel me-1"></i>Telecharger
             </a>
-            <label class="btn btn-outline-primary mb-0" title="Importer le fichier rempli" aria-label="Importer le fichier rempli">
-                <i class="bi bi-upload"></i>
+            <label class="btn btn-outline-primary mb-0" title="Importer le fichier rempli">
+                <i class="bi bi-upload me-1"></i>Importer
                 <input class="d-none" type="file" accept=".xlsx,.xls" data-excel-import-input>
             </label>
         </div>

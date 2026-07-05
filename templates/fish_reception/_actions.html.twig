@@ -1,4 +1,27 @@
 {% set size = size|default('btn-sm') %}
+{% if is_granted('FISH_RECEPTION_VIEW', item) %}
+    <div class="btn-group">
+        <button class="btn {{ size }} btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-file-earmark-excel me-1"></i>Excel terrain
+        </button>
+        <ul class="dropdown-menu">
+            {% for excel_stage, excel_label in {
+                reception: 'Reception',
+                traitement: 'Traitement / Production',
+                emballage: 'Conditionnement / Emballage',
+                congelation: 'Congelation',
+                stockage: 'Stockage',
+                expedition: 'Expedition'
+            } %}
+                <li>
+                    <a class="dropdown-item" href="{{ path('app_fish_reception_excel_template_item', {id: item.id, stage: excel_stage}) }}">
+                        <i class="bi bi-download me-2"></i>{{ excel_label }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
 {% if is_granted('FISH_RECEPTION_EDIT', item) %}
     <a class="btn {{ size }} btn-outline-primary" href="{{ path('app_fish_reception_edit', {id: item.id}) }}">
         <i class="bi bi-pencil me-1"></i>Modifier

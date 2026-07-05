@@ -96,6 +96,7 @@
         {{ ui.metric('Emballee', ui.kg(item.quantiteConditionnee), 'bi-box', 'warning', packagedRate|number_format(1, ',', ' ') ~ ' % emballage') }}
         {{ ui.metric('Stockee', ui.kg(item.quantiteStockee), 'bi-box-seam', 'success', storedRate|number_format(1, ',', ' ') ~ ' % stockage') }}
         {{ ui.metric('Expediee', ui.kg(item.quantiteTotaleExpediee), 'bi-truck', 'dark', shippedRate|number_format(1, ',', ' ') ~ ' % expedition') }}
+        {{ ui.metric('Cout reception/kg', item.coutKgReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'bi-cash-coin', 'primary', item.operationTypeLabel) }}
     </section>
 
     <section class="reception-workflow">
@@ -137,6 +138,30 @@
                     {{ ui.row('Presence glace', item.presenceGlace ? 'Oui' : 'Non') }}
                     {{ ui.row('Temperature poisson', ui.temp(item.temperaturePoissonReception)) }}
                     {{ ui.row('Heure reception', ui.time(item.heureDebutReception) ~ ' - ' ~ ui.time(item.heureFinReception)) }}
+                </div>
+            </section>
+
+            <section class="reception-panel">
+                <div class="reception-panel-heading">
+                    <span><i class="bi bi-cash-coin"></i></span>
+                    <div>
+                        <h2>Couts d'entree reception</h2>
+                        <p>Achat matiere et frais directs rattaches a la reception.</p>
+                    </div>
+                </div>
+                <div class="reception-info-grid">
+                    {{ ui.row('Type operation', item.operationTypeLabel) }}
+                    {{ ui.row('Prix achat / kg', item.receptionPrixAchatKg|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
+                    {{ ui.row('Montant achat total', item.coutAchatReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'text-primary') }}
+                    {{ ui.row('Frais transport', item.receptionFraisTransport|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
+                    {{ ui.row('Dechargement / manutention', item.receptionFraisDechargement|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
+                    {{ ui.row('Glace / consommables', item.receptionFraisGlaceConsommables|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
+                    {{ ui.row('Controle qualite', item.receptionFraisControleQualite|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
+                    {{ ui.row('Autres frais', item.receptionAutresFrais|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
+                    {{ ui.row('Total frais reception', item.coutFraisReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
+                    {{ ui.row('Cout total reception', item.coutTotalReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'text-primary') }}
+                    {{ ui.row('Cout reception / kg', item.coutKgReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'text-success') }}
+                    {{ ui.row('Reference facture', ui.text(item.receptionReferenceFacture)) }}
                 </div>
             </section>
 

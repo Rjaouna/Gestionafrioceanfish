@@ -16,8 +16,9 @@ final readonly class CoutRevientCalculatorService
     {
         $poidsBrut = $this->num($coutRevient->getPoidsBrutRecu());
         $poidsProduction = $this->num($coutRevient->getPoidsMisEnProduction());
+        $poidsMatiereValorisee = $poidsProduction > 0.001 ? $poidsProduction : $poidsBrut;
         $prixAchatKg = $this->num($coutRevient->getPrixAchatKg());
-        $coutMatiere = ($poidsBrut * $prixAchatKg)
+        $coutMatiere = ($poidsMatiereValorisee * $prixAchatKg)
             + $this->num($coutRevient->getFraisTransportAchat())
             + $this->num($coutRevient->getAutresFraisAchat());
 
