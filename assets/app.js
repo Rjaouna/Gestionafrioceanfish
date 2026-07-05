@@ -1203,6 +1203,7 @@ async function handleFishReceptionExcelImport(input) {
 
         if (form.matches('[data-treatment-box-form]')) {
             syncTreatmentBoxCounts(form);
+            syncTreatmentQuantityAvailability(form);
         }
         if (form.matches('[data-fish-packaging-form]')) {
             syncFishPackagingForm(form);
@@ -2000,6 +2001,44 @@ function parseDecimalInput(value) {
     return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function syncTreatmentQuantityAvailability(form) {
+    const totalWeightField = form.querySelector('[data-treatment-total-weight]');
+    if (!totalWeightField) return true;
+
+    const requested = parseDecimalInput(totalWeightField.value);
+    const available = parseDecimalInput(totalWeightField.dataset.treatmentAvailable);
+    const exceeded = requested - available > 0.001;
+    const wrapper = totalWeightField.closest('.mb-3') || totalWeightField.parentElement;
+    let feedback = wrapper?.querySelector('[data-treatment-quantity-feedback]');
+    if (!feedback && wrapper) {
+        feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback d-block';
+        feedback.dataset.treatmentQuantityFeedback = 'true';
+        wrapper.appendChild(feedback);
+    }
+
+    totalWeightField.classList.toggle('is-invalid', exceeded);
+    if (exceeded) {
+        totalWeightField.setAttribute('aria-invalid', 'true');
+        if (feedback) {
+            feedback.textContent = `Quantité insuffisante : ${coutFormatCompact(requested)} kg demandés, ${coutFormatCompact(available)} kg disponibles.`;
+            feedback.classList.remove('d-none');
+        }
+    } else {
+        totalWeightField.removeAttribute('aria-invalid');
+        if (feedback) {
+            feedback.textContent = '';
+            feedback.classList.add('d-none');
+        }
+    }
+
+    form.dataset.treatmentQuantityAllowed = exceeded ? '0' : '1';
+    const submitButton = form.querySelector('[type="submit"]');
+    if (submitButton) submitButton.disabled = exceeded;
+
+    return !exceeded;
+}
+
 function syncTreatmentBoxCounts(form) {
     const totalWeightField = form.querySelector('[data-treatment-total-weight]');
     const boxWeightField = form.querySelector('[data-treatment-box-weight]');
@@ -2025,6 +2064,8 @@ function syncTreatmentBoxCounts(form) {
         const boxesPerPallet = parseDecimalInput(boxesPerPalletField?.value);
         palletCountField.value = String(boxCount > 0 && boxesPerPallet > 0 ? Math.ceil(boxCount / boxesPerPallet) : 0);
     }
+
+    syncTreatmentQuantityAvailability(form);
 }
 
 function initializeTreatmentBoxForms(root = document) {
@@ -2664,6 +2705,10 @@ document.addEventListener('submit', async (event) => {
         }
         if (ajaxForm.matches('[data-treatment-box-form]')) {
             syncTreatmentBoxCounts(ajaxForm);
+            if (!syncTreatmentQuantityAvailability(ajaxForm)) {
+                showAlert('Quantité à envoyer au traitement supérieure au disponible réception.', 'danger');
+                return;
+            }
         }
         if (ajaxForm.matches('[data-freezing-capacity-form], [data-factory-capacity-form]')) {
             const capacityOk = await checkFreezingCapacity(ajaxForm);

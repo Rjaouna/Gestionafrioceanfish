@@ -88,6 +88,7 @@ final class FishReceptionTreatmentType extends AbstractType
                 'max' => max(0.001, round($available, 3)),
                 'step' => '0.001',
                 'data-treatment-total-weight' => 'true',
+                'data-treatment-available' => (string) round(max(0.0, $available), 3),
             ],
             'help' => sprintf('Disponible : %.3f kg', max(0.0, $available)),
         ];
