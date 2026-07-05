@@ -1577,6 +1577,8 @@ function syncTreatmentBoxCounts(form) {
     const totalWeightField = form.querySelector('[data-treatment-total-weight]');
     const boxWeightField = form.querySelector('[data-treatment-box-weight]');
     const boxCountField = form.querySelector('[data-treatment-box-count]');
+    const boxesPerLayerField = form.querySelector('[data-treatment-boxes-per-layer]');
+    const palletLevelsField = form.querySelector('[data-treatment-pallet-levels]');
     const boxesPerPalletField = form.querySelector('[data-treatment-boxes-per-pallet]');
     const palletCountField = form.querySelector('[data-treatment-pallet-count]');
     if (!totalWeightField || !boxWeightField || !boxCountField) return;
@@ -1585,6 +1587,12 @@ function syncTreatmentBoxCounts(form) {
     const boxWeight = parseDecimalInput(boxWeightField.value);
     const boxCount = totalWeight > 0 && boxWeight > 0 ? Math.ceil(totalWeight / boxWeight) : 0;
     boxCountField.value = String(boxCount);
+
+    if (boxesPerPalletField && boxesPerLayerField && palletLevelsField) {
+        const boxesPerLayer = parseDecimalInput(boxesPerLayerField.value);
+        const palletLevels = parseDecimalInput(palletLevelsField.value);
+        boxesPerPalletField.value = String(boxesPerLayer > 0 && palletLevels > 0 ? Math.ceil(boxesPerLayer * palletLevels) : 0);
+    }
 
     if (palletCountField) {
         const boxesPerPallet = parseDecimalInput(boxesPerPalletField?.value);
@@ -1597,7 +1605,7 @@ function initializeTreatmentBoxForms(root = document) {
         if (form.dataset.treatmentBoxInitialized === '1') return;
         form.dataset.treatmentBoxInitialized = '1';
 
-        form.querySelectorAll('[data-treatment-total-weight], [data-treatment-box-weight], [data-treatment-boxes-per-pallet]').forEach((field) => {
+        form.querySelectorAll('[data-treatment-total-weight], [data-treatment-box-weight], [data-treatment-boxes-per-layer], [data-treatment-pallet-levels], [data-treatment-boxes-per-pallet]').forEach((field) => {
             field.addEventListener('input', () => syncTreatmentBoxCounts(form));
             field.addEventListener('change', () => syncTreatmentBoxCounts(form));
         });

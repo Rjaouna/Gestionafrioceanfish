@@ -156,6 +156,9 @@ class FishReception
     #[ORM\Column(options: ['default' => true])]
     private bool $presenceGlace = true;
 
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $dateDebutTraitement = null;
+
     #[ORM\Column(type: 'time_immutable', nullable: true)]
     private ?\DateTimeImmutable $heureDebutTraitement = null;
 
@@ -614,6 +617,18 @@ class FishReception
     public function setPresenceGlace(bool|string|null $presenceGlace): static
     {
         $this->presenceGlace = filter_var($presenceGlace, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false;
+
+        return $this;
+    }
+
+    public function getDateDebutTraitement(): ?\DateTimeImmutable
+    {
+        return $this->dateDebutTraitement;
+    }
+
+    public function setDateDebutTraitement(?\DateTimeImmutable $dateDebutTraitement): static
+    {
+        $this->dateDebutTraitement = $dateDebutTraitement;
 
         return $this;
     }

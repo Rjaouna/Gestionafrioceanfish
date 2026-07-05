@@ -187,6 +187,10 @@ final readonly class FishReceptionService
             ->setTreatmentStartedAt($now)
             ->setTreatmentStartedBy($actor);
 
+        if ($reception->getDateDebutTraitement() === null) {
+            $reception->setDateDebutTraitement($now);
+        }
+
         if ($reception->getHeureDebutTraitement() === null) {
             $reception->setHeureDebutTraitement($now);
         }

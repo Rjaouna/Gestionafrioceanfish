@@ -4,10 +4,13 @@ namespace App\Form;
 
 use App\Entity\FishReception;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TimeType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 final class FishReceptionTreatmentType extends AbstractType
@@ -16,6 +19,7 @@ final class FishReceptionTreatmentType extends AbstractType
     {
         $builder
             ->add('quantity', NumberType::class, $this->quantityOptions('Quantite a envoyer au traitement (kg)', (float) $options['available_quantity']))
+            ->add('dateDebutTraitement', DateType::class, $this->dateOptions('Date debut traitement'))
             ->add('heureDebutTraitement', TimeType::class, $this->timeOptions('Heure debut traitement'))
             ->add('temperatureEauGlacee', NumberType::class, $this->numberOptions('Temperature eau glacee', 2, '0.01', false, true))
             ->add('poidsMoyenParCaisse', NumberType::class, $this->numberOptions('Poids moyen par caisse (kg)', 3, '0.001', false))
@@ -24,13 +28,42 @@ final class FishReceptionTreatmentType extends AbstractType
                 'data-treatment-box-count' => 'true',
             ], 'Calcule automatiquement : quantite / poids moyen par caisse.'))
             ->add('nombreMoules', IntegerType::class, $this->integerOptions('Nombre de moules', false))
+            ->add('nombreCaissesParEtage', IntegerType::class, $this->integerOptions('Nombre de caisses par etage', false, [
+                'data-treatment-boxes-per-layer' => 'true',
+            ], null, false, 5))
+            ->add('nombreNiveauxPalette', IntegerType::class, $this->integerOptions('Nombre de niveaux', false, [
+                'data-treatment-pallet-levels' => 'true',
+            ], null, false, 16))
             ->add('nombreCaissesParPalette', IntegerType::class, $this->integerOptions('Nombre de caisses par palette', false, [
+                'readonly' => 'readonly',
                 'data-treatment-boxes-per-pallet' => 'true',
-            ]))
+            ], 'Calcule automatiquement : caisses par etage x nombre de niveaux.'))
             ->add('nombreTotalPalettes', IntegerType::class, $this->integerOptions('Nombre total de palettes', false, [
                 'readonly' => 'readonly',
                 'data-treatment-pallet-count' => 'true',
             ], 'Calcule automatiquement : caisses / caisses par palette.'));
+
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event): void {
+            $reception = $event->getData();
+            if ($reception instanceof FishReception && $reception->getDateDebutTraitement() === null) {
+                $reception->setDateDebutTraitement(new \DateTimeImmutable('today'));
+            }
+        });
+
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event): void {
+            $reception = $event->getData();
+            if (!$reception instanceof FishReception) {
+                return;
+            }
+
+            $form = $event->getForm();
+            $boxesPerLayer = max(0, (int) $form->get('nombreCaissesParEtage')->getData());
+            $palletLevels = max(0, (int) $form->get('nombreNiveauxPalette')->getData());
+
+            $reception->setNombreCaissesParPalette(
+                $boxesPerLayer > 0 && $palletLevels > 0 ? $boxesPerLayer * $palletLevels : 0
+            );
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -61,6 +94,17 @@ final class FishReceptionTreatmentType extends AbstractType
     }
 
     /** @return array<string, mixed> */
+    private function dateOptions(string $label): array
+    {
+        return [
+            'label' => $label,
+            'required' => true,
+            'widget' => 'single_text',
+            'input' => 'datetime_immutable',
+        ];
+    }
+
+    /** @return array<string, mixed> */
     private function numberOptions(string $label, int $scale = 2, string $step = '0.01', bool $required = true, bool $allowNegative = false): array
     {
         $attr = ['step' => $step];
@@ -84,15 +128,22 @@ final class FishReceptionTreatmentType extends AbstractType
      *
      * @return array<string, mixed>
      */
-    private function integerOptions(string $label, bool $required = true, array $attr = [], ?string $help = null): array
+    private function integerOptions(string $label, bool $required = true, array $attr = [], ?string $help = null, bool $mapped = true, ?int $data = null): array
     {
-        return [
+        $options = [
             'label' => $label,
+            'mapped' => $mapped,
             'required' => $required,
             'empty_data' => '0',
             'attr' => ['min' => 0, 'step' => 1] + $attr,
             'help' => $help,
         ];
+
+        if ($data !== null) {
+            $options['data'] = $data;
+        }
+
+        return $options;
     }
 
     /** @return array<string, mixed> */

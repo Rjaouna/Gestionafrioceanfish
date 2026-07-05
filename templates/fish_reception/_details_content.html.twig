@@ -99,6 +99,7 @@
             <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Traitement / Production</h2></div>
             <div class="card-body">
                 <dl class="row mb-0">
+                    <dt class="col-6 text-secondary">Date traitement</dt><dd class="col-6 text-end">{{ item.dateDebutTraitement ? item.dateDebutTraitement|date('d/m/Y') : '-' }}</dd>
                     <dt class="col-6 text-secondary">Heure debut</dt><dd class="col-6 text-end">{{ item.heureDebutTraitement ? item.heureDebutTraitement|date('H:i') : '-' }}</dd>
                     <dt class="col-6 text-secondary">Temp. eau glacee</dt><dd class="col-6 text-end">{{ item.temperatureEauGlacee is not null ? item.temperatureEauGlacee|number_format(2, ',', ' ') ~ ' C' : '-' }}</dd>
                     <dt class="col-6 text-secondary">Caisses apres traitement</dt><dd class="col-6 text-end">{{ item.nombreCaissesApresTraitement }}</dd>

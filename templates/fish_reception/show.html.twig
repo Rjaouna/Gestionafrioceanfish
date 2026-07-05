@@ -155,6 +155,7 @@
                     </div>
                 </div>
                 <div class="reception-info-grid mt-3">
+                    {{ ui.row('Date traitement', item.dateDebutTraitement ? item.dateDebutTraitement|date('d/m/Y') : '-') }}
                     {{ ui.row('Heure debut', ui.time(item.heureDebutTraitement)) }}
                     {{ ui.row('Temperature eau glacee', ui.temp(item.temperatureEauGlacee)) }}
                     {{ ui.row('Caisses apres traitement', item.nombreCaissesApresTraitement) }}

@@ -91,7 +91,11 @@
                         <td>
                             {% if stage == 'traitement' %}
                                 <div>Prepare {{ item.quantiteTotalePreparee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>
-                                <div class="small text-secondary">{{ item.quantiteTotalePrepareeValue > 0.001 and item.heureDebutTraitement ? 'Debut ' ~ item.heureDebutTraitement|date('H:i') : 'Aucune quantite en traitement' }}</div>
+                                {% if item.quantiteTotalePrepareeValue > 0.001 and (item.dateDebutTraitement or item.heureDebutTraitement) %}
+                                    <div class="small text-secondary">Debut {{ item.dateDebutTraitement ? item.dateDebutTraitement|date('d/m') : '' }} {{ item.heureDebutTraitement ? item.heureDebutTraitement|date('H:i') : '' }}</div>
+                                {% else %}
+                                    <div class="small text-secondary">Aucune quantite en traitement</div>
+                                {% endif %}
                             {% elseif stage == 'emballage' %}
                                 <div>{{ item.produitConditionne ?: 'Produit non renseigne' }}</div>
                                 <div class="small text-secondary">{{ item.quantiteConditionnee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg emballes</div>
