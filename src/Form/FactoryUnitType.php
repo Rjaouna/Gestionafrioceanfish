@@ -31,17 +31,18 @@ final class FactoryUnitType extends AbstractType
             ->add('type', ChoiceType::class, [
                 'label' => 'Type',
                 'choices' => array_flip(FactoryUnit::TYPE_LABELS),
+                'attr' => ['data-factory-unit-type' => 'true'],
             ])
             ->add('status', ChoiceType::class, [
                 'label' => 'Statut',
                 'choices' => array_flip(FactoryUnit::STATUS_LABELS),
             ])
-            ->add('capacityKg', NumberType::class, $this->numberOptions('Capacite kg', '0.001'))
+            ->add('capacityKg', NumberType::class, $this->numberOptions('Capacite kg', '0.001', ['data-factory-unit-capacity' => 'true']))
             ->add('capacityPallets', IntegerType::class, $this->integerOptions('Capacite palettes'))
             ->add('capacityBoxes', IntegerType::class, $this->integerOptions('Capacite caisses'))
-            ->add('lengthMeters', NumberType::class, $this->numberOptions('Longueur (m)', '0.01'))
-            ->add('widthMeters', NumberType::class, $this->numberOptions('Largeur (m)', '0.01'))
-            ->add('heightMeters', NumberType::class, $this->numberOptions('Hauteur (m)', '0.01'))
+            ->add('lengthMeters', NumberType::class, $this->numberOptions('Longueur (m)', '0.01', ['data-factory-unit-length' => 'true']))
+            ->add('widthMeters', NumberType::class, $this->numberOptions('Largeur (m)', '0.01', ['data-factory-unit-width' => 'true']))
+            ->add('heightMeters', NumberType::class, $this->numberOptions('Hauteur (m)', '0.01', ['data-factory-unit-height' => 'true']))
             ->add('floorLevel', TextType::class, [
                 'label' => 'Etage / niveau',
                 'required' => false,
@@ -52,9 +53,9 @@ final class FactoryUnitType extends AbstractType
                 'required' => false,
                 'attr' => ['maxlength' => 150, 'placeholder' => 'Ex. Zone froid cote reception'],
             ])
-            ->add('targetTemperature', NumberType::class, $this->temperatureOptions('Temperature cible'))
-            ->add('minTemperature', NumberType::class, $this->temperatureOptions('Temperature min'))
-            ->add('maxTemperature', NumberType::class, $this->temperatureOptions('Temperature max'))
+            ->add('targetTemperature', NumberType::class, $this->temperatureOptions('Temperature cible', ['data-factory-unit-temperature' => 'target']))
+            ->add('minTemperature', NumberType::class, $this->temperatureOptions('Temperature min', ['data-factory-unit-temperature' => 'min']))
+            ->add('maxTemperature', NumberType::class, $this->temperatureOptions('Temperature max', ['data-factory-unit-temperature' => 'max']))
             ->add('sortOrder', IntegerType::class, $this->integerOptions('Ordre'))
             ->add('isActive', CheckboxType::class, [
                 'label' => 'Disponible dans les selections',
@@ -79,15 +80,19 @@ final class FactoryUnitType extends AbstractType
         ]);
     }
 
-    /** @return array<string, mixed> */
-    private function numberOptions(string $label, string $step): array
+    /**
+     * @param array<string, string> $attr
+     *
+     * @return array<string, mixed>
+     */
+    private function numberOptions(string $label, string $step, array $attr = []): array
     {
         return [
             'label' => $label,
             'required' => false,
             'empty_data' => '0',
             'html5' => true,
-            'attr' => ['min' => 0, 'step' => $step, 'inputmode' => 'decimal'],
+            'attr' => ['min' => 0, 'step' => $step, 'inputmode' => 'decimal'] + $attr,
         ];
     }
 
@@ -102,14 +107,18 @@ final class FactoryUnitType extends AbstractType
         ];
     }
 
-    /** @return array<string, mixed> */
-    private function temperatureOptions(string $label): array
+    /**
+     * @param array<string, string> $attr
+     *
+     * @return array<string, mixed>
+     */
+    private function temperatureOptions(string $label, array $attr = []): array
     {
         return [
             'label' => $label,
             'required' => false,
             'html5' => true,
-            'attr' => ['step' => '0.01', 'inputmode' => 'decimal', 'placeholder' => 'Ex. -18'],
+            'attr' => ['step' => '0.01', 'inputmode' => 'decimal', 'placeholder' => 'Ex. -18'] + $attr,
         ];
     }
 }

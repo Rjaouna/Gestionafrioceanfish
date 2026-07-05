@@ -1573,6 +1573,126 @@ function parseDecimalInput(value) {
     return Number.isFinite(parsed) ? parsed : 0;
 }
 
+const factoryTemperatureDefaults = {
+    tunnel: {target: -40, min: -45, max: -30},
+    chambre_negative: {target: -20, min: -25, max: -18},
+    chambre_positive: {target: 2, min: 0, max: 4},
+    zone_production: {target: 12, min: 8, max: 15},
+    zone_emballage: {target: 10, min: 6, max: 12},
+    zone_stockage: {target: -18, min: -22, max: -15},
+    autre: {target: 18, min: 10, max: 25},
+};
+
+const factoryCapacityKgPerM2 = {
+    tunnel: 350,
+    chambre_negative: 600,
+    chambre_positive: 550,
+    zone_stockage: 500,
+    zone_production: 250,
+    zone_emballage: 250,
+    autre: 300,
+};
+
+const factoryDimensionRatio = {
+    tunnel: 2.4,
+    zone_production: 1.8,
+    zone_emballage: 1.8,
+};
+
+function formatFactoryNumber(value, decimals = 2) {
+    if (!Number.isFinite(value)) return '';
+
+    return value.toFixed(decimals).replace(/\.?0+$/, '');
+}
+
+function factoryFieldCanAutoFill(input) {
+    if (!input) return false;
+    const value = String(input.value || '').trim();
+    if (value === '' || parseDecimalInput(value) <= 0) return true;
+
+    return input.dataset.factoryAutoValue === value;
+}
+
+function setFactoryAutoField(input, value, decimals = 2) {
+    if (!input || !factoryFieldCanAutoFill(input)) return;
+
+    const formatted = formatFactoryNumber(value, decimals);
+    input.value = formatted;
+    input.dataset.factoryAutoValue = formatted;
+}
+
+function markFactoryManualField(input) {
+    const value = String(input.value || '').trim();
+    if (value === '' || parseDecimalInput(value) <= 0) {
+        delete input.dataset.factoryAutoValue;
+        delete input.dataset.factoryManual;
+        return;
+    }
+
+    if (input.dataset.factoryAutoValue !== value) {
+        input.dataset.factoryManual = '1';
+        delete input.dataset.factoryAutoValue;
+    }
+}
+
+function estimateFactoryDimensions(type, capacityKg) {
+    const kgPerM2 = factoryCapacityKgPerM2[type] || factoryCapacityKgPerM2.autre;
+    const ratio = factoryDimensionRatio[type] || 1.5;
+    const surface = Math.max(1, capacityKg / kgPerM2);
+    const width = Math.sqrt(surface / ratio);
+
+    return {
+        length: surface / width,
+        width,
+        height: 3,
+    };
+}
+
+function syncFactoryUnitForm(form) {
+    const typeField = form.querySelector('[data-factory-unit-type]');
+    const capacityField = form.querySelector('[data-factory-unit-capacity]');
+    const lengthField = form.querySelector('[data-factory-unit-length]');
+    const widthField = form.querySelector('[data-factory-unit-width]');
+    const heightField = form.querySelector('[data-factory-unit-height]');
+    const type = typeField?.value || 'autre';
+    const capacityKg = parseDecimalInput(capacityField?.value);
+
+    setFactoryAutoField(heightField, 3);
+
+    if (capacityKg > 0) {
+        const dimensions = estimateFactoryDimensions(type, capacityKg);
+        setFactoryAutoField(lengthField, dimensions.length);
+        setFactoryAutoField(widthField, dimensions.width);
+        setFactoryAutoField(heightField, dimensions.height);
+    }
+
+    const defaults = factoryTemperatureDefaults[type] || factoryTemperatureDefaults.autre;
+    form.querySelectorAll('[data-factory-unit-temperature]').forEach((field) => {
+        const key = field.dataset.factoryUnitTemperature;
+        if (defaults[key] !== undefined) {
+            setFactoryAutoField(field, defaults[key]);
+        }
+    });
+}
+
+function initializeFactoryUnitForms(root = document) {
+    root.querySelectorAll('[data-factory-unit-form]').forEach((form) => {
+        if (form.dataset.factoryUnitInitialized === '1') return;
+        form.dataset.factoryUnitInitialized = '1';
+
+        form.querySelectorAll('[data-factory-unit-length], [data-factory-unit-width], [data-factory-unit-height], [data-factory-unit-temperature]').forEach((field) => {
+            if (parseDecimalInput(field.value) > 0) {
+                field.dataset.factoryManual = '1';
+            }
+            field.addEventListener('input', () => markFactoryManualField(field));
+        });
+
+        form.querySelector('[data-factory-unit-type]')?.addEventListener('change', () => syncFactoryUnitForm(form));
+        form.querySelector('[data-factory-unit-capacity]')?.addEventListener('input', () => syncFactoryUnitForm(form));
+        syncFactoryUnitForm(form);
+    });
+}
+
 function setFreezingCapacitySubmitState(form, canSubmit, message = '') {
     form.dataset.freezingCapacityAllowed = canSubmit ? '1' : '0';
     form.dataset.freezingCapacityMessage = message;
@@ -2048,6 +2168,7 @@ function initializePageBehaviors() {
     initializeMaintenanceSmartForms();
     initializeExpenseForms();
     initializeReceptionSmartChoices();
+    initializeFactoryUnitForms();
     initializeFreezingCapacityChecks();
     initializeInterimWorkerForms();
     initializeCoutRevientForms();
@@ -2530,6 +2651,7 @@ document.addEventListener('click', async (event) => {
             initializeMaintenanceSmartForms(content);
             initializeExpenseForms(content);
             initializeReceptionSmartChoices(content);
+            initializeFactoryUnitForms(content);
             initializeFreezingCapacityChecks(content);
             initializeInterimWorkerForms(content);
             initializeCoutRevientForms(content);

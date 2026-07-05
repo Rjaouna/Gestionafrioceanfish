@@ -13,6 +13,33 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 final readonly class FactoryUnitService
 {
+    private const TEMPERATURE_DEFAULTS = [
+        FactoryUnit::TYPE_TUNNEL => ['target' => -40.0, 'min' => -45.0, 'max' => -30.0],
+        FactoryUnit::TYPE_NEGATIVE_ROOM => ['target' => -20.0, 'min' => -25.0, 'max' => -18.0],
+        FactoryUnit::TYPE_POSITIVE_ROOM => ['target' => 2.0, 'min' => 0.0, 'max' => 4.0],
+        FactoryUnit::TYPE_PRODUCTION_ZONE => ['target' => 12.0, 'min' => 8.0, 'max' => 15.0],
+        FactoryUnit::TYPE_PACKAGING_ZONE => ['target' => 10.0, 'min' => 6.0, 'max' => 12.0],
+        FactoryUnit::TYPE_STORAGE_ZONE => ['target' => -18.0, 'min' => -22.0, 'max' => -15.0],
+        FactoryUnit::TYPE_OTHER => ['target' => 18.0, 'min' => 10.0, 'max' => 25.0],
+    ];
+
+    private const CAPACITY_KG_PER_M2 = [
+        FactoryUnit::TYPE_TUNNEL => 350.0,
+        FactoryUnit::TYPE_NEGATIVE_ROOM => 600.0,
+        FactoryUnit::TYPE_POSITIVE_ROOM => 550.0,
+        FactoryUnit::TYPE_STORAGE_ZONE => 500.0,
+        FactoryUnit::TYPE_PRODUCTION_ZONE => 250.0,
+        FactoryUnit::TYPE_PACKAGING_ZONE => 250.0,
+        FactoryUnit::TYPE_OTHER => 300.0,
+    ];
+
+    private const DIMENSION_RATIO = [
+        FactoryUnit::TYPE_TUNNEL => 2.4,
+        FactoryUnit::TYPE_PRODUCTION_ZONE => 1.8,
+        FactoryUnit::TYPE_PACKAGING_ZONE => 1.8,
+        FactoryUnit::TYPE_OTHER => 1.5,
+    ];
+
     public function __construct(
         private FactoryUnitRepository $repository,
         private CoutRevientChargeConfigRepository $chargeRepository,
@@ -604,6 +631,8 @@ final readonly class FactoryUnitService
             $unit->setCode($this->nextCode($unit->getType()));
         }
 
+        $this->applyFactoryDefaults($unit);
+
         $existing = $this->repository->findOneBy(['code' => $unit->getCode()]);
         if ($existing instanceof FactoryUnit && $existing->getId() !== $unit->getId()) {
             throw new \DomainException('Cette reference usine existe deja.');
@@ -612,6 +641,67 @@ final readonly class FactoryUnitService
         if ($unit->getStatus() !== FactoryUnit::STATUS_OPERATIONAL) {
             $unit->setIsSaturated(false);
         }
+    }
+
+    private function applyFactoryDefaults(FactoryUnit $unit): void
+    {
+        $this->applyDimensionDefaults($unit);
+        $this->applyTemperatureDefaults($unit);
+    }
+
+    private function applyDimensionDefaults(FactoryUnit $unit): void
+    {
+        if ((float) $unit->getHeightMeters() <= 0.001) {
+            $unit->setHeightMeters(3);
+        }
+
+        $capacity = (float) $unit->getCapacityKg();
+        if ($capacity <= 0.001) {
+            return;
+        }
+
+        $length = (float) $unit->getLengthMeters();
+        $width = (float) $unit->getWidthMeters();
+        if ($length > 0.001 && $width > 0.001) {
+            return;
+        }
+
+        $surface = max(1.0, $capacity / $this->capacityKgPerM2($unit));
+        if ($length <= 0.001 && $width <= 0.001) {
+            $ratio = self::DIMENSION_RATIO[$unit->getType()] ?? self::DIMENSION_RATIO[FactoryUnit::TYPE_OTHER];
+            $width = sqrt($surface / $ratio);
+            $length = $surface / $width;
+        } elseif ($length <= 0.001) {
+            $length = $surface / max(0.01, $width);
+        } elseif ($width <= 0.001) {
+            $width = $surface / max(0.01, $length);
+        }
+
+        $unit
+            ->setLengthMeters(round($length, 2))
+            ->setWidthMeters(round($width, 2));
+    }
+
+    private function applyTemperatureDefaults(FactoryUnit $unit): void
+    {
+        $defaults = self::TEMPERATURE_DEFAULTS[$unit->getType()] ?? self::TEMPERATURE_DEFAULTS[FactoryUnit::TYPE_OTHER];
+
+        if ($unit->getTargetTemperature() === null) {
+            $unit->setTargetTemperature($defaults['target']);
+        }
+
+        if ($unit->getMinTemperature() === null) {
+            $unit->setMinTemperature($defaults['min']);
+        }
+
+        if ($unit->getMaxTemperature() === null) {
+            $unit->setMaxTemperature($defaults['max']);
+        }
+    }
+
+    private function capacityKgPerM2(FactoryUnit $unit): float
+    {
+        return self::CAPACITY_KG_PER_M2[$unit->getType()] ?? self::CAPACITY_KG_PER_M2[FactoryUnit::TYPE_OTHER];
     }
 
     private function syncChargeConfig(FactoryUnit $unit, User $actor): void
