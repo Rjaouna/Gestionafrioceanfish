@@ -857,11 +857,11 @@ function syncFishReceptionCostForm(form, source = null) {
 
     const badge = form.querySelector('[data-fish-reception-operation-badge]');
     const note = form.querySelector('[data-fish-reception-operation-note]');
-    if (badge) badge.textContent = isPurchase ? 'Achat matiere premiere' : 'Transformation / stockage seulement';
+    if (badge) badge.textContent = isPurchase ? 'Achat matière première' : 'Transformation / stockage seulement';
     if (note) {
         note.textContent = isPurchase
-            ? 'Achat poisson + frais directs integres au cout de revient.'
-            : 'Aucun achat matiere : seuls les frais directs de reception sont retenus.';
+            ? 'Achat poisson + frais directs intégrés au coût de revient.'
+            : 'Aucun achat matière : seuls les frais directs de réception sont retenus.';
     }
 
     let purchaseAmount = fishReceptionValue(form, 'receptionMontantAchatTotal');
@@ -986,7 +986,7 @@ function renderExcelImportFeedback(widget, rows = [], hasErrors = false) {
 
     feedback.classList.remove('d-none');
     if (!rows.length) {
-        feedback.innerHTML = `<div class="alert alert-${hasErrors ? 'danger' : 'success'} small mb-0">Import termine.</div>`;
+        feedback.innerHTML = `<div class="alert alert-${hasErrors ? 'danger' : 'success'} small mb-0">Import terminé.</div>`;
         return;
     }
 
@@ -999,7 +999,7 @@ function renderExcelImportFeedback(widget, rows = [], hasErrors = false) {
                         <th>Ligne</th>
                         <th>Champ</th>
                         <th>Valeur</th>
-                        <th>Controle</th>
+                        <th>Contrôle</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1262,7 +1262,7 @@ function syncCoutReceptionInfo(form) {
     const option = selectedCoutReceptionOption(form);
     if (!option?.value) {
         info.className = 'alert alert-secondary small mb-0 mt-3';
-        info.textContent = 'Selectionnez une reception pour suivre automatiquement le stock matiere premiere.';
+        info.textContent = 'Sélectionnez une réception pour suivre automatiquement le stock matière première.';
         return;
     }
 
@@ -1274,7 +1274,7 @@ function syncCoutReceptionInfo(form) {
     const costKg = coutNumber(option.dataset.receptionCostKg);
     const currency = option.dataset.receptionCurrency || 'MAD';
     const operation = option.dataset.operationLabel || '';
-    const costText = costKg > 0 ? ` Cout reception ${coutFormat(costKg)} ${currency}/kg${operation ? ` (${operation})` : ''}.` : '';
+    const costText = costKg > 0 ? ` Coût réception ${coutFormat(costKg)} ${currency}/kg${operation ? ` (${operation})` : ''}.` : '';
 
     if (requested > available + 0.001) {
         info.className = 'alert alert-danger small mb-0 mt-3';
@@ -1284,7 +1284,7 @@ function syncCoutReceptionInfo(form) {
 
     if (requested > 0) {
         info.className = 'alert alert-success small mb-0 mt-3';
-        info.textContent = `${receptionNumber} : ${coutFormat(received)} kg recus, ${coutFormat(used)} kg deja utilises, ${coutFormat(available)} kg disponibles. Ce lot utilisera ${coutFormat(requested)} kg.${costText}`;
+        info.textContent = `${receptionNumber} : ${coutFormat(received)} kg recus, ${coutFormat(used)} kg déjà utilisés, ${coutFormat(available)} kg disponibles. Ce lot utilisera ${coutFormat(requested)} kg.${costText}`;
         return;
     }
 
@@ -1447,11 +1447,11 @@ function calculateCoutRevient(form) {
     const totalSortie = poidsFini + coutValue(form, 'poidsDechets') + coutValue(form, 'poidsPerte');
     const ecartPoidsProduction = totalSortie - poidsProduction;
     if (poidsProduction > 0 && Math.abs(totalSortie - poidsProduction) > 0.001) {
-        alerts.push('Attention : le total fini + dechets + pertes ne correspond pas au poids mis en production.');
+        alerts.push('Attention : le total fini + déchets + pertes ne correspond pas au poids mis en production.');
     }
     if (poidsFini <= 0) alerts.push('Impossible de calculer le cout/kg sans poids fini.');
     if (rendementPourcentage > 100) alerts.push('Rendement impossible.');
-    if (rendementPourcentage > 0 && rendementPourcentage < 35) alerts.push('Rendement faible, verifier pertes et dechets.');
+    if (rendementPourcentage > 0 && rendementPourcentage < 35) alerts.push('Rendement faible, vérifier pertes et déchets.');
     if (hasPrixVente && margeKg < 0) alerts.push('Production non rentable.');
     const productionDiagnostic = getProductionDiagnostic({
         poidsProduction,
@@ -1495,7 +1495,7 @@ function calculateCoutRevient(form) {
 function getProductionNorms(referencePoids) {
     return {
         fini: getProductionNormText(referencePoids, 35, 45),
-        dechets: getProductionNormText(referencePoids, 50, 60),
+        déchets: getProductionNormText(referencePoids, 50, 60),
         perte: getProductionNormText(referencePoids, 3, 8),
     };
 }
@@ -1523,7 +1523,7 @@ function getProductionDiagnostic({
     if (poidsProduction <= 0 || totalSortie <= 0) {
         return {
             className: 'alert-secondary',
-            message: 'Renseignez le poids mis en production, le poids fini, les dechets et les pertes pour analyser la production.',
+            message: 'Renseignez le poids mis en production, le poids fini, les déchets et les pertes pour analyser la production.',
         };
     }
 
@@ -1534,7 +1534,7 @@ function getProductionDiagnostic({
     if (Math.abs(ecartPoidsProduction) > 0.1) {
         return {
             className: 'alert-warning',
-            message: `A verifier : fini + dechets + pertes = ${coutFormat(totalSortie)} kg, soit un ecart de ${coutFormat(ecartPoidsProduction)} kg avec le poids mis en production.`,
+            message: `A verifier : fini + déchets + pertes = ${coutFormat(totalSortie)} kg, soit un ecart de ${coutFormat(ecartPoidsProduction)} kg avec le poids mis en production.`,
         };
     }
 
@@ -1548,20 +1548,20 @@ function getProductionDiagnostic({
     if (rendementPourcentage < 35 || perteRate > 12) {
         return {
             className: 'alert-danger',
-            message: `Production anormale : beaucoup de dechets/pertes (${coutFormat(rejetsRate)}%). Fini ${coutFormat(rendementPourcentage)}%, dechets ${coutFormat(dechetsRate)}%, pertes ${coutFormat(perteRate)}%.`,
+            message: `Production anormale : beaucoup de déchets/pertes (${coutFormat(rejetsRate)}%). Fini ${coutFormat(rendementPourcentage)}%, déchets ${coutFormat(dechetsRate)}%, pertes ${coutFormat(perteRate)}%.`,
         };
     }
 
     if ((rendementPourcentage >= 35 && rendementPourcentage <= 45) && perteRate <= 8) {
         return {
             className: 'alert-success',
-            message: `Production normale : rendement ${coutFormat(rendementPourcentage)}%, dechets/pertes ${coutFormat(rejetsRate)}%. La zone cible anchois filet est respectee.`,
+            message: `Production normale : rendement ${coutFormat(rendementPourcentage)}%, déchets/pertes ${coutFormat(rejetsRate)}%. La zone cible anchois filet est respectée.`,
         };
     }
 
     return {
         className: 'alert-warning',
-        message: `Production a surveiller : rendement ${coutFormat(rendementPourcentage)}%, dechets ${coutFormat(dechetsRate)}%, pertes ${coutFormat(perteRate)}%. Verifiez si le lot correspond bien a un filet anchois standard.`,
+        message: `Production à surveiller : rendement ${coutFormat(rendementPourcentage)}%, déchets ${coutFormat(dechetsRate)}%, pertes ${coutFormat(perteRate)}%. Vérifiez si le lot correspond bien à un filet anchois standard.`,
     };
 }
 
@@ -2028,7 +2028,7 @@ function renderFreezingCapacityFeedback(form, data) {
     if (!feedback) return;
 
     const tone = data.tone || 'secondary';
-    const title = data.title || 'Controle capacite espace usine';
+    const title = data.title || 'Contrôle capacité espace usine';
     const message = data.message || '';
     const statusLabel = data.canSubmit ? (tone === 'success' ? 'OK' : 'A surveiller') : 'Bloque';
     const details = [
@@ -2072,7 +2072,7 @@ async function checkFreezingCapacity(form) {
             canSubmit: false,
             tone: 'danger',
             title: !location ? 'Espace obligatoire' : 'Quantite obligatoire',
-            message: !location ? 'Selectionnez un espace usine pour verifier la capacite.' : 'Renseignez une quantite superieure a 0 kg.',
+            message: !location ? 'Sélectionnez un espace usine pour vérifier la capacité.' : 'Renseignez une quantité supérieure à 0 kg.',
             loadDisplay: '-',
             requestedDisplay: `${quantity.toLocaleString('fr-FR', {maximumFractionDigits: 3})} kg`,
             projectedLoadDisplay: '-',
@@ -2086,8 +2086,8 @@ async function checkFreezingCapacity(form) {
         return false;
     }
 
-    setFreezingCapacitySubmitState(form, false, 'Verification de la capacite espace usine en cours.');
-    feedback.innerHTML = '<div class="alert alert-info small mb-0"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Verification de la capacite espace usine...</div>';
+    setFreezingCapacitySubmitState(form, false, 'Vérification de la capacité espace usine en cours.');
+    feedback.innerHTML = '<div class="alert alert-info small mb-0"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Vérification de la capacité espace usine...</div>';
 
     const checkUrl = new URL(url, window.location.origin);
     checkUrl.searchParams.set('location', location);
@@ -2105,7 +2105,7 @@ async function checkFreezingCapacity(form) {
         const data = {
             canSubmit: false,
             tone: 'danger',
-            title: 'Verification impossible',
+            title: 'Vérification impossible',
             message: error.message,
             loadDisplay: '-',
             requestedDisplay: '-',
@@ -2481,7 +2481,7 @@ function initializePageBehaviors() {
         '#nouvelle-depense': '#createExpenseModal',
         '#nouvelle-categorie-depense': '#createExpenseCategoryModal',
         '#nouveau-rendez-vous': '#quickAppointmentModal',
-        '#nouvel-interimaire': '#createInterimWorkerModal',
+        '#nouvel-intérimaire': '#createInterimWorkerModal',
     };
     const targetSelector = modalByHash[window.location.hash];
     if (targetSelector) openNavigationModal(targetSelector);

@@ -87,7 +87,7 @@ final class CoutRevientChargeController extends AbstractController
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'cout-revient');
         $payload = $request->toArray();
         if (!$this->isCsrfTokenValid('toggle_cout_charge_'.$config->getId(), (string) ($payload['token'] ?? ''))) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
 
         $active = $this->chargeConfigService->toggle($config, $this->currentUser());

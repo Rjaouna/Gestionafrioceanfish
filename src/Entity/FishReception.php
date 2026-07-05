@@ -50,7 +50,7 @@ class FishReception
     public const OPERATION_SERVICE = 'prestation_service';
 
     public const OPERATION_LABELS = [
-        self::OPERATION_PURCHASE => 'Achat matiere premiere',
+        self::OPERATION_PURCHASE => 'Achat matière première',
         self::OPERATION_SERVICE => 'Transformation / stockage seulement',
     ];
 
@@ -58,11 +58,11 @@ class FishReception
         self::STATUS_DRAFT => 'Brouillon',
         self::STATUS_RECEIVED => 'Receptionnee',
         self::STATUS_PROCESSING => 'En traitement',
-        self::STATUS_FROZEN => 'Congelee',
+        self::STATUS_FROZEN => 'Congelée',
         self::STATUS_STORED => 'En stock',
-        self::STATUS_PACKAGED => 'Emballee',
-        self::STATUS_SHIPPED => 'Expediee',
-        self::STATUS_CLOSED => 'Cloturee',
+        self::STATUS_PACKAGED => 'Emballée',
+        self::STATUS_SHIPPED => 'Expédiée',
+        self::STATUS_CLOSED => 'Clôturée',
         self::STATUS_BLOCKED => 'Bloquee',
     ];
 

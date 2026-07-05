@@ -66,7 +66,7 @@ final class ConsumableStockController extends AbstractController
         return $this->render('inventory/consumable_stock/_item_form_modal.html.twig', [
             'form' => $this->buildItemForm(new ConsumableStockItem(), 'app_inventory_consumable_stock_create', [], true, false),
             'title' => 'Nouveau produit consommable',
-            'submit_label' => 'Creer',
+            'submit_label' => 'Créer',
         ]);
     }
 
@@ -87,7 +87,7 @@ final class ConsumableStockController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Produit de stock cree.', ['reload' => true], 201);
+        return $this->jsonResponder->success('Produit de stock créé.', ['reload' => true], 201);
     }
 
     #[Route('/{id}/consulter', name: 'app_inventory_consumable_stock_view', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -161,7 +161,7 @@ final class ConsumableStockController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Entree de stock enregistree.', ['reload' => true]);
+        return $this->jsonResponder->success('Entrée de stock enregistrée.', ['reload' => true]);
     }
 
     #[Route('/{id}/sortie/formulaire', name: 'app_inventory_consumable_stock_exit_form', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -257,7 +257,7 @@ final class ConsumableStockController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Article supprime avec son historique.', ['reload' => true]);
+        return $this->jsonResponder->success('Article supprimé avec son historique.', ['reload' => true]);
     }
 
     #[Route('/mouvements/{id}/suppression', name: 'app_inventory_consumable_stock_movement_delete_form', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -284,7 +284,7 @@ final class ConsumableStockController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Mouvement supprime. Le stock a ete recalcule.', ['reload' => true]);
+        return $this->jsonResponder->success('Mouvement supprimé. Le stock a été recalculé.', ['reload' => true]);
     }
 
     /** @param array<string, int|string|null> $parameters */
@@ -331,7 +331,7 @@ final class ConsumableStockController extends AbstractController
     private function assertCsrf(string $token, string $id): void
     {
         if (!$this->isCsrfTokenValid($id, $token)) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
     }
 

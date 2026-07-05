@@ -216,12 +216,12 @@ final readonly class InterimWorkerService
         }
 
         if (!isset(InterimWorker::STATUS_LABELS[$status])) {
-            throw new \DomainException('Statut interimaire invalide.');
+            throw new \DomainException('Statut intérimaire invalide.');
         }
 
         $reason = trim((string) $reason);
         if ($status === $worker->getStatus()) {
-            throw new \DomainException('Ce statut est deja applique.');
+            throw new \DomainException('Ce statut est déjà appliqué.');
         }
 
         if (in_array($status, [InterimWorker::STATUS_ENDED, InterimWorker::STATUS_DO_NOT_RECALL], true) && $reason === '') {

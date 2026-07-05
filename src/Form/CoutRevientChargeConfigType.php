@@ -23,7 +23,7 @@ final class CoutRevientChargeConfigType extends AbstractType
                 'attr' => ['maxlength' => 140, 'placeholder' => 'Ex. Tunnel de congelation'],
             ])
             ->add('category', ChoiceType::class, [
-                'label' => 'Categorie',
+                'label' => 'Catégorie',
                 'choices' => array_flip(CoutRevientChargeConfig::CATEGORY_LABELS),
             ])
             ->add('calculationUnit', ChoiceType::class, [

@@ -50,7 +50,7 @@
             <span class="app-card-detail-value text-nowrap">{{ worker.registrationNumber }}</span>
         </div>
         <div class="app-card-detail-line mb-2">
-            <span class="app-card-detail-label"><i class="bi bi-telephone"></i>Telephone</span>
+            <span class="app-card-detail-label"><i class="bi bi-telephone"></i>Téléphone</span>
             <span class="app-card-detail-value text-nowrap">{{ worker.phone }}</span>
         </div>
         <div class="app-card-detail-line mb-2">
@@ -94,7 +94,7 @@
                     </a>
                 {% endif %}
                 {% if is_granted('INTERIM_WORKER_DELETE', worker) %}
-                    <button class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_interim_worker_delete', {id: worker.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_interim_worker_' ~ worker.id) }}" data-confirm-message="Supprimer cet interimaire ?">
+                    <button class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_interim_worker_delete', {id: worker.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_interim_worker_' ~ worker.id) }}" data-confirm-message="Supprimer cet intérimaire ?">
                         <i class="bi bi-trash"></i>
                     </button>
                 {% endif %}

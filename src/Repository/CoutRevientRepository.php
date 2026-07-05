@@ -56,7 +56,7 @@ class CoutRevientRepository extends ServiceEntityRepository
     public function distinctValues(string $field): array
     {
         if (!in_array($field, ['produit', 'client', 'responsableProduction', 'especePoisson'], true)) {
-            throw new \InvalidArgumentException('Champ de filtre cout de revient invalide.');
+            throw new \InvalidArgumentException('Champ de filtre coût de revient invalide.');
         }
 
         $rows = $this->createQueryBuilder('c')
@@ -116,7 +116,7 @@ class CoutRevientRepository extends ServiceEntityRepository
         $items = $this->findForExport($filters);
 
         return [
-            ['label' => 'Matiere premiere', 'value' => $this->sum($items, 'coutMatierePremiere')],
+            ['label' => 'Matière première', 'value' => $this->sum($items, 'coutMatierePremiere')],
             ['label' => 'Main d oeuvre', 'value' => $this->sum($items, 'coutMainOeuvre')],
             ['label' => 'Emballage', 'value' => $this->sum($items, 'coutEmballageTotal')],
             ['label' => 'Charges diverses', 'value' => $this->sum($items, 'coutChargesTotal')],

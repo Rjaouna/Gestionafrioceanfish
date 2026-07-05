@@ -76,7 +76,7 @@ final readonly class CoutRevientService
                 'date' => 'Date',
                 'marge' => 'Marge',
                 'rendement' => 'Rendement',
-                'coutKg' => 'Cout / kg',
+                'coutKg' => 'Coût / kg',
                 'lot' => 'Lot',
             ],
         ];

@@ -19,7 +19,7 @@ final class FishReceptionPackagingType extends AbstractType
         $reception = $builder->getData();
         $smartFields = [
             'produitConditionne' => [
-                'label' => 'Produit conditionne',
+                'label' => 'Produit conditionné',
                 'values' => $options['choice_lists']['produitConditionne'] ?? [],
                 'required' => true,
                 'maxlength' => 150,
@@ -27,13 +27,13 @@ final class FishReceptionPackagingType extends AbstractType
         ];
 
         $builder
-            ->add('quantity', NumberType::class, $this->quantityOptions('Quantite a conditionner / emballer (kg)', (float) $options['available_quantity']))
+            ->add('quantity', NumberType::class, $this->quantityOptions('Quantité à conditionner / emballer (kg)', (float) $options['available_quantity']))
             ->add('dateConditionnement', DateType::class, $this->dateOptions('Date conditionnement', false))
-            ->add('heureDebutConditionnement', TimeType::class, $this->timeOptions('Heure debut conditionnement'))
+            ->add('heureDebutConditionnement', TimeType::class, $this->timeOptions('Heure début conditionnement'))
             ->add('heureFinConditionnement', TimeType::class, $this->timeOptions('Heure fin conditionnement'))
             ->add('poidsNet', NumberType::class, $this->numberOptions('Poids net (kg)', 3, '0.001', false));
 
-        $this->addReceptionSmartChoice($builder, 'produitConditionne', 'Produit conditionne', $smartFields['produitConditionne']['values'], true, 150, $reception instanceof FishReception ? $reception->getProduitConditionne() : null);
+        $this->addReceptionSmartChoice($builder, 'produitConditionne', 'Produit conditionné', $smartFields['produitConditionne']['values'], true, 150, $reception instanceof FishReception ? $reception->getProduitConditionne() : null);
         $this->addReceptionSmartChoiceSubmitListener($builder, $smartFields);
     }
 

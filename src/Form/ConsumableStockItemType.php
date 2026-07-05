@@ -42,9 +42,9 @@ final class ConsumableStockItemType extends AbstractType
                 'attr' => ['min' => 0, 'step' => '0.01'],
             ])
             ->add('supplierPhone', TextType::class, [
-                'label' => 'Numero fournisseur',
+                'label' => 'Numéro fournisseur',
                 'required' => false,
-                'attr' => ['placeholder' => 'Telephone ou numero fournisseur'],
+                'attr' => ['placeholder' => 'Téléphone ou numéro fournisseur'],
             ])
             ->add('notes', TextareaType::class, [
                 'label' => 'Notes',
@@ -57,13 +57,13 @@ final class ConsumableStockItemType extends AbstractType
             ]);
 
         $configs = [
-            'category' => ['label' => 'Categorie', 'values' => $choiceLists['categories'] ?? [], 'required' => false, 'maxlength' => 120],
+            'category' => ['label' => 'Catégorie', 'values' => $choiceLists['categories'] ?? [], 'required' => false, 'maxlength' => 120],
             'unit' => ['label' => 'Unite', 'values' => $choiceLists['units'] ?? [], 'required' => true, 'maxlength' => 40],
             'storageLocation' => ['label' => 'Emplacement', 'values' => $choiceLists['storageLocations'] ?? [], 'required' => false, 'maxlength' => 180],
             'preferredSupplier' => ['label' => 'Nom fournisseur', 'values' => $choiceLists['preferredSuppliers'] ?? [], 'required' => false, 'maxlength' => 180],
         ];
 
-        $this->addSmartChoice($builder, 'category', 'Categorie', $configs['category']['values'], false, 120, $isExisting ? $item->getCategory() : null);
+        $this->addSmartChoice($builder, 'category', 'Catégorie', $configs['category']['values'], false, 120, $isExisting ? $item->getCategory() : null);
         $this->addSmartChoice($builder, 'unit', 'Unite', $configs['unit']['values'], true, 40, $isExisting ? $item->getUnit() : null, $isExisting ? [] : ['data' => null]);
         $this->addSmartChoice($builder, 'storageLocation', 'Emplacement', $configs['storageLocation']['values'], false, 180, $isExisting ? $item->getStorageLocation() : null);
         $this->addSmartChoice($builder, 'preferredSupplier', 'Nom fournisseur', $configs['preferredSupplier']['values'], false, 180, $isExisting ? $item->getPreferredSupplier() : null);

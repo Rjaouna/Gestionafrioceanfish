@@ -17,9 +17,9 @@ final readonly class FishReceptionService
         'reception' => 'Reception',
         'traitement' => 'Traitement / Production',
         'emballage' => 'Conditionnement / Emballage',
-        'congelation' => 'Congelation',
+        'congelation' => 'Congélation',
         'stockage' => 'Stockage',
-        'expedition' => 'Expedition',
+        'expedition' => 'Expédition',
     ];
 
     public function __construct(
@@ -85,7 +85,7 @@ final readonly class FishReceptionService
                 'lot' => 'Lot',
                 'fournisseur' => 'Fournisseur',
                 'available' => 'Disponible',
-                'received' => 'Quantite recue',
+                'received' => 'Quantité reçue',
             ],
         ];
     }
@@ -256,7 +256,7 @@ final readonly class FishReceptionService
         $this->assertReceptionReady($reception);
         $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleEmballageValue(), "l'emballage");
         if (!$reception->getTunnel()) {
-            throw new \DomainException('Selectionnez le tunnel avant de valider la congelation.');
+            throw new \DomainException('Sélectionnez le tunnel avant de valider la congélation.');
         }
         $this->factoryUnitService->assertTunnelCanReceive($actor, $reception->getTunnel(), $quantity);
         $now = new \DateTimeImmutable();
@@ -281,7 +281,7 @@ final readonly class FishReceptionService
         $this->assertReceptionReady($reception);
         $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleCongelationValue(), 'la congelation');
         if (!$reception->getChambreFroide()) {
-            throw new \DomainException('Selectionnez la chambre froide ou la zone de stockage.');
+            throw new \DomainException('Sélectionnez la chambre froide ou la zone de stockage.');
         }
         $this->factoryUnitService->assertStorageCanReceive($actor, $reception->getChambreFroide(), $quantity);
         $now = new \DateTimeImmutable();
@@ -312,7 +312,7 @@ final readonly class FishReceptionService
         $this->assertReceptionReady($reception);
         $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleStockageValue(), 'le stockage');
         if (!$reception->getDestinationFinaleClient()) {
-            throw new \DomainException('Indiquez la destination ou le client avant de valider l\'expedition.');
+            throw new \DomainException('Indiquez la destination ou le client avant de valider l\'expédition.');
         }
         $now = new \DateTimeImmutable();
         if ($reception->getExpeditionDateDepart() === null) {
@@ -322,16 +322,16 @@ final readonly class FishReceptionService
             $reception->setExpeditionHeureDepart($now);
         }
         if (!$reception->getExpeditionMatriculeVehicule()) {
-            throw new \DomainException('Indiquez le matricule du camion avant de valider l\'expedition.');
+            throw new \DomainException('Indiquez le matricule du camion avant de valider l\'expédition.');
         }
         if (!$reception->getExpeditionChauffeur()) {
-            throw new \DomainException('Indiquez le nom du chauffeur avant de valider l\'expedition.');
+            throw new \DomainException('Indiquez le nom du chauffeur avant de valider l\'expédition.');
         }
         if (!$reception->getExpeditionResponsableChargement()) {
-            throw new \DomainException('Indiquez le responsable du chargement avant de valider l\'expedition.');
+            throw new \DomainException('Indiquez le responsable du chargement avant de valider l\'expédition.');
         }
         if ($reception->getDateEntreeStockage() instanceof \DateTimeImmutable && $reception->getExpeditionDateDepart()->format('Y-m-d') < $reception->getDateEntreeStockage()->format('Y-m-d')) {
-            throw new \DomainException('La date d\'expedition ne peut pas etre avant la date d\'entree en stockage.');
+            throw new \DomainException('La date d\'expédition ne peut pas etre avant la date d\'entree en stockage.');
         }
 
         $reception
@@ -393,7 +393,7 @@ final readonly class FishReceptionService
         }
 
         if ($reception->getQuantiteTotalePrepareeValue() > 0.001 || $reception->getQuantiteUtiliseeProductionValue() > 0.001 || $reception->getCoutRevients()->count() > 0) {
-            throw new \DomainException('Impossible de supprimer une reception deja utilisee dans le workflow ou rattachee a un lot.');
+            throw new \DomainException('Impossible de supprimer une réception déjà utilisée dans le workflow ou rattachée à un lot.');
         }
 
         if (!$this->permission->isSuperAdmin($actor)) {
@@ -524,27 +524,27 @@ final readonly class FishReceptionService
     private function assertQuantitiesCoherent(FishReception $reception): void
     {
         if ($reception->getQuantiteUtiliseeProductionValue() - $reception->getQuantiteReceptionneeValue() > 0.001) {
-            throw new \DomainException('La quantite deja utilisee depasse la quantite receptionnee.');
+            throw new \DomainException('La quantité déjà utilisée dépasse la quantité réceptionnée.');
         }
 
         if ($reception->getQuantiteTotalePrepareeValue() - $reception->getQuantiteReceptionneeValue() > 0.001) {
-            throw new \DomainException('La quantite preparee ne peut pas depasser la quantite receptionnee.');
+            throw new \DomainException('La quantité préparée ne peut pas dépasser la quantité réceptionnée.');
         }
 
         if ($reception->getQuantiteConditionneeValue() - $reception->getQuantiteTotalePrepareeValue() > 0.001) {
-            throw new \DomainException('La quantite emballee ne peut pas depasser la quantite preparee.');
+            throw new \DomainException('La quantité emballée ne peut pas dépasser la quantité préparée.');
         }
 
         if ($reception->getQuantiteCongeleeValue() - $reception->getQuantiteConditionneeValue() > 0.001) {
-            throw new \DomainException('La quantite congelee ne peut pas depasser la quantite emballee.');
+            throw new \DomainException('La quantité congelée ne peut pas dépasser la quantité emballée.');
         }
 
         if ($reception->getQuantiteStockeeValue() - $reception->getQuantiteCongeleeValue() > 0.001) {
-            throw new \DomainException('La quantite stockee ne peut pas depasser la quantite congelee.');
+            throw new \DomainException('La quantité stockée ne peut pas dépasser la quantité congelée.');
         }
 
         if ($reception->getQuantiteTotaleExpedieeValue() - $reception->getQuantiteStockeeValue() > 0.001) {
-            throw new \DomainException('La quantite expediee ne peut pas depasser la quantite stockee.');
+            throw new \DomainException('La quantité expédiée ne peut pas dépasser la quantité stockée.');
         }
     }
 
@@ -597,15 +597,15 @@ final readonly class FishReceptionService
         }
 
         if ($reception->getStatut() === FishReception::STATUS_BLOCKED) {
-            throw new \DomainException('Reception bloquee.');
+            throw new \DomainException('Réception bloquée.');
         }
 
         if ($reception->isLocked()) {
-            throw new \DomainException('Reception verrouillee.');
+            throw new \DomainException('Reception verrouillée.');
         }
 
         if ($reception->getQuantiteReceptionneeValue() <= 0) {
-            throw new \DomainException('Renseignez la quantite receptionnee avant de continuer.');
+            throw new \DomainException('Renseignez la quantité réceptionnée avant de continuer.');
         }
 
         if (!$reception->getFournisseur() || !$reception->getEspecePoisson()) {
@@ -620,7 +620,7 @@ final readonly class FishReceptionService
         }
 
         if ($reception->isLocked() || $reception->getStatut() === FishReception::STATUS_DRAFT) {
-            throw new \DomainException(sprintf('La reception %s est verrouillee ou non validee.', $reception->getNumeroReception()));
+            throw new \DomainException(sprintf('La reception %s est verrouillée ou non validée.', $reception->getNumeroReception()));
         }
 
         if ($quantity - $available > 0.001) {
@@ -636,7 +636,7 @@ final readonly class FishReceptionService
     private function assertStageQuantity(FishReception $reception, float $quantity, float $available, string $sourceLabel): void
     {
         if ($quantity <= 0.001) {
-            throw new \DomainException('Renseignez une quantite superieure a 0 kg.');
+            throw new \DomainException('Renseignez une quantité supérieure à 0 kg.');
         }
 
         if ($quantity - $available > 0.001) {

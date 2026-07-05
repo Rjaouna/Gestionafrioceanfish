@@ -45,19 +45,19 @@
     {label: 'Reception', icon: 'bi-clipboard2-check', done: item.receivedAt or item.statut != 'brouillon', detail: item.receivedAt ? item.receivedAt|date('d/m H:i') : item.statutLabel},
     {label: 'Traitement', icon: 'bi-arrow-repeat', done: item.quantiteTotalePrepareeValue > 0.001, detail: ui.kg(item.quantiteTotalePreparee)},
     {label: 'Emballage', icon: 'bi-box', done: item.quantiteConditionneeValue > 0.001, detail: ui.kg(item.quantiteConditionnee)},
-    {label: 'Congelation', icon: 'bi-snow', done: item.quantiteCongeleeValue > 0.001, detail: ui.kg(item.quantiteCongelee)},
+    {label: 'Congélation', icon: 'bi-snow', done: item.quantiteCongeleeValue > 0.001, detail: ui.kg(item.quantiteCongelee)},
     {label: 'Stockage', icon: 'bi-box-seam', done: item.quantiteStockeeValue > 0.001, detail: ui.kg(item.quantiteStockee)},
-    {label: 'Expedition', icon: 'bi-truck', done: item.quantiteTotaleExpedieeValue > 0.001 or item.expeditedAt, detail: ui.kg(item.quantiteTotaleExpediee)}
+    {label: 'Expédition', icon: 'bi-truck', done: item.quantiteTotaleExpedieeValue > 0.001 or item.expeditedAt, detail: ui.kg(item.quantiteTotaleExpediee)}
 ] %}
 
 <div class="reception-show">
     <section class="reception-show-hero">
         <div class="reception-show-hero-main">
             <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                <span class="badge text-bg-light border">Fiche reception</span>
+                <span class="badge text-bg-light border">Fiche réception</span>
                 <span class="badge {{ item.statutBadgeClass }}">{{ item.statutLabel }}</span>
                 {% if item.locked %}
-                    <span class="badge text-bg-dark"><i class="bi bi-lock me-1"></i>Verrouillee</span>
+                    <span class="badge text-bg-dark"><i class="bi bi-lock me-1"></i>Verrouillée</span>
                 {% endif %}
             </div>
             <h1>Reception {{ item.numeroReception }}</h1>
@@ -68,13 +68,13 @@
             </div>
             <div class="reception-show-chips">
                 <span><i class="bi bi-calendar3"></i>{{ ui.date(item.dateReception) }}</span>
-                <span><i class="bi bi-geo-alt"></i>{{ item.provenance ?: 'Provenance non renseignee' }}</span>
-                <span><i class="bi bi-truck-front"></i>{{ item.matriculeVehicule ?: 'Camion non renseigne' }}</span>
+                <span><i class="bi bi-geo-alt"></i>{{ item.provenance ?: 'Provenance non renseignée' }}</span>
+                <span><i class="bi bi-truck-front"></i>{{ item.matriculeVehicule ?: 'Camion non renseigné' }}</span>
             </div>
         </div>
         <div class="reception-show-actions">
             <a class="btn btn-light" href="{{ path('app_fish_reception_index') }}">
-                <i class="bi bi-arrow-left me-2"></i>Liste receptions
+                <i class="bi bi-arrow-left me-2"></i>Liste réceptions
             </a>
             {% include 'fish_reception/_actions.html.twig' with {item: item, size: ''} %}
         </div>
@@ -85,18 +85,18 @@
             <i class="bi bi-slash-circle fs-4"></i>
             <div>
                 <strong>Reception bloquee</strong>
-                <div>{{ item.blockReason ?: 'Reception bloquee.' }}</div>
+                <div>{{ item.blockReason ?: 'Réception bloquée.' }}</div>
             </div>
         </div>
     {% endif %}
 
     <section class="reception-metric-grid">
-        {{ ui.metric('Quantite recue', ui.kg(item.quantiteReceptionnee), 'bi-basket2', 'primary', item.nombreCaissesReception ~ ' caisses') }}
-        {{ ui.metric('Preparee', ui.kg(item.quantiteTotalePreparee), 'bi-arrow-repeat', 'info', treatmentRate|number_format(1, ',', ' ') ~ ' % traitement') }}
-        {{ ui.metric('Emballee', ui.kg(item.quantiteConditionnee), 'bi-box', 'warning', packagedRate|number_format(1, ',', ' ') ~ ' % emballage') }}
-        {{ ui.metric('Stockee', ui.kg(item.quantiteStockee), 'bi-box-seam', 'success', storedRate|number_format(1, ',', ' ') ~ ' % stockage') }}
-        {{ ui.metric('Expediee', ui.kg(item.quantiteTotaleExpediee), 'bi-truck', 'dark', shippedRate|number_format(1, ',', ' ') ~ ' % expedition') }}
-        {{ ui.metric('Cout reception/kg', item.coutKgReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'bi-cash-coin', 'primary', item.operationTypeLabel) }}
+        {{ ui.metric('Quantité reçue', ui.kg(item.quantiteReceptionnee), 'bi-basket2', 'primary', item.nombreCaissesReception ~ ' caisses') }}
+        {{ ui.metric('Préparée', ui.kg(item.quantiteTotalePreparee), 'bi-arrow-repeat', 'info', treatmentRate|number_format(1, ',', ' ') ~ ' % traitement') }}
+        {{ ui.metric('Emballée', ui.kg(item.quantiteConditionnee), 'bi-box', 'warning', packagedRate|number_format(1, ',', ' ') ~ ' % emballage') }}
+        {{ ui.metric('Stockée', ui.kg(item.quantiteStockee), 'bi-box-seam', 'success', storedRate|number_format(1, ',', ' ') ~ ' % stockage') }}
+        {{ ui.metric('Expédiée', ui.kg(item.quantiteTotaleExpediee), 'bi-truck', 'dark', shippedRate|number_format(1, ',', ' ') ~ ' % expedition') }}
+        {{ ui.metric('Coût réception/kg', item.coutKgReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'bi-cash-coin', 'primary', item.operationTypeLabel) }}
     </section>
 
     <section class="reception-workflow">
@@ -117,8 +117,8 @@
                 <div class="reception-panel-heading">
                     <span><i class="bi bi-clipboard2-pulse"></i></span>
                     <div>
-                        <h2>Reception matiere premiere</h2>
-                        <p>Controle fournisseur, transport, quantite BL et qualite a l'arrivee.</p>
+                        <h2>Réception matière première</h2>
+                        <p>Contrôle fournisseur, transport, quantité BL et qualité à l'arrivée.</p>
                     </div>
                 </div>
                 <div class="reception-info-grid">
@@ -127,17 +127,17 @@
                     {{ ui.row('Chauffeur', ui.text(item.chauffeur)) }}
                     {{ ui.row('Matricule camion', ui.text(item.matriculeVehicule)) }}
                     {{ ui.row('BL fournisseur', ui.text(item.numeroBonLivraison)) }}
-                    {{ ui.row('Quantite BL', ui.kg(item.quantiteIndiqueeBl)) }}
-                    {{ ui.row('Quantite receptionnee', ui.kg(item.quantiteReceptionnee), 'text-primary') }}
-                    {{ ui.row('Ecart BL / reception', ui.kg(item.ecartBlReceptionValue), item.ecartBlReceptionValue < 0 ? 'text-danger' : 'text-success') }}
-                    {{ ui.row('Espece poisson', ui.text(item.especePoisson)) }}
+                    {{ ui.row('Quantité BL', ui.kg(item.quantiteIndiqueeBl)) }}
+                    {{ ui.row('Quantité réceptionnée', ui.kg(item.quantiteReceptionnee), 'text-primary') }}
+                    {{ ui.row('Écart BL / réception', ui.kg(item.ecartBlReceptionValue), item.ecartBlReceptionValue < 0 ? 'text-danger' : 'text-success') }}
+                    {{ ui.row('Espèce poisson', ui.text(item.especePoisson)) }}
                     {{ ui.row('Nom scientifique', ui.text(item.nomScientifique)) }}
-                    {{ ui.row('Presentation', ui.text(item.presentationProduit)) }}
-                    {{ ui.row('Etat produit', ui.text(item.etatProduit)) }}
-                    {{ ui.row('Categorie fraicheur', ui.text(item.categorieFraicheur)) }}
-                    {{ ui.row('Presence glace', item.presenceGlace ? 'Oui' : 'Non') }}
-                    {{ ui.row('Temperature poisson', ui.temp(item.temperaturePoissonReception)) }}
-                    {{ ui.row('Heure reception', ui.time(item.heureDebutReception) ~ ' - ' ~ ui.time(item.heureFinReception)) }}
+                    {{ ui.row('Présentation', ui.text(item.presentationProduit)) }}
+                    {{ ui.row('État produit', ui.text(item.etatProduit)) }}
+                    {{ ui.row('Catégorie fraîcheur', ui.text(item.categorieFraicheur)) }}
+                    {{ ui.row('Présence glace', item.presenceGlace ? 'Oui' : 'Non') }}
+                    {{ ui.row('Température poisson', ui.temp(item.temperaturePoissonReception)) }}
+                    {{ ui.row('Heure réception', ui.time(item.heureDebutReception) ~ ' - ' ~ ui.time(item.heureFinReception)) }}
                 </div>
             </section>
 
@@ -145,23 +145,23 @@
                 <div class="reception-panel-heading">
                     <span><i class="bi bi-cash-coin"></i></span>
                     <div>
-                        <h2>Couts d'entree reception</h2>
-                        <p>Achat matiere et frais directs rattaches a la reception.</p>
+                        <h2>Coûts d'entrée reception</h2>
+                        <p>Achat matière et frais directs rattaches a la reception.</p>
                     </div>
                 </div>
                 <div class="reception-info-grid">
-                    {{ ui.row('Type operation', item.operationTypeLabel) }}
+                    {{ ui.row('Type opération', item.operationTypeLabel) }}
                     {{ ui.row('Prix achat / kg', item.receptionPrixAchatKg|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
                     {{ ui.row('Montant achat total', item.coutAchatReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'text-primary') }}
                     {{ ui.row('Frais transport', item.receptionFraisTransport|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
-                    {{ ui.row('Dechargement / manutention', item.receptionFraisDechargement|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
+                    {{ ui.row('Déchargement / manutention', item.receptionFraisDechargement|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
                     {{ ui.row('Glace / consommables', item.receptionFraisGlaceConsommables|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
-                    {{ ui.row('Controle qualite', item.receptionFraisControleQualite|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
+                    {{ ui.row('Contrôle qualité', item.receptionFraisControleQualite|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
                     {{ ui.row('Autres frais', item.receptionAutresFrais|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
-                    {{ ui.row('Total frais reception', item.coutFraisReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
-                    {{ ui.row('Cout total reception', item.coutTotalReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'text-primary') }}
-                    {{ ui.row('Cout reception / kg', item.coutKgReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'text-success') }}
-                    {{ ui.row('Reference facture', ui.text(item.receptionReferenceFacture)) }}
+                    {{ ui.row('Total frais réception', item.coutFraisReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
+                    {{ ui.row('Coût total réception', item.coutTotalReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'text-primary') }}
+                    {{ ui.row('Coût réception / kg', item.coutKgReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'text-success') }}
+                    {{ ui.row('Référence facture', ui.text(item.receptionReferenceFacture)) }}
                 </div>
             </section>
 
@@ -170,7 +170,7 @@
                     <span><i class="bi bi-arrow-repeat"></i></span>
                     <div>
                         <h2>Traitement / Production</h2>
-                        <p>Suivi des quantites preparees avant conditionnement.</p>
+                        <p>Suivi des quantités préparées avant conditionnement.</p>
                     </div>
                 </div>
                 <div class="reception-progress-list">
@@ -181,16 +181,16 @@
                 </div>
                 <div class="reception-info-grid mt-3">
                     {{ ui.row('Date traitement', item.dateDebutTraitement ? item.dateDebutTraitement|date('d/m/Y') : '-') }}
-                    {{ ui.row('Heure debut', ui.time(item.heureDebutTraitement)) }}
-                    {{ ui.row('Temperature eau glacee', ui.temp(item.temperatureEauGlacee)) }}
-                    {{ ui.row('Caisses apres traitement', item.nombreCaissesApresTraitement) }}
+                    {{ ui.row('Heure début', ui.time(item.heureDebutTraitement)) }}
+                    {{ ui.row('Température eau glacée', ui.temp(item.temperatureEauGlacee)) }}
+                    {{ ui.row('Caisses après traitement', item.nombreCaissesApresTraitement) }}
                     {{ ui.row('Poids moyen caisse', ui.kg(item.poidsMoyenParCaisse)) }}
                     {{ ui.row('Moules', item.nombreMoules) }}
                     {{ ui.row('Caisses / palette', item.nombreCaissesParPalette) }}
                     {{ ui.row('Palettes', item.nombreTotalPalettes) }}
-                    {{ ui.row('Quantite preparee', ui.kg(item.quantiteTotalePreparee), 'text-primary') }}
-                    {{ ui.row('Reste reception', ui.kg(item.quantiteDisponibleReceptionValue), 'text-warning') }}
-                    {{ ui.row('Reste a emballer', ui.kg(item.quantiteDisponibleTraitementValue), 'text-warning') }}
+                    {{ ui.row('Quantité préparée', ui.kg(item.quantiteTotalePreparee), 'text-primary') }}
+                    {{ ui.row('Reste réception', ui.kg(item.quantiteDisponibleReceptionValue), 'text-warning') }}
+                    {{ ui.row('Reste à emballer', ui.kg(item.quantiteDisponibleTraitementValue), 'text-warning') }}
                 </div>
             </section>
 
@@ -198,23 +198,23 @@
                 <div class="reception-panel-heading">
                     <span><i class="bi bi-box"></i></span>
                     <div>
-                        <h2>Conditionnement et congelation</h2>
-                        <p>Emballage, tunnel, temperature et sortie tunnel.</p>
+                        <h2>Conditionnement et congélation</h2>
+                        <p>Emballage, tunnel, température et sortie tunnel.</p>
                     </div>
                 </div>
                 <div class="reception-info-grid">
                     {{ ui.row('Date conditionnement', ui.date(item.dateConditionnement)) }}
                     {{ ui.row('Heure conditionnement', ui.time(item.heureDebutConditionnement) ~ ' - ' ~ ui.time(item.heureFinConditionnement)) }}
-                    {{ ui.row('Produit conditionne', ui.text(item.produitConditionne)) }}
-                    {{ ui.row('Quantite emballee', ui.kg(item.quantiteConditionnee), 'text-primary') }}
+                    {{ ui.row('Produit conditionné', ui.text(item.produitConditionne)) }}
+                    {{ ui.row('Quantité emballée', ui.kg(item.quantiteConditionnee), 'text-primary') }}
                     {{ ui.row('Poids net', ui.kg(item.poidsNet)) }}
-                    {{ ui.row('Reste a congeler', ui.kg(item.quantiteDisponibleEmballageValue), 'text-warning') }}
+                    {{ ui.row('Reste à congeler', ui.kg(item.quantiteDisponibleEmballageValue), 'text-warning') }}
                     {{ ui.row('Tunnel', ui.text(item.tunnel)) }}
-                    {{ ui.row('Heure entree tunnel', ui.time(item.heureEntreeTunnel)) }}
-                    {{ ui.row('Temperature tunnel', ui.temp(item.temperatureTunnel)) }}
+                    {{ ui.row('Heure entrée tunnel', ui.time(item.heureEntreeTunnel)) }}
+                    {{ ui.row('Température tunnel', ui.temp(item.temperatureTunnel)) }}
                     {{ ui.row('Date sortie tunnel', ui.date(item.dateSortieTunnel)) }}
-                    {{ ui.row('Temperature coeur produit', ui.temp(item.temperatureCoeurProduit)) }}
-                    {{ ui.row('Quantite congelee', ui.kg(item.quantiteCongelee), 'text-primary') }}
+                    {{ ui.row('Température cœur produit', ui.temp(item.temperatureCoeurProduit)) }}
+                    {{ ui.row('Quantité congelée', ui.kg(item.quantiteCongelee), 'text-primary') }}
                 </div>
             </section>
 
@@ -222,31 +222,31 @@
                 <div class="reception-panel-heading">
                     <span><i class="bi bi-box-seam"></i></span>
                     <div>
-                        <h2>Stockage et expedition</h2>
+                        <h2>Stockage et expédition</h2>
                         <p>Chambre froide, stock restant, camion et responsable de chargement.</p>
                     </div>
                 </div>
                 <div class="reception-info-grid">
                     {{ ui.row('Chambre froide', ui.text(item.chambreFroide)) }}
-                    {{ ui.row('Date entree stockage', ui.date(item.dateEntreeStockage)) }}
-                    {{ ui.row('Heure entree stockage', ui.time(item.heureEntreeStockage)) }}
-                    {{ ui.row('Temperature chambre', ui.temp(item.temperatureChambre)) }}
-                    {{ ui.row('Temperature produit stocke', ui.temp(item.temperatureStockage)) }}
-                    {{ ui.row('Quantite stockee', ui.kg(item.quantiteStockee), 'text-success') }}
-                    {{ ui.row('Reste a expedier', ui.kg(item.quantiteDisponibleStockageValue), 'text-warning') }}
+                    {{ ui.row('Date entrée stockage', ui.date(item.dateEntreeStockage)) }}
+                    {{ ui.row('Heure entrée stockage', ui.time(item.heureEntreeStockage)) }}
+                    {{ ui.row('Température chambre', ui.temp(item.temperatureChambre)) }}
+                    {{ ui.row('Température produit stocké', ui.temp(item.temperatureStockage)) }}
+                    {{ ui.row('Quantité stockée', ui.kg(item.quantiteStockee), 'text-success') }}
+                    {{ ui.row('Reste à expédier', ui.kg(item.quantiteDisponibleStockageValue), 'text-warning') }}
                     {{ ui.row('Destination', ui.text(item.destinationFinaleClient)) }}
-                    {{ ui.row('Date depart', ui.date(item.expeditionDateDepart)) }}
-                    {{ ui.row('Heure depart', ui.time(item.expeditionHeureDepart)) }}
-                    {{ ui.row('Camion expedition', ui.text(item.expeditionMatriculeVehicule)) }}
-                    {{ ui.row('Chauffeur expedition', ui.text(item.expeditionChauffeur)) }}
+                    {{ ui.row('Date départ', ui.date(item.expeditionDateDepart)) }}
+                    {{ ui.row('Heure départ', ui.time(item.expeditionHeureDepart)) }}
+                    {{ ui.row('Camion expédition', ui.text(item.expeditionMatriculeVehicule)) }}
+                    {{ ui.row('Chauffeur expédition', ui.text(item.expeditionChauffeur)) }}
                     {{ ui.row('Responsable chargement', ui.text(item.expeditionResponsableChargement)) }}
-                    {{ ui.row('Temperature chargement', ui.temp(item.expeditionTemperatureProduit)) }}
-                    {{ ui.row('Plomb / scelle', ui.text(item.expeditionNumeroPlomb)) }}
-                    {{ ui.row('Quantite expediee', ui.kg(item.quantiteTotaleExpediee), 'text-primary') }}
+                    {{ ui.row('Température chargement', ui.temp(item.expeditionTemperatureProduit)) }}
+                    {{ ui.row('Plomb / scellé', ui.text(item.expeditionNumeroPlomb)) }}
+                    {{ ui.row('Quantité expédiée', ui.kg(item.quantiteTotaleExpediee), 'text-primary') }}
                 </div>
                 {% if item.expeditionObservations %}
                     <div class="reception-note mt-3">
-                        <span>Observation expedition</span>
+                        <span>Observation expédition</span>
                         <p>{{ item.expeditionObservations }}</p>
                     </div>
                 {% endif %}
@@ -257,7 +257,7 @@
             <section class="reception-panel">
                 <div class="reception-panel-heading compact">
                     <span><i class="bi bi-shield-check"></i></span>
-                    <h2>Etat du lot</h2>
+                    <h2>État du lot</h2>
                 </div>
                 <div class="reception-status-stack">
                     <div>
@@ -269,15 +269,15 @@
                         <strong><span class="badge {{ item.usageBadgeClass }}">{{ item.usageLabel }}</span></strong>
                     </div>
                     <div>
-                        <span>Lot verrouille</span>
+                        <span>Lot verrouillé</span>
                         <strong>{{ item.locked ? 'Oui' : 'Non' }}</strong>
                     </div>
                     <div>
-                        <span>Cree par</span>
+                        <span>Créé par</span>
                         <strong>{{ item.createdBy ? item.createdBy.displayName : '-' }}</strong>
                     </div>
                     <div>
-                        <span>Derniere mise a jour</span>
+                        <span>Dernière mise à jour</span>
                         <strong>{{ ui.datetime(item.updatedAt) }}</strong>
                     </div>
                 </div>
@@ -286,14 +286,14 @@
             <section class="reception-panel">
                 <div class="reception-panel-heading compact">
                     <span><i class="bi bi-clock-history"></i></span>
-                    <h2>Tracabilite actions</h2>
+                    <h2>Traçabilité actions</h2>
                 </div>
                 <div class="reception-timeline">
-                    <div class="{{ item.receivedAt ? 'done' : '' }}"><span></span><strong>Reception validee</strong><small>{{ ui.datetime(item.receivedAt) }}{% if item.receivedBy %} par {{ item.receivedBy.displayName }}{% endif %}</small></div>
-                    <div class="{{ item.treatmentStartedAt ? 'done' : '' }}"><span></span><strong>Traitement lance</strong><small>{{ ui.datetime(item.treatmentStartedAt) }}{% if item.treatmentStartedBy %} par {{ item.treatmentStartedBy.displayName }}{% endif %}</small></div>
-                    <div class="{{ item.storedAt ? 'done' : '' }}"><span></span><strong>Stockage valide</strong><small>{{ ui.datetime(item.storedAt) }}{% if item.storedBy %} par {{ item.storedBy.displayName }}{% endif %}</small></div>
-                    <div class="{{ item.expeditedAt ? 'done' : '' }}"><span></span><strong>Expedition validee</strong><small>{{ ui.datetime(item.expeditedAt) }}{% if item.expeditedBy %} par {{ item.expeditedBy.displayName }}{% endif %}</small></div>
-                    <div class="{{ item.closedAt ? 'done' : '' }}"><span></span><strong>Cloture</strong><small>{{ ui.datetime(item.closedAt) }}{% if item.closedBy %} par {{ item.closedBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.receivedAt ? 'done' : '' }}"><span></span><strong>Reception validée</strong><small>{{ ui.datetime(item.receivedAt) }}{% if item.receivedBy %} par {{ item.receivedBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.treatmentStartedAt ? 'done' : '' }}"><span></span><strong>Traitement lancé</strong><small>{{ ui.datetime(item.treatmentStartedAt) }}{% if item.treatmentStartedBy %} par {{ item.treatmentStartedBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.storedAt ? 'done' : '' }}"><span></span><strong>Stockage validé</strong><small>{{ ui.datetime(item.storedAt) }}{% if item.storedBy %} par {{ item.storedBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.expeditedAt ? 'done' : '' }}"><span></span><strong>Expédition validée</strong><small>{{ ui.datetime(item.expeditedAt) }}{% if item.expeditedBy %} par {{ item.expeditedBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.closedAt ? 'done' : '' }}"><span></span><strong>Clôture</strong><small>{{ ui.datetime(item.closedAt) }}{% if item.closedBy %} par {{ item.closedBy.displayName }}{% endif %}</small></div>
                 </div>
             </section>
 
@@ -324,8 +324,8 @@
         <div class="reception-panel-heading">
             <span><i class="bi bi-calculator"></i></span>
             <div>
-                <h2>Lots de production lies</h2>
-                <p>Utilisation de cette reception dans les couts de revient.</p>
+                <h2>Lots de production liés</h2>
+                <p>Utilisation de cette réception dans les coûts de revient.</p>
             </div>
         </div>
         {% if item.coutRevients|length > 0 %}
@@ -334,9 +334,9 @@
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Lot cout de revient</th>
+                            <th>Lot coût de revient</th>
                             <th>Produit</th>
-                            <th class="text-end">Kg utilises</th>
+                            <th class="text-end">Kg utilisés</th>
                             <th>Statut</th>
                         </tr>
                     </thead>
@@ -354,7 +354,7 @@
                 </table>
             </div>
         {% else %}
-            <p class="text-secondary mb-0">Aucun lot de production n'utilise encore cette reception.</p>
+            <p class="text-secondary mb-0">Aucun lot de production n'utilise encore cette réception.</p>
         {% endif %}
     </section>
 </div>

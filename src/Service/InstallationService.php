@@ -33,7 +33,7 @@ final readonly class InstallationService
             ['Dépenses', 'expenses', 'bi-cash-coin', 'app_expense_index', 'Gestion financière des dépenses, justificatifs et validations.'],
             ['Cout de revient', 'cout-revient', 'bi-calculator', 'app_cout_revient_index', 'Calcul des couts de production, rendements et marges par lot.'],
             ['Composition usine', 'factory', 'bi-building-gear', 'app_factory_unit_index', 'Tunnels, chambres froides, zones de stockage et selections usine.'],
-            ['Receptions', 'receptions', 'bi-clipboard2-check', 'app_fish_reception_index', 'Reception poisson, traitement, emballage, congelation, stockage et expedition.'],
+            ['Réceptions', 'receptions', 'bi-clipboard2-check', 'app_fish_reception_index', 'Réception poisson, traitement, emballage, congélation, stockage et expédition.'],
             ['Intérimaires', 'interimaires', 'bi-person-vcard', 'app_interim_worker_index', 'Fiches de poste, suivi RH et documents des intérimaires.'],
             ['Agenda - RDV', 'agenda', 'bi-calendar-check', 'app_appointment_calendar', 'Calendrier professionnel, rendez-vous, participants et rappels.'],
             ['Statistiques', 'statistics', 'bi-graph-up-arrow', 'app_statistics_index', 'Graphiques et indicateurs de pilotage.'],

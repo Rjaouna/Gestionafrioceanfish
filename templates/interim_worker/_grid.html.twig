@@ -8,7 +8,7 @@
                     <th>Nom et prenom</th>
                     <th>Poste</th>
                     <th>Matricule</th>
-                    <th>Telephone</th>
+                    <th>Téléphone</th>
                     <th>CIN</th>
                     <th>Situation</th>
                     <th>Embauche</th>
@@ -70,7 +70,7 @@
                                     </a>
                                 {% endif %}
                                 {% if is_granted('INTERIM_WORKER_DELETE', worker) %}
-                                    <button class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_interim_worker_delete', {id: worker.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_interim_worker_' ~ worker.id) }}" data-confirm-message="Supprimer cet interimaire ?">
+                                    <button class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_interim_worker_delete', {id: worker.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_interim_worker_' ~ worker.id) }}" data-confirm-message="Supprimer cet intérimaire ?">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 {% endif %}
@@ -88,8 +88,8 @@
             <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
                 <i class="bi bi-person-vcard"></i>
             </span>
-            <h2 class="h5 mt-3">Aucun interimaire</h2>
-            <p class="text-secondary mb-0">Ajoutez un interimaire ou ajustez les filtres.</p>
+            <h2 class="h5 mt-3">Aucun intérimaire</h2>
+            <p class="text-secondary mb-0">Ajoutez un intérimaire ou ajustez les filtres.</p>
         </div>
     </div>
 {% endif %}

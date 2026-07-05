@@ -61,8 +61,8 @@ final class InterimWorkerType extends AbstractType
                 'attr' => ['placeholder' => 'Nom', 'maxlength' => 120],
             ])
             ->add('firstName', TextType::class, [
-                'label' => 'Prenom',
-                'attr' => ['placeholder' => 'Prenom', 'maxlength' => 120],
+                'label' => 'Prénom',
+                'attr' => ['placeholder' => 'Prénom', 'maxlength' => 120],
             ])
             ->add('address', TextareaType::class, [
                 'label' => 'Adresse',
@@ -77,7 +77,7 @@ final class InterimWorkerType extends AbstractType
             ->add('workerType', ChoiceType::class, [
                 'label' => 'Profil',
                 'choices' => array_flip(InterimWorker::TYPE_LABELS),
-                'help' => 'Selectionnez Etudiant(e) pour les personnes prevues uniquement pendant les vacances.',
+                'help' => 'Sélectionnez Étudiant(e) pour les personnes prévues uniquement pendant les vacances.',
             ])
             ->add('registrationNumber', TextType::class, [
                 'label' => 'Matricule',
@@ -87,7 +87,7 @@ final class InterimWorkerType extends AbstractType
                 'help' => 'Laissez vide pour generer le matricule automatiquement.',
             ])
             ->add('phone', TextType::class, [
-                'label' => 'Telephone',
+                'label' => 'Téléphone',
                 'attr' => [
                     'placeholder' => '06..., 07..., +212... ou +33...',
                     'inputmode' => 'tel',

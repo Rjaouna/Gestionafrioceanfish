@@ -97,7 +97,7 @@ final class InterimWorkerController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('L’interimaire a ete cree.', ['reload' => true], 201);
+        return $this->jsonResponder->success('L’intérimaire a ete cree.', ['reload' => true], 201);
     }
 
     #[Route('/{id}', name: 'app_interim_worker_view', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -168,7 +168,7 @@ final class InterimWorkerController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('L’interimaire a ete modifie.', ['reload' => true]);
+        return $this->jsonResponder->success('L’intérimaire a ete modifie.', ['reload' => true]);
     }
 
     #[Route('/{id}/fin-mission/formulaire', name: 'app_interim_worker_end_mission_form', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -327,7 +327,7 @@ final class InterimWorkerController extends AbstractController
         $movedToTrash = $this->workerService->delete($worker, $this->currentUser());
 
         return $this->jsonResponder->success(
-            $movedToTrash ? 'L’interimaire a ete deplace dans la corbeille.' : 'L’interimaire a ete supprime.',
+            $movedToTrash ? 'L’intérimaire a ete deplace dans la corbeille.' : 'L’intérimaire a ete supprime.',
             ['reload' => true],
         );
     }
@@ -382,7 +382,7 @@ final class InterimWorkerController extends AbstractController
     private function assertCsrf(string $token, string $id): void
     {
         if (!$this->isCsrfTokenValid($id, $token)) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
     }
 

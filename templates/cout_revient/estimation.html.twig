@@ -54,7 +54,7 @@
         <div class="dashboard-kpi-hint">actions detectees</div>
     </div>
     <div class="dashboard-kpi-card card border-0 shadow-sm">
-        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Kg reference</span><span class="dashboard-kpi-icon"><i class="bi bi-speedometer2"></i></span></div>
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Kg référence</span><span class="dashboard-kpi-icon"><i class="bi bi-speedometer2"></i></span></div>
         <div class="dashboard-kpi-value">{{ stats.kg_reference|number_format(0, ',', ' ') }}</div>
         <div class="dashboard-kpi-hint">kg pour charges au kg</div>
     </div>
@@ -170,8 +170,8 @@
             <div class="card-body">
                 <dl class="row mb-0">
                     <dt class="col-7 text-secondary">Jours inclus</dt><dd class="col-5 text-end">{{ operation.period_days }}</dd>
-                    <dt class="col-7 text-secondary">Kg reference</dt><dd class="col-5 text-end">{{ operation.kg_reference|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
-                    <dt class="col-7 text-secondary">Lots / receptions actifs</dt><dd class="col-5 text-end">{{ operation.lot_reference }}</dd>
+                    <dt class="col-7 text-secondary">Kg référence</dt><dd class="col-5 text-end">{{ operation.kg_reference|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-7 text-secondary">Lots / réceptions actifs</dt><dd class="col-5 text-end">{{ operation.lot_reference }}</dd>
                     <dt class="col-7 text-secondary">Heures retenues</dt><dd class="col-5 text-end">{{ operation.known_hours|number_format(2, ',', ' ') }} h</dd>
                     <dt class="col-7 text-secondary">Heures workflow</dt><dd class="col-5 text-end">{{ operation.workflow_hours|number_format(2, ',', ' ') }} h</dd>
                     <dt class="col-7 text-secondary">Heures lots cout</dt><dd class="col-5 text-end">{{ operation.cost_lot_hours|number_format(2, ',', ' ') }} h</dd>
@@ -220,7 +220,7 @@
                     <thead>
                         <tr>
                             <th>Charge</th>
-                            <th>Categorie</th>
+                            <th>Catégorie</th>
                             <th>Unite</th>
                             <th>Base utilisee</th>
                             <th class="text-end">Cout unitaire</th>
@@ -258,12 +258,12 @@
 
 <section class="card border-0 shadow-sm mt-4">
     <div class="card-header bg-white border-0 pb-0">
-        <h2 class="h5 mb-1">Lots cout de revient dans la plage</h2>
+        <h2 class="h5 mb-1">Lots coût de revient dans la plage</h2>
         <p class="text-secondary small mb-0">Comparaison avec les couts deja calcules lot par lot.</p>
     </div>
     <div class="card-body">
         {% if estimation.cost_lots is empty %}
-            <div class="text-center text-secondary py-5">Aucun lot cout de revient sur cette plage.</div>
+            <div class="text-center text-secondary py-5">Aucun lot coût de revient sur cette plage.</div>
         {% else %}
             <div class="table-responsive">
                 <table class="table align-middle">

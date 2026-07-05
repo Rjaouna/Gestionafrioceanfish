@@ -147,7 +147,7 @@ final readonly class ConsumableStockService
     {
         $this->denyUnlessAccess($actor);
         if ($countedQuantity < 0) {
-            throw new \DomainException('La quantite comptee ne peut pas etre negative.');
+            throw new \DomainException('La quantité comptée ne peut pas être négative.');
         }
 
         $difference = $countedQuantity - $item->getQuantityValue();
@@ -260,7 +260,7 @@ final readonly class ConsumableStockService
     private function assertPositive(float $quantity): void
     {
         if ($quantity <= 0) {
-            throw new \DomainException('La quantite doit etre superieure a zero.');
+            throw new \DomainException('La quantité doit être supérieure à zéro.');
         }
     }
 

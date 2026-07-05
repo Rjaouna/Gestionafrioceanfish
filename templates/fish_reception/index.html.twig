@@ -2,9 +2,9 @@
 
 {% set stage = stage|default('reception') %}
 {% set stage_config = stage_config|default({
-    title: 'Receptions',
-    description: 'Creation, validation et suivi des receptions matiere premiere.',
-    source_label: 'Quantite recue',
+    title: 'Réceptions',
+    description: 'Creation, validation et suivi des receptions matière première.',
+    source_label: 'Quantité reçue',
     moved_label: 'Envoyee traitement',
     available_label: 'Disponible reception',
     rate_label: 'Taux traitement'
@@ -25,7 +25,7 @@
         </a>
         {% if stage == 'reception' and is_granted('FISH_RECEPTION_CREATE') %}
             <a class="btn btn-primary" href="{{ path('app_fish_reception_new') }}">
-                <i class="bi bi-plus-circle me-2"></i>Nouvelle reception
+                <i class="bi bi-plus-circle me-2"></i>Nouvelle réception
             </a>
         {% endif %}
     </div>
@@ -44,7 +44,7 @@
     <div class="col-6 col-xl">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="small text-secondary">Receptions</div>
+                <div class="small text-secondary">Réceptions</div>
                 <div class="h5 mb-0">{{ stats.count }}</div>
             </div>
         </div>

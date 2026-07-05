@@ -60,7 +60,7 @@ final class FactoryUnitController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Piece usine creee et charge cout de revient preparee.', ['reload' => true], 201);
+        return $this->jsonResponder->success('Pièce usine créée et charge coût de revient préparée.', ['reload' => true], 201);
     }
 
     #[Route('/{id}/formulaire', name: 'app_factory_unit_form', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -187,7 +187,7 @@ final class FactoryUnitController extends AbstractController
     {
         $payload = $request->toArray();
         if (!$this->isCsrfTokenValid($id, (string) ($payload['token'] ?? ''))) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
     }
 

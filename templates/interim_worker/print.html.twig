@@ -38,11 +38,11 @@
     </div>
 
     {% set rows = [
-        ['Nom et Prenom', worker.fullName],
+        ['Nom et Prénom', worker.fullName],
         ['Adresse', worker.address],
         ['Poste', worker.position],
         ['Matricule', worker.registrationNumber],
-        ['Telephone', worker.phone],
+        ['Téléphone', worker.phone],
         ['Date de naissance', worker.birthDate ? worker.birthDate|date('d/m/Y') : ''],
         ['Lieu de naissance', worker.birthPlace],
         ['CIN', worker.cin]

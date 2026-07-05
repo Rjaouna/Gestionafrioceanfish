@@ -171,11 +171,11 @@ final class InventoryItemType extends AbstractType
 
         $categoryName = trim((string) $options['category_name']);
         $configs = [
-            'categoryName' => ['label' => 'Categorie', 'values' => $choiceLists['categories'] ?? [], 'required' => false, 'maxlength' => 120, 'choice_options' => ['mapped' => false]],
+            'categoryName' => ['label' => 'Catégorie', 'values' => $choiceLists['categories'] ?? [], 'required' => false, 'maxlength' => 120, 'choice_options' => ['mapped' => false]],
             'unit' => ['label' => 'Unite', 'values' => $choiceLists['units'] ?? [], 'required' => true, 'maxlength' => 40],
         ];
 
-        $this->addSmartChoice($builder, 'categoryName', 'Categorie', $configs['categoryName']['values'], false, 120, $categoryName !== '' ? $categoryName : null, ['mapped' => false, 'data' => $categoryName !== '' ? $categoryName : null]);
+        $this->addSmartChoice($builder, 'categoryName', 'Catégorie', $configs['categoryName']['values'], false, 120, $categoryName !== '' ? $categoryName : null, ['mapped' => false, 'data' => $categoryName !== '' ? $categoryName : null]);
         $this->addSmartChoice($builder, 'unit', 'Unite', $configs['unit']['values'], true, 40, $isExisting ? $item->getUnit() : null, $isExisting ? [] : ['data' => null]);
         $this->addSmartChoiceSubmitListener($builder, $configs);
     }

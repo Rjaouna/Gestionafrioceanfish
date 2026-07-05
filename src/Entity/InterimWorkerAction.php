@@ -100,7 +100,7 @@ class InterimWorkerAction
     public function setActionType(string $actionType): static
     {
         if (!isset(self::TYPE_LABELS[$actionType])) {
-            throw new \InvalidArgumentException('Type d action interimaire invalide.');
+            throw new \InvalidArgumentException('Type d action intérimaire invalide.');
         }
 
         $this->actionType = $actionType;

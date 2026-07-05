@@ -36,7 +36,7 @@
         </div>
         <div class="col-lg-8">
             <div class="row g-3">
-                <div class="col-md-6"><div class="text-secondary small">Telephone</div><strong>{{ worker.phone }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Téléphone</div><strong>{{ worker.phone }}</strong></div>
                 <div class="col-md-6"><div class="text-secondary small">CIN</div><strong>{{ worker.cin ?: '-' }}</strong></div>
                 <div class="col-md-6"><div class="text-secondary small">Date de naissance</div><strong>{{ worker.birthDate ? worker.birthDate|date('d/m/Y') : '-' }}</strong></div>
                 <div class="col-md-6"><div class="text-secondary small">Lieu de naissance</div><strong>{{ worker.birthPlace ?: '-' }}</strong></div>

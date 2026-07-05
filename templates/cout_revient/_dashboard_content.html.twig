@@ -83,7 +83,7 @@
             <div class="card-body">
                 {% include 'components/_dashboard_chart.html.twig' with {
                     title: 'Rendement par lot',
-                    subtitle: 'Controle production',
+                    subtitle: 'Contrôle production',
                     chart: charts.rendement_by_lot,
                     chart_type: 'bars',
                     tone: 'primary'
@@ -95,7 +95,7 @@
         <section class="dashboard-module-card card border-0 shadow-sm">
             <div class="card-body">
                 {% include 'components/_dashboard_chart.html.twig' with {
-                    title: 'Evolution cout de revient / kg',
+                    title: 'Évolution coût de revient / kg',
                     subtitle: 'Par date de production',
                     chart: charts.cout_kg_evolution,
                     chart_type: 'bars',

@@ -59,10 +59,10 @@
         <form id="consumable-stock-filters" class="row g-3 align-items-end" method="get" action="{{ path('app_inventory_consumable_stock_index') }}" data-ajax-filter-region="consumable-stock">
             <div class="col-lg-4">
                 <label class="form-label" for="stock-search">Recherche</label>
-                <input id="stock-search" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Produit, reference, fournisseur, telephone...">
+                <input id="stock-search" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Produit, référence, fournisseur, téléphone...">
             </div>
             <div class="col-md-3 col-lg-2">
-                <label class="form-label" for="stock-category">Categorie</label>
+                <label class="form-label" for="stock-category">Catégorie</label>
                 <select id="stock-category" class="form-select" name="category">
                     <option value="">Toutes</option>
                     {% for category in filter_choices.categories %}

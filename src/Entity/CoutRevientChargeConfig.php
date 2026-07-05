@@ -146,7 +146,7 @@ class CoutRevientChargeConfig
     public function setCategory(string $category): static
     {
         if (!isset(self::CATEGORY_LABELS[$category])) {
-            throw new \InvalidArgumentException('Categorie de charge invalide.');
+            throw new \InvalidArgumentException('Catégorie de charge invalide.');
         }
 
         $this->category = $category;

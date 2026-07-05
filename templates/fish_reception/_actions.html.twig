@@ -9,9 +9,9 @@
                 reception: 'Reception',
                 traitement: 'Traitement / Production',
                 emballage: 'Conditionnement / Emballage',
-                congelation: 'Congelation',
+                congelation: 'Congélation',
                 stockage: 'Stockage',
-                expedition: 'Expedition'
+                expedition: 'Expédition'
             } %}
                 <li>
                     <a class="dropdown-item" href="{{ path('app_fish_reception_excel_template_item', {id: item.id, stage: excel_stage}) }}">
@@ -29,7 +29,7 @@
 {% endif %}
 {% if is_granted('FISH_RECEPTION_TRANSITION', item) and not item.locked %}
     {% if item.statut == 'brouillon' %}
-        <button class="btn {{ size }} btn-outline-success" data-confirm-url="{{ path('app_fish_reception_validate', {id: item.id}) }}" data-token="{{ csrf_token('validate_fish_reception_' ~ item.id) }}" data-confirm-message="Valider cette reception ?">
+        <button class="btn {{ size }} btn-outline-success" data-confirm-url="{{ path('app_fish_reception_validate', {id: item.id}) }}" data-token="{{ csrf_token('validate_fish_reception_' ~ item.id) }}" data-confirm-message="Valider cette réception ?">
             <i class="bi bi-check2-circle me-1"></i>Valider
         </button>
     {% endif %}
@@ -58,18 +58,18 @@
     {% endif %}
     {% if item.quantiteDisponibleStockageValue > 0.001 %}
         <button class="btn {{ size }} btn-outline-dark" data-remote-modal="{{ path('app_fish_reception_shipping_form', {id: item.id}) }}">
-            <i class="bi bi-truck me-1"></i>Expedier
+            <i class="bi bi-truck me-1"></i>Expédier
         </button>
     {% endif %}
-    <button class="btn {{ size }} btn-outline-dark" data-confirm-url="{{ path('app_fish_reception_close', {id: item.id}) }}" data-token="{{ csrf_token('close_fish_reception_' ~ item.id) }}" data-confirm-message="Cloturer cette reception ? Elle sera verrouillee.">
-        <i class="bi bi-lock me-1"></i>Cloturer
+    <button class="btn {{ size }} btn-outline-dark" data-confirm-url="{{ path('app_fish_reception_close', {id: item.id}) }}" data-token="{{ csrf_token('close_fish_reception_' ~ item.id) }}" data-confirm-message="Clôturer cette réception ? Elle sera verrouillée.">
+        <i class="bi bi-lock me-1"></i>Clôturer
     </button>
     <button class="btn {{ size }} btn-outline-danger" data-remote-modal="{{ path('app_fish_reception_block_form', {id: item.id}) }}">
         <i class="bi bi-slash-circle me-1"></i>Bloquer
     </button>
 {% endif %}
 {% if is_granted('FISH_RECEPTION_DELETE', item) %}
-    <button class="btn {{ size }} btn-outline-danger" data-confirm-url="{{ path('app_fish_reception_delete', {id: item.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_fish_reception_' ~ item.id) }}" data-confirm-message="Supprimer cette reception ?">
+    <button class="btn {{ size }} btn-outline-danger" data-confirm-url="{{ path('app_fish_reception_delete', {id: item.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_fish_reception_' ~ item.id) }}" data-confirm-message="Supprimer cette réception ?">
         <i class="bi bi-trash me-1"></i>Supprimer
     </button>
 {% endif %}

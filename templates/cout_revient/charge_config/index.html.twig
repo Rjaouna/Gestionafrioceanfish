@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Charges cout de revient{% endblock %}
+{% block title %}Charges coût de revient{% endblock %}
 
 {% block body %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
@@ -40,7 +40,7 @@
             <thead>
                 <tr>
                     <th>Charge</th>
-                    <th>Categorie</th>
+                    <th>Catégorie</th>
                     <th>Calcul</th>
                     <th class="text-end">Cout</th>
                     <th>Statut</th>
@@ -100,8 +100,8 @@
         <div class="modal-content">
             {% include 'cout_revient/charge_config/_form_modal.html.twig' with {
                 form: create_form,
-                title: 'Creer une charge',
-                submit_label: 'Creer'
+                title: 'Créer une charge',
+                submit_label: 'Créer'
             } %}
         </div>
     </div>

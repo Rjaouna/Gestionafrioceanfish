@@ -34,7 +34,7 @@ final readonly class CoutRevientExcelExporterService
         $this->addLogo($sheet);
 
         $sheet->mergeCells('A1:T1');
-        $sheet->setCellValue('A1', 'Rapport cout de revient');
+        $sheet->setCellValue('A1', 'Rapport coût de revient');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(18);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
@@ -123,7 +123,7 @@ final readonly class CoutRevientExcelExporterService
         $this->addLogo($sheet);
 
         $sheet->mergeCells('A1:F1');
-        $sheet->setCellValue('A1', 'Fiche cout de revient');
+        $sheet->setCellValue('A1', 'Fiche coût de revient');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(18);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->mergeCells('A2:F2');
@@ -145,7 +145,7 @@ final readonly class CoutRevientExcelExporterService
             ['Taux marge %', (float) $item->getTauxMargePourcentage(), 'Rentabilite', $item->getRentabiliteLabel(), '', ''],
             [],
             ['Detail couts', '', '', '', '', ''],
-            ['Matiere premiere', (float) $item->getCoutMatierePremiere(), 'Main oeuvre', (float) $item->getCoutMainOeuvre(), 'Emballage', (float) $item->getCoutEmballageTotal()],
+            ['Matière première', (float) $item->getCoutMatierePremiere(), 'Main oeuvre', (float) $item->getCoutMainOeuvre(), 'Emballage', (float) $item->getCoutEmballageTotal()],
             ['Charges', (float) $item->getCoutChargesTotal(), '', '', '', ''],
             [],
             ['Production', '', '', '', '', ''],
@@ -168,7 +168,7 @@ final readonly class CoutRevientExcelExporterService
             $sheet->setCellValue('A'.$lastRow, 'Charges appliquees');
             $this->styleSectionHeader($sheet->getStyle('A'.$lastRow.':F'.$lastRow));
             ++$lastRow;
-            $sheet->fromArray(['Charge', 'Categorie', 'Calcul', 'Quantite', 'Cout unitaire', 'Total'], null, 'A'.$lastRow);
+            $sheet->fromArray(['Charge', 'Catégorie', 'Calcul', 'Quantite', 'Cout unitaire', 'Total'], null, 'A'.$lastRow);
             $sheet->getStyle('A'.$lastRow.':F'.$lastRow)->getFont()->setBold(true);
 
             foreach ($item->getChargeLines() as $line) {

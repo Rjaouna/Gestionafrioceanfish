@@ -15,7 +15,7 @@ final class ConsumableStockInventoryType extends AbstractType
     {
         $builder
             ->add('countedQuantity', NumberType::class, [
-                'label' => 'Quantite comptee',
+                'label' => 'Quantité comptée',
                 'mapped' => false,
                 'scale' => 2,
                 'html5' => true,

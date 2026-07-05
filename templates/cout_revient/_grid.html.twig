@@ -70,7 +70,7 @@
                                     </button>
                                 {% endif %}
                                 {% if is_granted('COUT_REVIENT_VALIDATE', item) %}
-                                    <button class="btn btn-outline-success" title="Valider" aria-label="Valider" data-confirm-url="{{ path('app_cout_revient_validate', {id: item.id}) }}" data-token="{{ csrf_token('validate_cout_revient_' ~ item.id) }}" data-confirm-message="Valider ce cout de revient ? Les calculs seront verrouilles comme version validee.">
+                                    <button class="btn btn-outline-success" title="Valider" aria-label="Valider" data-confirm-url="{{ path('app_cout_revient_validate', {id: item.id}) }}" data-token="{{ csrf_token('validate_cout_revient_' ~ item.id) }}" data-confirm-message="Valider ce coût de revient ? Les calculs seront verrouillés comme version validée.">
                                         <i class="bi bi-check2-circle"></i>
                                     </button>
                                 {% endif %}
@@ -80,7 +80,7 @@
                                     </a>
                                 {% endif %}
                                 {% if is_granted('COUT_REVIENT_DELETE', item) %}
-                                    <button class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_cout_revient_delete', {id: item.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_cout_revient_' ~ item.id) }}" data-confirm-message="Supprimer ce lot de cout de revient ?">
+                                    <button class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_cout_revient_delete', {id: item.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_cout_revient_' ~ item.id) }}" data-confirm-message="Supprimer ce lot de coût de revient ?">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 {% endif %}

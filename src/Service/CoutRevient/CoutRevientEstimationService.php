@@ -112,7 +112,7 @@ final readonly class CoutRevientEstimationService
             $this->addEvent($events, $reception->getCreatedAt(), $from, $to, [
                 'stage' => 'creation',
                 'stage_label' => 'Creation',
-                'title' => 'Fiche reception creee',
+                'title' => 'Fiche réception creee',
                 'badge' => 'text-bg-secondary',
                 'icon' => 'bi-file-earmark-plus',
                 'reference' => (string) $reception->getNumeroReception(),
@@ -127,7 +127,7 @@ final readonly class CoutRevientEstimationService
                 'quantity_key' => 'received',
                 'quantity' => $reception->getQuantiteReceptionneeValue(),
                 'unit' => 'kg',
-                'title' => 'Reception matiere premiere',
+                'title' => 'Réception matière première',
                 'badge' => 'text-bg-primary',
                 'icon' => 'bi-clipboard2-check',
                 'reference' => (string) $reception->getNumeroReception(),
@@ -139,7 +139,7 @@ final readonly class CoutRevientEstimationService
             $this->addEvent($events, $reception->getReceivedAt(), $from, $to, [
                 'stage' => 'validation',
                 'stage_label' => 'Validation',
-                'title' => 'Reception validee',
+                'title' => 'Reception validée',
                 'badge' => 'text-bg-info',
                 'icon' => 'bi-check2-circle',
                 'reference' => (string) $reception->getNumeroReception(),
@@ -154,7 +154,7 @@ final readonly class CoutRevientEstimationService
                 'quantity_key' => 'prepared',
                 'quantity' => $reception->getQuantiteTotalePrepareeValue(),
                 'unit' => 'kg',
-                'title' => 'Traitement lance',
+                'title' => 'Traitement lancé',
                 'badge' => 'text-bg-info',
                 'icon' => 'bi-arrow-repeat',
                 'reference' => (string) $reception->getNumeroReception(),
@@ -173,22 +173,22 @@ final readonly class CoutRevientEstimationService
                 'badge' => 'text-bg-warning',
                 'icon' => 'bi-box',
                 'reference' => (string) $reception->getNumeroReception(),
-                'details' => $reception->getProduitConditionne() ?: 'Produit conditionne non renseigne',
+                'details' => $reception->getProduitConditionne() ?: 'Produit conditionné non renseigne',
                 'actor' => $this->userName($reception->getUpdatedBy()),
                 'reception' => $reception,
             ]);
 
             $this->addEvent($events, $this->combine($reception->getDateSortieTunnel(), $reception->getHeureEntreeTunnel()), $from, $to, [
                 'stage' => 'congelation',
-                'stage_label' => 'Congelation',
+                'stage_label' => 'Congélation',
                 'quantity_key' => 'frozen',
                 'quantity' => $reception->getQuantiteCongeleeValue(),
                 'unit' => 'kg',
-                'title' => 'Congelation',
+                'title' => 'Congélation',
                 'badge' => 'text-bg-primary',
                 'icon' => 'bi-snow',
                 'reference' => (string) $reception->getNumeroReception(),
-                'details' => $reception->getTunnel() ?: 'Tunnel non renseigne',
+                'details' => $reception->getTunnel() ?: 'Tunnel non renseigné',
                 'actor' => $this->userName($reception->getUpdatedBy()),
                 'reception' => $reception,
             ]);
@@ -210,11 +210,11 @@ final readonly class CoutRevientEstimationService
 
             $this->addEvent($events, $this->stageDate($reception->getExpeditionDateDepart(), $reception->getExpeditionHeureDepart(), $reception->getExpeditedAt()), $from, $to, [
                 'stage' => 'expedition',
-                'stage_label' => 'Expedition',
+                'stage_label' => 'Expédition',
                 'quantity_key' => 'shipped',
                 'quantity' => $reception->getQuantiteTotaleExpedieeValue(),
                 'unit' => 'kg',
-                'title' => 'Expedition',
+                'title' => 'Expédition',
                 'badge' => 'text-bg-dark',
                 'icon' => 'bi-truck',
                 'reference' => (string) $reception->getNumeroReception(),
@@ -225,7 +225,7 @@ final readonly class CoutRevientEstimationService
 
             $this->addEvent($events, $reception->getClosedAt(), $from, $to, [
                 'stage' => 'cloture',
-                'stage_label' => 'Cloture',
+                'stage_label' => 'Clôture',
                 'title' => 'Reception cloturee',
                 'badge' => 'text-bg-dark',
                 'icon' => 'bi-lock',
@@ -259,7 +259,7 @@ final readonly class CoutRevientEstimationService
                 'quantity_key' => 'cost_weight',
                 'quantity' => (float) $lot->getPoidsMisEnProduction(),
                 'unit' => 'kg',
-                'title' => 'Lot cout de revient',
+                'title' => 'Lot coût de revient',
                 'badge' => $lot->getStatutBadgeClass(),
                 'icon' => 'bi-calculator',
                 'reference' => (string) $lot->getNumeroLot(),
@@ -285,9 +285,9 @@ final readonly class CoutRevientEstimationService
             'reception' => ['label' => 'Reception', 'icon' => 'bi-clipboard2-check', 'quantity_key' => 'received', 'tone' => 'primary'],
             'traitement' => ['label' => 'Traitement', 'icon' => 'bi-arrow-repeat', 'quantity_key' => 'prepared', 'tone' => 'info'],
             'emballage' => ['label' => 'Emballage', 'icon' => 'bi-box', 'quantity_key' => 'packaged', 'tone' => 'warning'],
-            'congelation' => ['label' => 'Congelation', 'icon' => 'bi-snow', 'quantity_key' => 'frozen', 'tone' => 'primary'],
+            'congelation' => ['label' => 'Congélation', 'icon' => 'bi-snow', 'quantity_key' => 'frozen', 'tone' => 'primary'],
             'stockage' => ['label' => 'Stockage', 'icon' => 'bi-box-seam', 'quantity_key' => 'stored', 'tone' => 'success'],
-            'expedition' => ['label' => 'Expedition', 'icon' => 'bi-truck', 'quantity_key' => 'shipped', 'tone' => 'dark'],
+            'expedition' => ['label' => 'Expédition', 'icon' => 'bi-truck', 'quantity_key' => 'shipped', 'tone' => 'dark'],
         ];
 
         foreach ($stages as $key => $stage) {
@@ -358,8 +358,8 @@ final readonly class CoutRevientEstimationService
                 CoutRevientChargeConfig::UNIT_MONTH => [(float) $operation['period_days'], $unitCost / 30.0, 'Prorata mois sur '.$operation['period_days'].' jour(s)'],
                 CoutRevientChargeConfig::UNIT_DAY => [(float) $operation['period_days'], $unitCost, 'Nombre de jours dans la plage'],
                 CoutRevientChargeConfig::UNIT_HOUR => [(float) $operation['known_hours'], $unitCost, 'Heures connues workflow / lots cout'],
-                CoutRevientChargeConfig::UNIT_KG => [(float) $operation['kg_reference'], $unitCost, 'Kg reference de la periode'],
-                CoutRevientChargeConfig::UNIT_LOT => [(float) $operation['lot_reference'], $unitCost, 'Nombre de lots/receptions actifs'],
+                CoutRevientChargeConfig::UNIT_KG => [(float) $operation['kg_reference'], $unitCost, 'Kg référence de la période'],
+                CoutRevientChargeConfig::UNIT_LOT => [(float) $operation['lot_reference'], $unitCost, 'Nombre de lots/réceptions actifs'],
                 default => [(bool) $operation['has_activity'] ? 1.0 : 0.0, $unitCost, 'Forfait applique une fois si activite'],
             };
 
@@ -439,11 +439,11 @@ final readonly class CoutRevientEstimationService
         }
 
         if ((float) $operation['kg_reference'] <= 0.0 && $this->hasUnit($charges['lines'], CoutRevientChargeConfig::UNIT_KG)) {
-            $warnings[] = ['tone' => 'warning', 'text' => 'Des charges au kg existent, mais aucun kg de reference n est trouve sur la periode.'];
+            $warnings[] = ['tone' => 'warning', 'text' => 'Des charges au kg existent, mais aucun kg de référence n\'est trouvé sur la période.'];
         }
 
         if ($costLots === []) {
-            $warnings[] = ['tone' => 'info', 'text' => 'Aucun lot cout de revient n est valide sur cette plage. La page affiche donc surtout une estimation a partir des charges configurees.'];
+            $warnings[] = ['tone' => 'info', 'text' => 'Aucun lot coût de revient n\'est validé sur cette plage. La page affiche donc surtout une estimation à partir des charges configurées.'];
         }
 
         return $warnings;

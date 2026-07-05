@@ -43,7 +43,7 @@ class InterimWorkerRepository extends ServiceEntityRepository
     public function distinctValues(string $field): array
     {
         if (!in_array($field, ['position', 'workerType', 'familySituation', 'status', 'tempAgency'], true)) {
-            throw new \InvalidArgumentException('Champ de filtre interimaire invalide.');
+            throw new \InvalidArgumentException('Champ de filtre intérimaire invalide.');
         }
 
         $rows = $this->createQueryBuilder('w')

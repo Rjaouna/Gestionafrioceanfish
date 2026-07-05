@@ -356,7 +356,7 @@ class CoutRevient
     public function setStatut(string $statut): static
     {
         if (!isset(self::STATUS_LABELS[$statut])) {
-            throw new \InvalidArgumentException('Statut de cout de revient invalide.');
+            throw new \InvalidArgumentException('Statut de coût de revient invalide.');
         }
 
         $this->statut = $statut;
@@ -1005,7 +1005,7 @@ class CoutRevient
         $misEnProduction = (float) $this->poidsMisEnProduction;
         $totalSortie = (float) $this->poidsProduitFini + (float) $this->poidsDechets + (float) $this->poidsPerte;
         if ($misEnProduction > 0 && abs($totalSortie - $misEnProduction) > 0.001) {
-            $alerts[] = 'Attention : le total fini + dechets + pertes ne correspond pas au poids mis en production.';
+            $alerts[] = 'Attention : le total fini + déchets + pertes ne correspond pas au poids mis en production.';
         }
 
         if ((float) $this->poidsProduitFini <= 0) {
@@ -1016,7 +1016,7 @@ class CoutRevient
         if ($rendement > 100) {
             $alerts[] = 'Rendement impossible.';
         } elseif ($rendement > 0 && $rendement < 40) {
-            $alerts[] = 'Rendement faible, verifier pertes et dechets.';
+            $alerts[] = 'Rendement faible, vérifier pertes et déchets.';
         }
 
         if ($this->hasPrixVente() && (float) $this->margeKg < 0) {

@@ -10,7 +10,7 @@
     </button>
 {% endif %}
 {% if is_granted('COUT_REVIENT_VALIDATE', item) %}
-    <button class="btn {{ size }} btn-outline-success" data-confirm-url="{{ path('app_cout_revient_validate', {id: item.id}) }}" data-token="{{ csrf_token('validate_cout_revient_' ~ item.id) }}" data-confirm-message="Valider ce cout de revient ?">
+    <button class="btn {{ size }} btn-outline-success" data-confirm-url="{{ path('app_cout_revient_validate', {id: item.id}) }}" data-token="{{ csrf_token('validate_cout_revient_' ~ item.id) }}" data-confirm-message="Valider ce coût de revient ?">
         <i class="bi bi-check2-circle me-1"></i>Valider
     </button>
 {% endif %}

@@ -70,7 +70,7 @@
                         {% endif %}
                     </dd>
                     <dt class="col-5 text-secondary">Statut</dt><dd class="col-7"><span class="badge {{ item.statutBadgeClass }}">{{ item.statutLabel }}</span></dd>
-                    <dt class="col-5 text-secondary">Cree par</dt><dd class="col-7">{{ item.createdBy ? item.createdBy.displayName : '-' }}</dd>
+                    <dt class="col-5 text-secondary">Créé par</dt><dd class="col-7">{{ item.createdBy ? item.createdBy.displayName : '-' }}</dd>
                     <dt class="col-5 text-secondary">Valide le</dt><dd class="col-7">{{ item.validatedAt ? item.validatedAt|date('d/m/Y H:i') : '-' }}</dd>
                 </dl>
             </div>
@@ -130,7 +130,7 @@
                             <thead>
                                 <tr>
                                     <th>Charge</th>
-                                    <th>Categorie</th>
+                                    <th>Catégorie</th>
                                     <th>Calcul</th>
                                     <th class="text-end">Quantite</th>
                                     <th class="text-end">Cout unitaire</th>

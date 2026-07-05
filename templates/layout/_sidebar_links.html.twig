@@ -40,7 +40,7 @@
                 {% if is_granted('EXPENSE_MANAGE_CATEGORIES') %}
                     <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_expense_category' ? 'active' : '' }}" href="{{ path('app_expense_category_index') }}">
                         <i class="bi bi-tags"></i>
-                        <span>Categories</span>
+                        <span>Catégories</span>
                     </a>
                 {% endif %}
             </div>
@@ -75,11 +75,11 @@
             <div class="sidebar-open-body">
                 <a class="sidebar-sub-link {{ current_route == 'app_fish_reception_index' ? 'active' : '' }}" href="{{ path('app_fish_reception_index') }}">
                     <i class="bi bi-clipboard2-check"></i>
-                    <span>Liste receptions</span>
+                    <span>Liste réceptions</span>
                 </a>
                 <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_new' ? 'active' : '' }}" href="{{ path('app_fish_reception_new') }}">
                     <i class="bi bi-plus-circle"></i>
-                    <span>Nouvelle reception</span>
+                    <span>Nouvelle réception</span>
                 </a>
                 <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'traitement' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'traitement'}) }}">
                     <i class="bi bi-arrow-repeat"></i>
@@ -91,7 +91,7 @@
                 </a>
                 <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'congelation' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'congelation'}) }}">
                     <i class="bi bi-snow"></i>
-                    <span>Congelation</span>
+                    <span>Congélation</span>
                 </a>
                 <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'stockage' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'stockage'}) }}">
                     <i class="bi bi-box-seam"></i>
@@ -99,12 +99,12 @@
                 </a>
                 <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'expedition' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'expedition'}) }}">
                     <i class="bi bi-truck"></i>
-                    <span>Expedition</span>
+                    <span>Expédition</span>
                 </a>
             </div>
         </section>
     {% else %}
-        {% set label = module.slug == 'interimaires' ? 'Fiche interimaire' : (module.slug == 'contacts' ? 'Carnet de contacts' : module.name) %}
+        {% set label = module.slug == 'interimaires' ? 'Fiche intérimaire' : (module.slug == 'contacts' ? 'Carnet de contacts' : module.name) %}
         <section class="sidebar-open-section {{ module_active ? 'active' : '' }}">
             <div class="sidebar-open-body">
                 <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path(module.routeName) }}">
@@ -137,11 +137,11 @@
                 {% if module.slug == 'interimaires' %}
                     <a
                         class="sidebar-sub-link ps-4"
-                        href="{{ path(module.routeName) }}#nouvel-interimaire"
+                        href="{{ path(module.routeName) }}#nouvel-intérimaire"
                         data-navigation-modal="#createInterimWorkerModal"
                     >
                         <i class="bi bi-person-plus"></i>
-                        <span>Ajouter un interimaire</span>
+                        <span>Ajouter un intérimaire</span>
                     </a>
                 {% endif %}
             </div>

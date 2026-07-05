@@ -17,7 +17,7 @@ final class FishReceptionTreatmentCancelType extends AbstractType
 
         $builder
             ->add('quantity', NumberType::class, [
-                'label' => 'Quantite a annuler du traitement (kg)',
+                'label' => 'Quantité à annuler du traitement (kg)',
                 'mapped' => false,
                 'required' => true,
                 'data' => $available > 0 ? round($available, 3) : null,

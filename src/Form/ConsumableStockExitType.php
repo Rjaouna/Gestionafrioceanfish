@@ -20,11 +20,11 @@ final class ConsumableStockExitType extends AbstractType
 
         $builder
             ->add('quantity', NumberType::class, [
-                'label' => 'Quantite sortie',
+                'label' => 'Quantité sortie',
                 'mapped' => false,
                 'scale' => 2,
                 'html5' => true,
-                'constraints' => [new Assert\Positive(message: 'La quantite doit etre superieure a zero.')],
+                'constraints' => [new Assert\Positive(message: 'La quantité doit être supérieure à zéro.')],
                 'attr' => ['min' => 0.01, 'step' => '0.01'],
             ])
             ->add('movementDate', DateTimeType::class, [

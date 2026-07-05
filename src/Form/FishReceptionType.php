@@ -25,24 +25,24 @@ final class FishReceptionType extends AbstractType
         $smartFields = [
             'fournisseur' => ['label' => 'Fournisseur', 'values' => $choiceLists['fournisseur'] ?? [], 'required' => true, 'maxlength' => 150],
             'provenance' => ['label' => 'Provenance', 'values' => $choiceLists['provenance'] ?? [], 'required' => false, 'maxlength' => 150],
-            'especePoisson' => ['label' => 'Espece poisson', 'values' => $choiceLists['especePoisson'] ?? [], 'required' => true, 'maxlength' => 120],
-            'presentationProduit' => ['label' => 'Presentation produit', 'values' => $choiceLists['presentationProduit'] ?? [], 'required' => true, 'maxlength' => 120],
+            'especePoisson' => ['label' => 'Espèce poisson', 'values' => $choiceLists['especePoisson'] ?? [], 'required' => true, 'maxlength' => 120],
+            'presentationProduit' => ['label' => 'Présentation produit', 'values' => $choiceLists['presentationProduit'] ?? [], 'required' => true, 'maxlength' => 120],
             'etatProduit' => ['label' => 'Etat du produit', 'values' => $choiceLists['etatProduit'] ?? [], 'required' => true, 'maxlength' => 120],
-            'categorieFraicheur' => ['label' => 'Categorie fraicheur', 'values' => $choiceLists['categorieFraicheur'] ?? [], 'required' => true, 'maxlength' => 80],
+            'categorieFraicheur' => ['label' => 'Catégorie fraîcheur', 'values' => $choiceLists['categorieFraicheur'] ?? [], 'required' => true, 'maxlength' => 80],
         ];
 
         $builder
-            ->add('dateReception', DateType::class, $this->dateOptions('Date de reception'))
-            ->add('heureDebutReception', TimeType::class, $this->timeOptions('Heure debut reception'))
-            ->add('heureFinReception', TimeType::class, $this->timeOptions('Heure fin reception'))
+            ->add('dateReception', DateType::class, $this->dateOptions('Date de réception'))
+            ->add('heureDebutReception', TimeType::class, $this->timeOptions('Heure début réception'))
+            ->add('heureFinReception', TimeType::class, $this->timeOptions('Heure fin réception'))
             ->add('matriculeVehicule', TextType::class, $this->textOptions('Matricule vehicule', false, 80))
             ->add('chauffeur', TextType::class, $this->textOptions('Chauffeur', false, 150))
             ->add('nomScientifique', TextType::class, $this->textOptions('Nom scientifique', false, 150))
-            ->add('numeroBonLivraison', TextType::class, $this->textOptions('N Bon de livraison', false, 120))
-            ->add('quantiteIndiqueeBl', NumberType::class, $this->numberOptions('Quantite indiquee sur BL (kg)', 3, '0.001', false))
-            ->add('quantiteReceptionnee', NumberType::class, $this->numberOptions('Quantite receptionnee (kg)', 3, '0.001'))
+            ->add('numeroBonLivraison', TextType::class, $this->textOptions('N° Bon de livraison', false, 120))
+            ->add('quantiteIndiqueeBl', NumberType::class, $this->numberOptions('Quantité indiquée sur BL (kg)', 3, '0.001', false))
+            ->add('quantiteReceptionnee', NumberType::class, $this->numberOptions('Quantité réceptionnée (kg)', 3, '0.001'))
             ->add('nombreCaissesReception', IntegerType::class, $this->integerOptions('Nombre de caisses reception', false))
-            ->add('temperaturePoissonReception', NumberType::class, $this->numberOptions('Temperature poisson reception', 2, '0.01', false, true))
+            ->add('temperaturePoissonReception', NumberType::class, $this->numberOptions('Température poisson réception', 2, '0.01', false, true))
             ->add('presenceGlace', ChoiceType::class, [
                 'label' => 'Presence de glace',
                 'choices' => ['Oui' => true, 'Non' => false],
@@ -50,17 +50,17 @@ final class FishReceptionType extends AbstractType
                 'multiple' => false,
             ])
             ->add('operationType', ChoiceType::class, [
-                'label' => 'Type operation',
+                'label' => 'Type opération',
                 'choices' => array_flip(FishReception::OPERATION_LABELS),
             ])
             ->add('receptionPrixAchatKg', NumberType::class, $this->numberOptions('Prix achat / kg', 2, '0.01', false))
             ->add('receptionMontantAchatTotal', NumberType::class, $this->numberOptions('Montant achat total', 2, '0.01', false))
-            ->add('receptionFraisTransport', NumberType::class, $this->numberOptions('Frais transport reception', 2, '0.01', false))
-            ->add('receptionFraisDechargement', NumberType::class, $this->numberOptions('Frais dechargement / manutention', 2, '0.01', false))
-            ->add('receptionFraisGlaceConsommables', NumberType::class, $this->numberOptions('Glace / consommables reception', 2, '0.01', false))
-            ->add('receptionFraisControleQualite', NumberType::class, $this->numberOptions('Controle qualite / analyse', 2, '0.01', false))
-            ->add('receptionAutresFrais', NumberType::class, $this->numberOptions('Autres frais reception', 2, '0.01', false))
-            ->add('receptionReferenceFacture', TextType::class, $this->textOptions('Reference facture', false, 120))
+            ->add('receptionFraisTransport', NumberType::class, $this->numberOptions('Frais transport réception', 2, '0.01', false))
+            ->add('receptionFraisDechargement', NumberType::class, $this->numberOptions('Frais déchargement / manutention', 2, '0.01', false))
+            ->add('receptionFraisGlaceConsommables', NumberType::class, $this->numberOptions('Glace / consommables réception', 2, '0.01', false))
+            ->add('receptionFraisControleQualite', NumberType::class, $this->numberOptions('Contrôle qualité / analyse', 2, '0.01', false))
+            ->add('receptionAutresFrais', NumberType::class, $this->numberOptions('Autres frais réception', 2, '0.01', false))
+            ->add('receptionReferenceFacture', TextType::class, $this->textOptions('Référence facture', false, 120))
             ->add('receptionDevise', TextType::class, [
                 'label' => 'Devise',
                 'required' => true,
@@ -77,10 +77,10 @@ final class FishReceptionType extends AbstractType
 
         $this->addReceptionSmartChoice($builder, 'fournisseur', 'Fournisseur', $smartFields['fournisseur']['values'], true, 150, $reception instanceof FishReception ? $reception->getFournisseur() : null);
         $this->addReceptionSmartChoice($builder, 'provenance', 'Provenance', $smartFields['provenance']['values'], false, 150, $reception instanceof FishReception ? $reception->getProvenance() : null);
-        $this->addReceptionSmartChoice($builder, 'especePoisson', 'Espece poisson', $smartFields['especePoisson']['values'], true, 120, $reception instanceof FishReception ? $reception->getEspecePoisson() : null);
-        $this->addReceptionSmartChoice($builder, 'presentationProduit', 'Presentation produit', $smartFields['presentationProduit']['values'], true, 120, $reception instanceof FishReception ? $reception->getPresentationProduit() : null);
+        $this->addReceptionSmartChoice($builder, 'especePoisson', 'Espèce poisson', $smartFields['especePoisson']['values'], true, 120, $reception instanceof FishReception ? $reception->getEspecePoisson() : null);
+        $this->addReceptionSmartChoice($builder, 'presentationProduit', 'Présentation produit', $smartFields['presentationProduit']['values'], true, 120, $reception instanceof FishReception ? $reception->getPresentationProduit() : null);
         $this->addReceptionSmartChoice($builder, 'etatProduit', 'Etat du produit', $smartFields['etatProduit']['values'], true, 120, $reception instanceof FishReception ? $reception->getEtatProduit() : null);
-        $this->addReceptionSmartChoice($builder, 'categorieFraicheur', 'Categorie fraicheur', $smartFields['categorieFraicheur']['values'], true, 80, $reception instanceof FishReception ? $reception->getCategorieFraicheur() : null);
+        $this->addReceptionSmartChoice($builder, 'categorieFraicheur', 'Catégorie fraîcheur', $smartFields['categorieFraicheur']['values'], true, 80, $reception instanceof FishReception ? $reception->getCategorieFraicheur() : null);
         $this->addReceptionSmartChoiceSubmitListener($builder, $smartFields);
     }
 

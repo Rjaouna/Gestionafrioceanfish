@@ -121,7 +121,7 @@ final class CoutRevientController extends AbstractController
             'form' => $this->buildForm($coutRevient, 'app_cout_revient_create'),
             'item' => $coutRevient,
             'charge_configs' => $this->chargeConfigService->forLotSelection($this->currentUser()),
-            'title' => 'Nouveau cout de revient',
+            'title' => 'Nouveau coût de revient',
             'submit_label' => 'Enregistrer brouillon',
         ]);
     }
@@ -234,7 +234,7 @@ final class CoutRevientController extends AbstractController
         $movedToTrash = $this->coutRevientService->delete($coutRevient, $this->currentUser());
 
         return $this->jsonResponder->success(
-            $movedToTrash ? 'Le lot a ete deplace dans la corbeille.' : 'Le lot a ete supprime.',
+            $movedToTrash ? 'Le lot a été déplacé dans la corbeille.' : 'Le lot a été supprimé.',
             ['reload' => true],
         );
     }
@@ -320,7 +320,7 @@ final class CoutRevientController extends AbstractController
     private function assertCsrf(string $token, string $id): void
     {
         if (!$this->isCsrfTokenValid($id, $token)) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
     }
 

@@ -1,7 +1,7 @@
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
         <h1 class="h3 mb-1">{{ title }}</h1>
-        <p class="text-secondary mb-0">Creation et controle de la reception matiere premiere.</p>
+        <p class="text-secondary mb-0">Création et contrôle de la réception matière première.</p>
     </div>
     <a class="btn btn-outline-secondary" href="{{ path('app_fish_reception_index') }}">
         <i class="bi bi-arrow-left me-2"></i>Retour
@@ -62,13 +62,13 @@
 
             <section class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-0 pb-0">
-                    <h2 class="h5 mb-1">2. Couts d'entree</h2>
-                    <p class="text-secondary small mb-0">Base de calcul reutilisee ensuite dans le cout de revient.</p>
+                    <h2 class="h5 mb-1">2. Coûts d'entrée</h2>
+                    <p class="text-secondary small mb-0">Base de calcul réutilisée ensuite dans le coût de revient.</p>
                 </div>
                 <div class="card-body">
                     <div class="fish-reception-cost-summary mb-3">
                         <div>
-                            <span>Achat matiere</span>
+                            <span>Achat matière</span>
                             <strong><span data-fish-reception-cost-output="purchase">0,00</span> <span data-fish-reception-cost-currency>{{ item.receptionDevise }}</span></strong>
                         </div>
                         <div>
@@ -76,11 +76,11 @@
                             <strong><span data-fish-reception-cost-output="fees">0,00</span> <span data-fish-reception-cost-currency>{{ item.receptionDevise }}</span></strong>
                         </div>
                         <div>
-                            <span>Cout reception</span>
+                            <span>Coût réception</span>
                             <strong><span data-fish-reception-cost-output="total">0,00</span> <span data-fish-reception-cost-currency>{{ item.receptionDevise }}</span></strong>
                         </div>
                         <div>
-                            <span>Cout / kg recu</span>
+                            <span>Coût / kg recu</span>
                             <strong><span data-fish-reception-cost-output="kg">0,00</span> <span data-fish-reception-cost-currency>{{ item.receptionDevise }}</span></strong>
                         </div>
                     </div>
@@ -89,8 +89,8 @@
                         <div class="fish-reception-cost-heading">
                             <span><i class="bi bi-basket2"></i></span>
                             <div>
-                                <h3>Achat matiere premiere</h3>
-                                <p>Prix d'achat calcule avec la quantite receptionnee.</p>
+                                <h3>Achat matière première</h3>
+                                <p>Prix d'achat calculé avec la quantité réceptionnée.</p>
                             </div>
                         </div>
                         <div class="row g-3">
@@ -139,7 +139,7 @@
                 <section class="card border-0 shadow-sm mb-3">
                     <div class="card-header bg-white border-0 pb-0">
                         <h2 class="h5 mb-1">Suivi automatique</h2>
-                        <p class="text-secondary small mb-0">Numeros generes et etat du stock reception.</p>
+                        <p class="text-secondary small mb-0">Numéros générés et état du stock réception.</p>
                     </div>
                     <div class="card-body">
                         <dl class="row mb-0">
@@ -151,19 +151,19 @@
                             <dd class="col-6 text-end"><span class="badge {{ item.statutBadgeClass }}">{{ item.statutLabel }}</span></dd>
                             <dt class="col-6 text-secondary">Envoye traitement</dt>
                             <dd class="col-6 text-end">{{ item.quantiteTotalePreparee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
-                            <dt class="col-6 text-secondary">Reste reception</dt>
+                            <dt class="col-6 text-secondary">Reste réception</dt>
                             <dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleReceptionValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                             <dt class="col-6 text-secondary">Reserve cout</dt>
                             <dd class="col-6 text-end">{{ item.quantiteUtiliseeProduction|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
-                            <dt class="col-6 text-secondary">Cout reception</dt>
+                            <dt class="col-6 text-secondary">Coût réception</dt>
                             <dd class="col-6 text-end fw-semibold"><span data-fish-reception-cost-output="total">{{ item.coutTotalReceptionValue|number_format(2, ',', ' ') }}</span> <span data-fish-reception-cost-currency>{{ item.receptionDevise }}</span></dd>
-                            <dt class="col-6 text-secondary">Cout / kg</dt>
+                            <dt class="col-6 text-secondary">Coût / kg</dt>
                             <dd class="col-6 text-end"><span data-fish-reception-cost-output="kg">{{ item.coutKgReceptionValue|number_format(2, ',', ' ') }}</span> <span data-fish-reception-cost-currency>{{ item.receptionDevise }}</span></dd>
                         </dl>
                         {% if item.locked %}
-                            <div class="alert alert-warning small mb-0 mt-3">Cette reception est verrouillee.</div>
+                            <div class="alert alert-warning small mb-0 mt-3">Cette réception est verrouillée.</div>
                         {% else %}
-                            <div class="alert alert-info small mb-0 mt-3">Les numeros seront generes automatiquement a l'enregistrement.</div>
+                            <div class="alert alert-info small mb-0 mt-3">Les numéros seront générés automatiquement à l'enregistrement.</div>
                         {% endif %}
                     </div>
                 </section>

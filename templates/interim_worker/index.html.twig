@@ -1,11 +1,11 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Fiches interimaires{% endblock %}
+{% block title %}Fiches intérimaires{% endblock %}
 
 {% block body %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
-        <h1 class="h3 mb-1">Fiches interimaires</h1>
+        <h1 class="h3 mb-1">Fiches intérimaires</h1>
         <p class="text-secondary mb-0" data-ajax-count-region="interimWorkerGrid">{{ pagination.total }} element{{ pagination.total > 1 ? 's' : '' }} visible{{ pagination.total > 1 ? 's' : '' }}.</p>
     </div>
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createInterimWorkerModal">
@@ -32,7 +32,7 @@
             {% include 'interim_worker/_form_modal.html.twig' with {
                 form: create_form,
                 worker: create_form.vars.data,
-                title: 'Ajouter un interimaire',
+                title: 'Ajouter un intérimaire',
                 submit_label: 'Ajouter',
                 filter_choices: filter_choices
             } %}

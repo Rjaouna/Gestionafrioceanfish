@@ -25,7 +25,7 @@ final class FactoryUnitType extends AbstractType
             ->add('code', TextType::class, [
                 'label' => 'Reference',
                 'required' => false,
-                'help' => 'Laissez vide pour generer automatiquement.',
+                'help' => 'Laissez vide pour générer automatiquement.',
                 'attr' => ['maxlength' => 60, 'placeholder' => 'Auto'],
             ])
             ->add('type', ChoiceType::class, [

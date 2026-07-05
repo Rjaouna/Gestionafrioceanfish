@@ -36,16 +36,16 @@ final class FishReceptionShippingType extends AbstractType
         ];
 
         $builder
-            ->add('quantity', NumberType::class, $this->quantityOptions('Quantite a expedier (kg)', (float) $options['available_quantity']))
+            ->add('quantity', NumberType::class, $this->quantityOptions('Quantité à expédier (kg)', (float) $options['available_quantity']))
             ->add('expeditionDateDepart', DateType::class, [
-                'label' => 'Date expedition',
+                'label' => 'Date expédition',
                 'required' => true,
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'data' => $dateDepart,
             ])
             ->add('expeditionHeureDepart', TimeType::class, [
-                'label' => 'Heure depart camion',
+                'label' => 'Heure départ camion',
                 'required' => true,
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
@@ -54,10 +54,10 @@ final class FishReceptionShippingType extends AbstractType
             ->add('expeditionMatriculeVehicule', TextType::class, $this->textOptions('Matricule camion', true, 80, 'Ex. 12345-A-6'))
             ->add('expeditionChauffeur', TextType::class, $this->textOptions('Nom chauffeur', true, 150, 'Nom et prenom du chauffeur'))
             ->add('expeditionResponsableChargement', TextType::class, $this->textOptions('Responsable chargement', true, 150, 'Personne qui a charge le camion'))
-            ->add('expeditionTemperatureProduit', NumberType::class, $this->numberOptions('Temperature produit au chargement', false, true))
-            ->add('expeditionNumeroPlomb', TextType::class, $this->textOptions('Numero plomb / scelle', false, 80, 'Scelle camion ou plomb'))
+            ->add('expeditionTemperatureProduit', NumberType::class, $this->numberOptions('Température produit au chargement', false, true))
+            ->add('expeditionNumeroPlomb', TextType::class, $this->textOptions('Numéro plomb / scellé', false, 80, 'Scellé camion ou plomb'))
             ->add('expeditionObservations', TextareaType::class, [
-                'label' => 'Observations expedition',
+                'label' => 'Observations expédition',
                 'required' => false,
                 'attr' => ['rows' => 3, 'maxlength' => 2000, 'placeholder' => 'Etat camion, remarques chargement, documents remis...'],
             ]);

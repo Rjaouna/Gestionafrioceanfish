@@ -139,79 +139,79 @@ final readonly class FishReceptionExcelFormService
 
         return match ($stage) {
             'traitement' => [
-                $this->field('quantity', 'Quantite a envoyer au traitement (kg)', 'number', true, 'Saisir la quantite en kg.'),
-                $this->field('dateDebutTraitement', 'Date debut traitement', 'date', true),
-                $this->field('heureDebutTraitement', 'Heure debut traitement', 'time', false),
-                $this->field('temperatureEauGlacee', 'Temperature eau glacee', 'number', false, 'Valeur negative autorisee.'),
+                $this->field('quantity', 'Quantité à envoyer au traitement (kg)', 'number', true, 'Saisir la quantité en kg.'),
+                $this->field('dateDebutTraitement', 'Date début traitement', 'date', true),
+                $this->field('heureDebutTraitement', 'Heure début traitement', 'time', false),
+                $this->field('temperatureEauGlacee', 'Température eau glacée', 'number', false, 'Valeur négative autorisée.'),
                 $this->field('poidsMoyenParCaisse', 'Poids moyen par caisse (kg)', 'number', false),
                 $this->field('nombreMoules', 'Nombre de moules', 'integer', false),
                 $this->field('nombreCaissesParEtage', 'Nombre de caisses par etage', 'integer', false, 'Par defaut : 5.'),
                 $this->field('nombreNiveauxPalette', 'Nombre de niveaux', 'integer', false, 'Par defaut : 16.'),
             ],
             'emballage' => [
-                $this->field('quantity', 'Quantite a conditionner / emballer (kg)', 'number', true),
+                $this->field('quantity', 'Quantité à conditionner / emballer (kg)', 'number', true),
                 $this->field('dateConditionnement', 'Date conditionnement', 'date', false),
-                $this->field('heureDebutConditionnement', 'Heure debut conditionnement', 'time', false),
+                $this->field('heureDebutConditionnement', 'Heure début conditionnement', 'time', false),
                 $this->field('heureFinConditionnement', 'Heure fin conditionnement', 'time', false),
                 $this->field('poidsNet', 'Poids net (kg)', 'number', false),
-                $this->field('produitConditionne', 'Produit conditionne', 'text', true, null, 'produitConditionne'),
+                $this->field('produitConditionne', 'Produit conditionné', 'text', true, null, 'produitConditionne'),
             ],
             'congelation' => [
-                $this->field('quantity', 'Quantite a congeler (kg)', 'number', true),
+                $this->field('quantity', 'Quantité à congeler (kg)', 'number', true),
                 $this->field('tunnel', 'Tunnel', 'text', true, null, 'tunnel'),
-                $this->field('heureEntreeTunnel', 'Heure entree tunnel', 'time', false),
-                $this->field('temperatureTunnel', 'Temperature tunnel', 'number', false, 'Valeur negative autorisee.'),
+                $this->field('heureEntreeTunnel', 'Heure entrée tunnel', 'time', false),
+                $this->field('temperatureTunnel', 'Température tunnel', 'number', false, 'Valeur négative autorisée.'),
                 $this->field('dateSortieTunnel', 'Date sortie tunnel', 'date', false),
-                $this->field('temperatureCoeurProduit', 'Temperature a coeur produit', 'number', false, 'Valeur negative autorisee.'),
+                $this->field('temperatureCoeurProduit', 'Température à coeur produit', 'number', false, 'Valeur négative autorisée.'),
             ],
             'stockage' => [
-                $this->field('quantity', 'Quantite a entrer en stock (kg)', 'number', true),
+                $this->field('quantity', 'Quantité à entrer en stock (kg)', 'number', true),
                 $this->field('chambreFroide', 'Chambre froide / zone de stockage', 'text', true, null, 'chambreFroide'),
-                $this->field('temperatureChambre', 'Temperature chambre', 'number', false, 'Valeur negative autorisee.'),
-                $this->field('temperatureStockage', 'Temperature produit stocke', 'number', false, 'Valeur negative autorisee.'),
-                $this->field('dateEntreeStockage', 'Date entree stockage', 'date', false),
-                $this->field('heureEntreeStockage', 'Heure entree stockage', 'time', false),
+                $this->field('temperatureChambre', 'Température chambre', 'number', false, 'Valeur négative autorisée.'),
+                $this->field('temperatureStockage', 'Température produit stocké', 'number', false, 'Valeur négative autorisée.'),
+                $this->field('dateEntreeStockage', 'Date entrée stockage', 'date', false),
+                $this->field('heureEntreeStockage', 'Heure entrée stockage', 'time', false),
             ],
             'expedition' => [
-                $this->field('quantity', 'Quantite a expedier (kg)', 'number', true),
-                $this->field('expeditionDateDepart', 'Date expedition', 'date', true),
-                $this->field('expeditionHeureDepart', 'Heure depart camion', 'time', true),
+                $this->field('quantity', 'Quantité à expédier (kg)', 'number', true),
+                $this->field('expeditionDateDepart', 'Date expédition', 'date', true),
+                $this->field('expeditionHeureDepart', 'Heure départ camion', 'time', true),
                 $this->field('destinationFinaleClient', 'Destination finale / Client', 'text', true, null, 'destinationFinaleClient'),
                 $this->field('expeditionMatriculeVehicule', 'Matricule camion', 'text', true),
                 $this->field('expeditionChauffeur', 'Nom chauffeur', 'text', true),
                 $this->field('expeditionResponsableChargement', 'Responsable chargement', 'text', true),
-                $this->field('expeditionTemperatureProduit', 'Temperature produit au chargement', 'number', false, 'Valeur negative autorisee.'),
-                $this->field('expeditionNumeroPlomb', 'Numero plomb / scelle', 'text', false),
-                $this->field('expeditionObservations', 'Observations expedition', 'text', false),
+                $this->field('expeditionTemperatureProduit', 'Température produit au chargement', 'number', false, 'Valeur négative autorisée.'),
+                $this->field('expeditionNumeroPlomb', 'Numéro plomb / scellé', 'text', false),
+                $this->field('expeditionObservations', 'Observations expédition', 'text', false),
             ],
             default => [
-                $this->field('dateReception', 'Date de reception', 'date', true),
-                $this->field('heureDebutReception', 'Heure debut reception', 'time', false),
-                $this->field('heureFinReception', 'Heure fin reception', 'time', false),
+                $this->field('dateReception', 'Date de réception', 'date', true),
+                $this->field('heureDebutReception', 'Heure début réception', 'time', false),
+                $this->field('heureFinReception', 'Heure fin réception', 'time', false),
                 $this->field('fournisseur', 'Fournisseur', 'text', true, null, 'fournisseur'),
                 $this->field('provenance', 'Provenance', 'text', false, null, 'provenance'),
-                $this->field('numeroBonLivraison', 'N Bon de livraison', 'text', false),
+                $this->field('numeroBonLivraison', 'N° Bon de livraison', 'text', false),
                 $this->field('matriculeVehicule', 'Matricule vehicule', 'text', false),
                 $this->field('chauffeur', 'Chauffeur', 'text', false),
-                $this->field('especePoisson', 'Espece poisson', 'text', true, null, 'especePoisson'),
+                $this->field('especePoisson', 'Espèce poisson', 'text', true, null, 'especePoisson'),
                 $this->field('nomScientifique', 'Nom scientifique', 'text', false),
-                $this->field('presentationProduit', 'Presentation produit', 'text', true, null, 'presentationProduit'),
-                $this->field('etatProduit', 'Etat produit', 'text', true, null, 'etatProduit'),
-                $this->field('quantiteIndiqueeBl', 'Quantite indiquee sur BL (kg)', 'number', false),
-                $this->field('quantiteReceptionnee', 'Quantite receptionnee (kg)', 'number', true),
+                $this->field('presentationProduit', 'Présentation produit', 'text', true, null, 'presentationProduit'),
+                $this->field('etatProduit', 'État produit', 'text', true, null, 'etatProduit'),
+                $this->field('quantiteIndiqueeBl', 'Quantité indiquée sur BL (kg)', 'number', false),
+                $this->field('quantiteReceptionnee', 'Quantité réceptionnée (kg)', 'number', true),
                 $this->field('nombreCaissesReception', 'Nombre de caisses reception', 'integer', false),
-                $this->field('temperaturePoissonReception', 'Temperature poisson reception', 'number', false, 'Valeur negative autorisee.'),
-                $this->field('categorieFraicheur', 'Categorie fraicheur', 'text', true, null, 'categorieFraicheur'),
+                $this->field('temperaturePoissonReception', 'Température poisson réception', 'number', false, 'Valeur négative autorisée.'),
+                $this->field('categorieFraicheur', 'Catégorie fraîcheur', 'text', true, null, 'categorieFraicheur'),
                 $this->field('presenceGlace', 'Presence de glace', 'bool', false, 'Oui ou Non.'),
-                $this->field('operationType', 'Type operation', 'text', true, 'Valeurs : achat_matiere ou prestation_service.'),
+                $this->field('operationType', 'Type opération', 'text', true, 'Valeurs : achat_matiere ou prestation_service.'),
                 $this->field('receptionPrixAchatKg', 'Prix achat / kg', 'number', false),
                 $this->field('receptionMontantAchatTotal', 'Montant achat total', 'number', false),
-                $this->field('receptionFraisTransport', 'Frais transport reception', 'number', false),
-                $this->field('receptionFraisDechargement', 'Frais dechargement / manutention', 'number', false),
-                $this->field('receptionFraisGlaceConsommables', 'Glace / consommables reception', 'number', false),
-                $this->field('receptionFraisControleQualite', 'Controle qualite / analyse', 'number', false),
-                $this->field('receptionAutresFrais', 'Autres frais reception', 'number', false),
-                $this->field('receptionReferenceFacture', 'Reference facture', 'text', false),
+                $this->field('receptionFraisTransport', 'Frais transport réception', 'number', false),
+                $this->field('receptionFraisDechargement', 'Frais déchargement / manutention', 'number', false),
+                $this->field('receptionFraisGlaceConsommables', 'Glace / consommables réception', 'number', false),
+                $this->field('receptionFraisControleQualite', 'Contrôle qualité / analyse', 'number', false),
+                $this->field('receptionAutresFrais', 'Autres frais réception', 'number', false),
+                $this->field('receptionReferenceFacture', 'Référence facture', 'text', false),
                 $this->field('receptionDevise', 'Devise', 'text', false, 'Par defaut : MAD.'),
                 $this->field('responsableProduction', 'Responsable production', 'text', false),
                 $this->field('signatureResponsable', 'Signature', 'text', false),
@@ -249,7 +249,7 @@ final readonly class FishReceptionExcelFormService
         $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $sheet->mergeCells('A3:F3');
-        $sheet->setCellValue('A3', $reception instanceof FishReception ? sprintf('%s - %s - %s', $reception->getNumeroReception(), $reception->getFournisseur(), $reception->getEspecePoisson()) : 'Nouvelle reception');
+        $sheet->setCellValue('A3', $reception instanceof FishReception ? sprintf('%s - %s - %s', $reception->getNumeroReception(), $reception->getFournisseur(), $reception->getEspecePoisson()) : 'Nouvelle réception');
         $sheet->getStyle('A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $sheet->mergeCells('A4:F4');
@@ -283,7 +283,7 @@ final readonly class FishReceptionExcelFormService
         $help = (string) ($field['help'] ?? '');
         $choiceKey = (string) ($field['choices'] ?? '');
         if ($choiceKey !== '' && !empty($choices[$choiceKey])) {
-            $help .= ($help !== '' ? ' ' : '').'Valeurs deja connues : '.implode(', ', array_slice($choices[$choiceKey], 0, 20));
+            $help .= ($help !== '' ? ' ' : '').'Valeurs déjà connues : '.implode(', ', array_slice($choices[$choiceKey], 0, 20));
             if (count($choices[$choiceKey]) > 20) {
                 $help .= '...';
             }
@@ -359,7 +359,7 @@ final readonly class FishReceptionExcelFormService
     {
         $value = is_string($rawValue) ? trim($rawValue) : $rawValue;
         if ($value === null || $value === '') {
-            return $field['required'] ? [null, 'Champ obligatoire non renseigne.'] : ['', null];
+            return $field['required'] ? [null, 'Champ obligatoire non renseigné.'] : ['', null];
         }
 
         $type = $field['type'];
@@ -383,7 +383,7 @@ final readonly class FishReceptionExcelFormService
 
             $float = (float) $number;
             if ($field['name'] === 'quantity' && $float <= 0) {
-                return [null, 'La quantite doit etre superieure a zero.'];
+                return [null, 'La quantité doit être supérieure à zéro.'];
             }
 
             return [$type === 'integer' ? (string) max(0, (int) round($float)) : (string) $float, null];
@@ -403,12 +403,12 @@ final readonly class FishReceptionExcelFormService
 
         $text = trim((string) $value);
         if ($text === '' && $field['required']) {
-            return [null, 'Champ obligatoire non renseigne.'];
+            return [null, 'Champ obligatoire non renseigné.'];
         }
 
         if ($field['name'] === 'operationType') {
             $normalized = mb_strtolower($text);
-            if (in_array($normalized, ['achat_matiere', 'achat', 'achat matiere premiere'], true)) {
+            if (in_array($normalized, ['achat_matiere', 'achat', 'achat matière première'], true)) {
                 return [FishReception::OPERATION_PURCHASE, null];
             }
             if (in_array($normalized, ['prestation_service', 'prestation', 'service', 'transformation', 'transformation / stockage seulement'], true)) {
@@ -420,7 +420,7 @@ final readonly class FishReceptionExcelFormService
 
         $choiceKey = (string) ($field['choices'] ?? '');
         if (in_array($field['name'], ['tunnel', 'chambreFroide'], true) && $choiceKey !== '' && !empty($choices[$choiceKey]) && !in_array($text, $choices[$choiceKey], true)) {
-            return [null, 'Valeur absente de Composition usine. Choisissez une valeur proposee dans le modele.'];
+            return [null, 'Valeur absente de Composition usine. Choisissez une valeur proposée dans le modèle.'];
         }
 
         return [$text, null];
@@ -507,9 +507,9 @@ final readonly class FishReceptionExcelFormService
         return match ($stage) {
             'traitement' => 'Traitement / Production',
             'emballage' => 'Conditionnement / Emballage',
-            'congelation' => 'Congelation',
+            'congelation' => 'Congélation',
             'stockage' => 'Stockage',
-            'expedition' => 'Expedition',
+            'expedition' => 'Expédition',
             default => 'Reception',
         };
     }
@@ -561,7 +561,7 @@ final readonly class FishReceptionExcelFormService
     private function assertStage(string $stage): void
     {
         if (!in_array($stage, self::STAGES, true)) {
-            throw new \InvalidArgumentException('Phase reception invalide.');
+            throw new \InvalidArgumentException('Phase réception invalide.');
         }
     }
 }

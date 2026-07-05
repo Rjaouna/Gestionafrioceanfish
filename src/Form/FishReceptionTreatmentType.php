@@ -18,15 +18,15 @@ final class FishReceptionTreatmentType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('quantity', NumberType::class, $this->quantityOptions('Quantite a envoyer au traitement (kg)', (float) $options['available_quantity']))
-            ->add('dateDebutTraitement', DateType::class, $this->dateOptions('Date debut traitement'))
-            ->add('heureDebutTraitement', TimeType::class, $this->timeOptions('Heure debut traitement'))
-            ->add('temperatureEauGlacee', NumberType::class, $this->numberOptions('Temperature eau glacee', 2, '0.01', false, true))
+            ->add('quantity', NumberType::class, $this->quantityOptions('Quantité à envoyer au traitement (kg)', (float) $options['available_quantity']))
+            ->add('dateDebutTraitement', DateType::class, $this->dateOptions('Date début traitement'))
+            ->add('heureDebutTraitement', TimeType::class, $this->timeOptions('Heure début traitement'))
+            ->add('temperatureEauGlacee', NumberType::class, $this->numberOptions('Température eau glacée', 2, '0.01', false, true))
             ->add('poidsMoyenParCaisse', NumberType::class, $this->numberOptions('Poids moyen par caisse (kg)', 3, '0.001', false))
             ->add('nombreCaissesApresTraitement', IntegerType::class, $this->integerOptions('Nombre de caisses apres traitement', false, [
                 'readonly' => 'readonly',
                 'data-treatment-box-count' => 'true',
-            ], 'Calcule automatiquement : quantite / poids moyen par caisse.'))
+            ], 'Calcule automatiquement : quantité / poids moyen par caisse.'))
             ->add('nombreMoules', IntegerType::class, $this->integerOptions('Nombre de moules', false))
             ->add('nombreCaissesParEtage', IntegerType::class, $this->integerOptions('Nombre de caisses par etage', false, [
                 'data-treatment-boxes-per-layer' => 'true',

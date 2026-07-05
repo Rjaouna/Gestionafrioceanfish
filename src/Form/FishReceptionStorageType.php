@@ -17,12 +17,12 @@ final class FishReceptionStorageType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('quantity', NumberType::class, $this->quantityOptions('Quantite a entrer en stock (kg)', (float) $options['available_quantity']))
+            ->add('quantity', NumberType::class, $this->quantityOptions('Quantité à entrer en stock (kg)', (float) $options['available_quantity']))
             ->add('chambreFroide', empty($options['factory_unit_choices']) ? TextType::class : ChoiceType::class, $this->factoryUnitOptions('Chambre froide / zone de stockage', $options['factory_unit_choices'], 'Ex. Chambre negative 1', $options['capacity_check_url']))
-            ->add('temperatureChambre', NumberType::class, $this->numberOptions('Temperature chambre', 2, '0.01', false, true))
-            ->add('temperatureStockage', NumberType::class, $this->numberOptions('Temperature produit stocke', 2, '0.01', false, true))
-            ->add('dateEntreeStockage', DateType::class, $this->dateOptions('Date entree stockage', false))
-            ->add('heureEntreeStockage', TimeType::class, $this->timeOptions('Heure entree stockage'));
+            ->add('temperatureChambre', NumberType::class, $this->numberOptions('Température chambre', 2, '0.01', false, true))
+            ->add('temperatureStockage', NumberType::class, $this->numberOptions('Température produit stocké', 2, '0.01', false, true))
+            ->add('dateEntreeStockage', DateType::class, $this->dateOptions('Date entrée stockage', false))
+            ->add('heureEntreeStockage', TimeType::class, $this->timeOptions('Heure entrée stockage'));
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -52,7 +52,7 @@ final class FishReceptionStorageType extends AbstractType
                 'step' => '0.001',
                 'data-factory-capacity-quantity' => 'true',
             ],
-            'help' => sprintf('Disponible apres congelation : %.3f kg', max(0.0, $available)),
+            'help' => sprintf('Disponible après congélation : %.3f kg', max(0.0, $available)),
         ];
     }
 

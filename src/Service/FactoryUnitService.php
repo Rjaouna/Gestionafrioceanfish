@@ -249,8 +249,8 @@ final readonly class FactoryUnitService
             $requestedQuantity,
             [FactoryUnit::TYPE_TUNNEL],
             'Tunnel',
-            'Selectionnez un tunnel avant de valider la congelation.',
-            'Ce tunnel n existe pas dans Composition usine. Selectionnez un tunnel declare pour controler la capacite.',
+            'Sélectionnez un tunnel avant de valider la congélation.',
+            'Ce tunnel n\'existe pas dans Composition usine. Sélectionnez un tunnel déclaré pour contrôler la capacité.',
         );
     }
 
@@ -258,7 +258,7 @@ final readonly class FactoryUnitService
     {
         $diagnostic = $this->tunnelCapacityDiagnostic($actor, $tunnel, $requestedQuantity);
         if (($diagnostic['canSubmit'] ?? false) !== true) {
-            throw new \DomainException((string) ($diagnostic['message'] ?? 'Capacite tunnel insuffisante.'));
+            throw new \DomainException((string) ($diagnostic['message'] ?? 'Capacité tunnel insuffisante.'));
         }
     }
 
@@ -271,8 +271,8 @@ final readonly class FactoryUnitService
             $requestedQuantity,
             [],
             'Espace de stockage',
-            'Selectionnez la chambre froide ou la zone de stockage avant de valider.',
-            'Cet espace n existe pas dans Composition usine. Selectionnez une piece declaree pour controler la capacite.',
+            'Sélectionnez la chambre froide ou la zone de stockage avant de valider.',
+            'Cet espace n\'existe pas dans Composition usine. Sélectionnez une pièce déclarée pour contrôler la capacité.',
         );
     }
 
@@ -280,7 +280,7 @@ final readonly class FactoryUnitService
     {
         $diagnostic = $this->storageCapacityDiagnostic($actor, $location, $requestedQuantity);
         if (($diagnostic['canSubmit'] ?? false) !== true) {
-            throw new \DomainException((string) ($diagnostic['message'] ?? 'Capacite espace stockage insuffisante.'));
+            throw new \DomainException((string) ($diagnostic['message'] ?? 'Capacité espace stockage insuffisante.'));
         }
     }
 
@@ -333,7 +333,7 @@ final readonly class FactoryUnitService
             $this->formatKg($requestedQuantity),
             $this->formatKg($currentLoad),
             $this->formatKg($projectedLoad),
-            $capacity > 0.001 ? $this->formatKg($capacity) : 'capacite non renseignee',
+            $capacity > 0.001 ? $this->formatKg($capacity) : 'capacité non renseignée',
         );
 
         if (!$unit->isActive()) {
@@ -355,18 +355,18 @@ final readonly class FactoryUnitService
             $canSubmit = false;
             $tone = 'danger';
             $title = 'Capacite manquante';
-            $message = sprintf('Renseignez la capacite kg de %s dans Composition usine avant de valider.', $unit->getDisplayName());
+            $message = sprintf('Renseignez la capacité kg de %s dans Composition usine avant de valider.', $unit->getDisplayName());
         } elseif ($requestedQuantity <= 0.001) {
             $canSubmit = false;
             $tone = 'danger';
             $title = 'Quantite obligatoire';
-            $message = 'Renseignez une quantite superieure a 0 kg.';
+            $message = 'Renseignez une quantité supérieure à 0 kg.';
         } elseif ($projectedLoad - $capacity > 0.001) {
             $canSubmit = false;
             $tone = 'danger';
             $title = 'Capacite depassee';
             $message = sprintf(
-                '%s ne peut pas recevoir %s : charge actuelle %s, capacite %s, disponible %s.',
+                '%s ne peut pas recevoir %s : charge actuelle %s, capacité %s, disponible %s.',
                 $unit->getDisplayName(),
                 $this->formatKg($requestedQuantity),
                 $this->formatKg($currentLoad),
@@ -665,7 +665,7 @@ final readonly class FactoryUnitService
 
         $existing = $this->repository->findOneBy(['code' => $unit->getCode()]);
         if ($existing instanceof FactoryUnit && $existing->getId() !== $unit->getId()) {
-            throw new \DomainException('Cette reference usine existe deja.');
+            throw new \DomainException('Cette référence usine existe déjà.');
         }
 
         if ($unit->getStatus() !== FactoryUnit::STATUS_OPERATIONAL) {

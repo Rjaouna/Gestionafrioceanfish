@@ -27,17 +27,17 @@ final class CoutRevientType extends AbstractType
                 'input' => 'datetime_immutable',
             ])
             ->add('numeroLot', TextType::class, [
-                'label' => 'Numero lot',
+                'label' => 'Numéro lot',
                 'required' => false,
                 'attr' => ['maxlength' => 100, 'placeholder' => 'Auto si vide : CR-2026-0001'],
-                'help' => 'Laissez vide pour generer un numero automatiquement.',
+                'help' => 'Laissez vide pour générer un numéro automatiquement.',
             ])
             ->add('produit', TextType::class, [
                 'label' => 'Produit',
                 'attr' => ['maxlength' => 150, 'placeholder' => 'Ex. Filet de sardine'],
             ])
             ->add('especePoisson', TextType::class, [
-                'label' => 'Espece poisson',
+                'label' => 'Espèce poisson',
                 'required' => false,
                 'attr' => ['maxlength' => 150, 'placeholder' => 'Ex. Sardine, anchois, maquereau'],
             ])
@@ -52,7 +52,7 @@ final class CoutRevientType extends AbstractType
                 'attr' => ['maxlength' => 150],
             ])
             ->add('reception', EntityType::class, [
-                'label' => 'Reception matiere premiere',
+                'label' => 'Réception matière première',
                 'class' => FishReception::class,
                 'choice_label' => static fn (FishReception $reception): string => sprintf(
                     '%s - %s - %s kg dispo - %s %s/kg',
@@ -97,7 +97,7 @@ final class CoutRevientType extends AbstractType
                 },
                 'placeholder' => 'Choisir une reception disponible',
                 'required' => false,
-                'help' => 'La quantite saisie dans poids mis en production sera deduite de cette reception.',
+                'help' => 'La quantité saisie dans poids mis en production sera déduite de cette réception.',
             ])
             ->add('poidsBrutRecu', NumberType::class, $this->numberOptions('Poids brut recu (kg)', 3, '0.001'))
             ->add('poidsMisEnProduction', NumberType::class, $this->numberOptions('Poids mis en production (kg)', 3, '0.001'))
@@ -105,7 +105,7 @@ final class CoutRevientType extends AbstractType
             ->add('fraisTransportAchat', NumberType::class, $this->numberOptions('Frais transport achat', 2, '0.01', false))
             ->add('autresFraisAchat', NumberType::class, $this->numberOptions('Autres frais achat', 2, '0.01', false))
             ->add('poidsProduitFini', NumberType::class, $this->numberOptions('Poids produit fini (kg)', 3, '0.001'))
-            ->add('poidsDechets', NumberType::class, $this->numberOptions('Poids dechets (kg)', 3, '0.001', false))
+            ->add('poidsDechets', NumberType::class, $this->numberOptions('Poids déchets (kg)', 3, '0.001', false))
             ->add('poidsPerte', NumberType::class, $this->numberOptions('Poids perte (kg)', 3, '0.001', false))
             ->add('modeCalculMainOeuvre', ChoiceType::class, [
                 'label' => 'Mode calcul main d oeuvre',

@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_interim_worker_hire_date', columns: ['hire_date'])]
 #[ORM\Index(name: 'idx_interim_worker_created_by', columns: ['created_by_id'])]
 #[ORM\Index(name: 'idx_interim_worker_updated_by', columns: ['updated_by_id'])]
-#[UniqueEntity(fields: ['registrationNumber'], message: 'Ce matricule est deja utilise.')]
+#[UniqueEntity(fields: ['registrationNumber'], message: 'Ce matricule est déjà utilisé.')]
 class InterimWorker
 {
     use SoftDeleteTrait;
@@ -44,7 +44,7 @@ class InterimWorker
 
     public const TYPE_LABELS = [
         self::TYPE_OTHER => 'Autre',
-        self::TYPE_STUDENT => 'Etudiant(e)',
+        self::TYPE_STUDENT => 'Étudiant(e)',
     ];
 
     public const TYPE_BADGES = [
@@ -314,7 +314,7 @@ class InterimWorker
     public function setWorkerType(string $workerType): static
     {
         if (!isset(self::TYPE_LABELS[$workerType])) {
-            throw new \InvalidArgumentException('Profil interimaire invalide.');
+            throw new \InvalidArgumentException('Profil intérimaire invalide.');
         }
 
         $this->workerType = $workerType;
@@ -600,7 +600,7 @@ class InterimWorker
     public function setStatus(string $status): static
     {
         if (!isset(self::STATUS_LABELS[$status])) {
-            throw new \InvalidArgumentException('Statut interimaire invalide.');
+            throw new \InvalidArgumentException('Statut intérimaire invalide.');
         }
 
         $this->status = $status;

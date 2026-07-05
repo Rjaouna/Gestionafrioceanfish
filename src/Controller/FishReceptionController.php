@@ -143,7 +143,7 @@ final class FishReceptionController extends AbstractController
         return $this->render('fish_reception/new.html.twig', [
             'form' => $this->buildForm($reception, 'app_fish_reception_create'),
             'item' => $reception,
-            'title' => 'Nouvelle reception',
+            'title' => 'Nouvelle réception',
             'submit_label' => 'Enregistrer la reception',
             'excel_template_url' => $this->generateUrl('app_fish_reception_excel_template', ['stage' => 'reception']),
             'excel_import_url' => $this->generateUrl('app_fish_reception_excel_import', ['stage' => 'reception']),
@@ -187,7 +187,7 @@ final class FishReceptionController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Reception enregistree.', [
+        return $this->jsonResponder->success('Réception enregistrée.', [
             'redirectUrl' => $this->generateUrl('app_fish_reception_view', ['id' => $reception->getId()]),
         ], 201);
     }
@@ -209,7 +209,7 @@ final class FishReceptionController extends AbstractController
     {
         $this->denyAccessUnlessGranted(FishReceptionVoter::VIEW, $reception);
 
-        return $this->jsonResponder->success('Fiche reception mise a jour.', [
+        return $this->jsonResponder->success('Fiche réception mise a jour.', [
             'html' => $this->twig->load('fish_reception/show.html.twig')->renderBlock('reception_show_content', [
                 'item' => $reception,
             ]),
@@ -264,7 +264,7 @@ final class FishReceptionController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Reception mise a jour.', [
+        return $this->jsonResponder->success('Réception mise à jour.', [
             'redirectUrl' => $this->generateUrl('app_fish_reception_view', ['id' => $reception->getId()]),
         ]);
     }
@@ -272,13 +272,13 @@ final class FishReceptionController extends AbstractController
     #[Route('/{id}/valider', name: 'app_fish_reception_validate', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function validateReception(FishReception $reception, Request $request): JsonResponse
     {
-        return $this->transition($reception, $request, 'validate_fish_reception_', 'Reception validee.', fn () => $this->receptionService->validateReception($reception, $this->currentUser()));
+        return $this->transition($reception, $request, 'validate_fish_reception_', 'Réception validée.', fn () => $this->receptionService->validateReception($reception, $this->currentUser()));
     }
 
     #[Route('/{id}/traitement', name: 'app_fish_reception_start_treatment', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function startTreatment(FishReception $reception, Request $request): JsonResponse
     {
-        return $this->transition($reception, $request, 'treatment_fish_reception_', 'Reception envoyee en traitement.', fn () => $this->receptionService->startTreatment($reception, $this->currentUser()));
+        return $this->transition($reception, $request, 'treatment_fish_reception_', 'Réception envoyée en traitement.', fn () => $this->receptionService->startTreatment($reception, $this->currentUser()));
     }
 
     #[Route('/{id}/traitement/formulaire', name: 'app_fish_reception_treatment_form', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -289,7 +289,7 @@ final class FishReceptionController extends AbstractController
             FishReceptionTreatmentType::class,
             'app_fish_reception_launch_treatment',
             'Lancer le traitement',
-            'Cette quantite sera deduite du disponible reception et ajoutee au traitement.',
+            'Cette quantité sera déduite du disponible réception et ajoutée au traitement.',
             'bi-arrow-repeat',
             'btn-info',
             $reception->getQuantiteDisponibleReceptionValue(),
@@ -306,7 +306,7 @@ final class FishReceptionController extends AbstractController
             'app_fish_reception_launch_treatment',
             $reception->getQuantiteDisponibleReceptionValue(),
             fn (float $quantity) => $this->receptionService->launchTreatment($reception, $quantity, $this->currentUser()),
-            'Quantite envoyee au traitement.',
+            'Quantité envoyée au traitement.',
         );
     }
 
@@ -318,7 +318,7 @@ final class FishReceptionController extends AbstractController
             FishReceptionTreatmentCancelType::class,
             'app_fish_reception_cancel_treatment',
             'Annuler du traitement',
-            'Cette quantite sera retiree du traitement et remise dans le disponible reception.',
+            'Cette quantité sera retirée du traitement et remise dans le disponible réception.',
             'bi-arrow-counterclockwise',
             'btn-danger',
             $reception->getQuantiteDisponibleTraitementValue(),
@@ -351,7 +351,7 @@ final class FishReceptionController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Quantite retiree du traitement et remise en disponible reception.', [
+        return $this->jsonResponder->success('Quantité retirée du traitement et remise en disponible réception.', [
             'closeModal' => true,
             'refreshRegions' => ['fishReceptionGrid', 'fishReceptionFactoryOverview', 'fishReceptionShow'],
         ]);
@@ -364,8 +364,8 @@ final class FishReceptionController extends AbstractController
             $reception,
             FishReceptionFreezingType::class,
             'app_fish_reception_register_freezing',
-            'Valider la congelation',
-            "Cette quantite sera deduite de l'emballage et ajoutee a la congelation.",
+            'Valider la congélation',
+            "Cette quantité sera déduite de l'emballage et ajoutée à la congélation.",
             'bi-snow',
             'btn-primary',
             $reception->getQuantiteDisponibleEmballageValue(),
@@ -379,7 +379,7 @@ final class FishReceptionController extends AbstractController
 
         $quantity = (float) str_replace(',', '.', (string) $request->query->get('quantity', '0'));
 
-        return $this->jsonResponder->success('Capacite tunnel verifiee.', $this->factoryUnitService->tunnelCapacityDiagnostic(
+        return $this->jsonResponder->success('Capacité tunnel vérifiée.', $this->factoryUnitService->tunnelCapacityDiagnostic(
             $this->currentUser(),
             (string) $request->query->get('tunnel', $request->query->get('location', '')),
             $quantity,
@@ -396,14 +396,14 @@ final class FishReceptionController extends AbstractController
             'app_fish_reception_register_freezing',
             $reception->getQuantiteDisponibleEmballageValue(),
             fn (float $quantity) => $this->receptionService->registerFreezing($reception, $quantity, $this->currentUser()),
-            'Quantite congelee enregistree.',
+            'Quantité congelée enregistrée.',
         );
     }
 
     #[Route('/{id}/stockage', name: 'app_fish_reception_store', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function store(FishReception $reception, Request $request): JsonResponse
     {
-        return $this->transition($reception, $request, 'store_fish_reception_', 'Reception marquee en stock.', fn () => $this->receptionService->markStored($reception, $this->currentUser()));
+        return $this->transition($reception, $request, 'store_fish_reception_', 'Réception marquée en stock.', fn () => $this->receptionService->markStored($reception, $this->currentUser()));
     }
 
     #[Route('/{id}/stockage/formulaire', name: 'app_fish_reception_storage_form', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -414,7 +414,7 @@ final class FishReceptionController extends AbstractController
             FishReceptionStorageType::class,
             'app_fish_reception_register_storage',
             'Entrer en stockage',
-            'Cette quantite sera deduite de la congelation et ajoutee au stock chambre froide.',
+            'Cette quantité sera déduite de la congélation et ajoutée au stock chambre froide.',
             'bi-box-seam',
             'btn-success',
             $reception->getQuantiteDisponibleCongelationValue(),
@@ -428,7 +428,7 @@ final class FishReceptionController extends AbstractController
 
         $quantity = (float) str_replace(',', '.', (string) $request->query->get('quantity', '0'));
 
-        return $this->jsonResponder->success('Capacite espace stockage verifiee.', $this->factoryUnitService->storageCapacityDiagnostic(
+        return $this->jsonResponder->success('Capacité espace stockage vérifiée.', $this->factoryUnitService->storageCapacityDiagnostic(
             $this->currentUser(),
             (string) $request->query->get('location', $request->query->get('chambreFroide', '')),
             $quantity,
@@ -445,7 +445,7 @@ final class FishReceptionController extends AbstractController
             'app_fish_reception_register_storage',
             $reception->getQuantiteDisponibleCongelationValue(),
             fn (float $quantity) => $this->receptionService->registerStorage($reception, $quantity, $this->currentUser()),
-            'Quantite entree en stock.',
+            'Quantité entrée en stock.',
         );
     }
 
@@ -457,7 +457,7 @@ final class FishReceptionController extends AbstractController
             FishReceptionPackagingType::class,
             'app_fish_reception_register_packaging',
             'Enregistrer emballage',
-            'Cette quantite sera deduite du traitement et ajoutee au conditionnement.',
+            'Cette quantité sera déduite du traitement et ajoutée au conditionnement.',
             'bi-box',
             'btn-warning',
             $reception->getQuantiteDisponibleTraitementValue(),
@@ -474,7 +474,7 @@ final class FishReceptionController extends AbstractController
             'app_fish_reception_register_packaging',
             $reception->getQuantiteDisponibleTraitementValue(),
             fn (float $quantity) => $this->receptionService->registerPackaging($reception, $quantity, $this->currentUser()),
-            'Quantite emballee enregistree.',
+            'Quantité emballée enregistrée.',
         );
     }
 
@@ -485,8 +485,8 @@ final class FishReceptionController extends AbstractController
             $reception,
             FishReceptionShippingType::class,
             'app_fish_reception_register_shipping',
-            'Enregistrer expedition',
-            'Cette quantite sera deduite du stock et ajoutee aux expeditions.',
+            'Enregistrer expédition',
+            'Cette quantité sera déduite du stock et ajoutée aux expéditions.',
             'bi-truck',
             'btn-dark',
             $reception->getQuantiteDisponibleStockageValue(),
@@ -503,14 +503,14 @@ final class FishReceptionController extends AbstractController
             'app_fish_reception_register_shipping',
             $reception->getQuantiteDisponibleStockageValue(),
             fn (float $quantity) => $this->receptionService->registerShipping($reception, $quantity, $this->currentUser()),
-            'Quantite expediee enregistree.',
+            'Quantité expédiée enregistrée.',
         );
     }
 
     #[Route('/{id}/cloturer', name: 'app_fish_reception_close', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function close(FishReception $reception, Request $request): JsonResponse
     {
-        return $this->transition($reception, $request, 'close_fish_reception_', 'Reception cloturee et verrouillee.', fn () => $this->receptionService->close($reception, $this->currentUser()));
+        return $this->transition($reception, $request, 'close_fish_reception_', 'Réception clôturée et verrouillée.', fn () => $this->receptionService->close($reception, $this->currentUser()));
     }
 
     #[Route('/{id}/bloquer/formulaire', name: 'app_fish_reception_block_form', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -532,7 +532,7 @@ final class FishReceptionController extends AbstractController
             return $this->jsonResponder->error($exception->getMessage(), [], 422);
         }
 
-        return $this->jsonResponder->success('Reception bloquee.', [
+        return $this->jsonResponder->success('Réception bloquée.', [
             'closeModal' => true,
             'refreshRegions' => ['fishReceptionGrid', 'fishReceptionFactoryOverview', 'fishReceptionShow'],
         ]);
@@ -551,7 +551,7 @@ final class FishReceptionController extends AbstractController
         }
 
         return $this->jsonResponder->success(
-            $movedToTrash ? 'Reception deplacee dans la corbeille.' : 'Reception supprimee.',
+            $movedToTrash ? 'Réception déplacée dans la corbeille.' : 'Réception supprimée.',
             ['reload' => true],
         );
     }
@@ -675,7 +675,7 @@ final class FishReceptionController extends AbstractController
     private function importExcelTemplate(string $stage, Request $request, ?FishReception $reception): JsonResponse
     {
         if (!$this->isCsrfTokenValid($this->excelImportTokenId($stage, $reception), (string) $request->request->get('token'))) {
-            return $this->jsonResponder->error('Jeton de securite invalide. Rechargez la page.', [], 422);
+            return $this->jsonResponder->error('Jeton de sécurité invalide. Rechargez la page.', [], 422);
         }
 
         $file = $request->files->get('file');
@@ -686,13 +686,13 @@ final class FishReceptionController extends AbstractController
         try {
             $result = $this->excelFormService->importTemplate($stage, $file->getPathname(), $this->excelChoices($stage, $reception));
         } catch (\Throwable $exception) {
-            return $this->jsonResponder->error('Impossible de lire ce fichier Excel. Telechargez un nouveau modele puis reessayez.', [
+            return $this->jsonResponder->error('Impossible de lire ce fichier Excel. Téléchargez un nouveau modèle puis réessayez.', [
                 'detail' => $exception->getMessage(),
             ], 422);
         }
 
         return $this->jsonResponder->success(
-            $result['hasErrors'] ? 'Import effectue avec des erreurs a corriger.' : 'Import effectue. Verifiez puis validez le formulaire.',
+            $result['hasErrors'] ? 'Import effectué avec des erreurs à corriger.' : 'Import effectué. Vérifiez puis validez le formulaire.',
             $result,
         );
     }
@@ -768,47 +768,47 @@ final class FishReceptionController extends AbstractController
             'traitement' => [
                 'title' => 'Traitement / Production',
                 'description' => 'Deduction de la reception vers la preparation avant conditionnement.',
-                'source_label' => 'Quantite recue',
+                'source_label' => 'Quantité reçue',
                 'moved_label' => 'Envoyee traitement',
-                'available_label' => 'Reste reception',
+                'available_label' => 'Reste réception',
                 'rate_label' => 'Taux traitement',
             ],
             'emballage' => [
                 'title' => 'Conditionnement / Emballage',
-                'description' => 'Conditionnement des quantites preparees avant congelation.',
-                'source_label' => 'Quantite preparee',
-                'moved_label' => 'Emballee',
+                'description' => 'Conditionnement des quantités préparées avant congélation.',
+                'source_label' => 'Quantité préparée',
+                'moved_label' => 'Emballée',
                 'available_label' => 'Reste traitement',
                 'rate_label' => 'Taux emballage',
             ],
             'congelation' => [
-                'title' => 'Congelation',
+                'title' => 'Congélation',
                 'description' => 'Passage tunnel des produits conditionnes.',
-                'source_label' => 'Quantite emballee',
-                'moved_label' => 'Congelee',
+                'source_label' => 'Quantité emballée',
+                'moved_label' => 'Congelée',
                 'available_label' => 'Reste emballage',
                 'rate_label' => 'Taux congelation',
             ],
             'stockage' => [
                 'title' => 'Stockage',
                 'description' => 'Entrees en chambre froide depuis les lots congeles.',
-                'source_label' => 'Quantite congelee',
-                'moved_label' => 'Stockee',
+                'source_label' => 'Quantité congelée',
+                'moved_label' => 'Stockée',
                 'available_label' => 'Reste congelation',
                 'rate_label' => 'Taux stockage',
             ],
             'expedition' => [
-                'title' => 'Expedition',
+                'title' => 'Expédition',
                 'description' => 'Sorties client depuis le stock disponible.',
-                'source_label' => 'Quantite stockee',
-                'moved_label' => 'Expediee',
+                'source_label' => 'Quantité stockée',
+                'moved_label' => 'Expédiée',
                 'available_label' => 'Reste stock',
-                'rate_label' => 'Taux expedition',
+                'rate_label' => 'Taux expédition',
             ],
             default => [
-                'title' => 'Receptions',
-                'description' => 'Creation, validation et suivi des receptions matiere premiere.',
-                'source_label' => 'Quantite recue',
+                'title' => 'Réceptions',
+                'description' => 'Creation, validation et suivi des receptions matière première.',
+                'source_label' => 'Quantité reçue',
                 'moved_label' => 'Envoyee traitement',
                 'available_label' => 'Disponible reception',
                 'rate_label' => 'Taux traitement',
@@ -835,7 +835,7 @@ final class FishReceptionController extends AbstractController
     private function assertCsrf(string $token, string $id): void
     {
         if (!$this->isCsrfTokenValid($id, $token)) {
-            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+            throw new \DomainException('Jeton de sécurité invalide. Rechargez la page.');
         }
     }
 

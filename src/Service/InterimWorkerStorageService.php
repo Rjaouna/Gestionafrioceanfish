@@ -191,7 +191,7 @@ final readonly class InterimWorkerStorageService
     {
         $directory = $this->projectDir.DIRECTORY_SEPARATOR.'var'.DIRECTORY_SEPARATOR.'storage'.DIRECTORY_SEPARATOR.'interimaires'.DIRECTORY_SEPARATOR.$subDirectory;
         if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-            throw new \RuntimeException('Impossible de creer le dossier prive des interimaires.');
+            throw new \RuntimeException('Impossible de créer le dossier privé des intérimaires.');
         }
 
         return $directory;

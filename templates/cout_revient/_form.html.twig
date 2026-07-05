@@ -30,7 +30,7 @@
 
             <section class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-0 pb-0">
-                    <h2 class="h5 mb-1">Matiere premiere</h2>
+                    <h2 class="h5 mb-1">Matière première</h2>
                     <p class="text-secondary small mb-0">Achat poisson et frais directs avant production.</p>
                 </div>
                 <div class="card-body">
@@ -43,11 +43,11 @@
                         <div class="col-12 col-md-6">{{ form_row(form.autresFraisAchat) }}</div>
                     </div>
                     <div class="alert alert-secondary small mb-0 mt-3" data-cout-reception-info>
-                        Selectionnez une reception pour suivre automatiquement le stock matiere premiere.
+                        Sélectionnez une réception pour suivre automatiquement le stock matière première.
                     </div>
                     <div class="cout-live-grid mt-3">
                         <div class="cout-live-pill">
-                            <span>Achat matiere utilisee</span>
+                            <span>Achat matière utilisee</span>
                             <strong><span data-cout-output="coutAchatPoisson">0,00</span> dh</strong>
                         </div>
                         <div class="cout-live-pill">
@@ -65,7 +65,7 @@
             <section class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-0 pb-0">
                     <h2 class="h5 mb-1">Production</h2>
-                    <p class="text-secondary small mb-0">Reference anchois en filet : 35 a 45% de produit fini, 50 a 60% de dechets, 3 a 8% de pertes process.</p>
+                    <p class="text-secondary small mb-0">Référence anchois en filet : 35 à 45 % de produit fini, 50 à 60 % de déchets, 3 à 8 % de pertes process.</p>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
@@ -81,7 +81,7 @@
                         <div class="col-12 col-md-4">
                             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
                                 {{ form_label(form.poidsDechets, null, {label_attr: {class: 'form-label mb-0'}}) }}
-                                <span class="badge text-bg-warning cout-norm-badge" data-cout-production-norm="dechets">Norme -- kg</span>
+                                <span class="badge text-bg-warning cout-norm-badge" data-cout-production-norm="déchets">Norme -- kg</span>
                             </div>
                             {{ form_widget(form.poidsDechets) }}
                             {{ form_errors(form.poidsDechets) }}
@@ -204,7 +204,7 @@
                     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
                         <div>
                             <h2 class="h5 mb-1">Charges configurees</h2>
-                            <p class="text-secondary small mb-0">Selectionnez les charges a inclure dans ce lot.</p>
+                            <p class="text-secondary small mb-0">Sélectionnez les charges à inclure dans ce lot.</p>
                         </div>
                         <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_cout_revient_charge_index') }}">
                             <i class="bi bi-sliders me-1"></i>Configurer
