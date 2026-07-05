@@ -217,8 +217,10 @@
                     {{ ui.row('Reste à congeler', ui.kg(item.quantiteDisponibleEmballageValue), 'text-warning') }}
                     {{ ui.row('Tunnel', ui.text(item.tunnel)) }}
                     {{ ui.row('Heure entrée tunnel', ui.time(item.heureEntreeTunnel)) }}
+                    {{ ui.row('Heure sortie tunnel', ui.time(item.heureSortieTunnel)) }}
+                    {{ ui.row('Durée tunnel', item.dureeTunnelHeuresValue|number_format(2, ',', ' ') ~ ' h') }}
                     {{ ui.row('Température tunnel', ui.temp(item.temperatureTunnel)) }}
-                    {{ ui.row('Date sortie tunnel', ui.date(item.dateSortieTunnel)) }}
+                    {{ ui.row('Jour congélation', ui.date(item.dateSortieTunnel)) }}
                     {{ ui.row('Température cœur produit', ui.temp(item.temperatureCoeurProduit)) }}
                     {{ ui.row('Quantité congelée', ui.kg(item.quantiteCongelee), 'text-primary') }}
                 </div>

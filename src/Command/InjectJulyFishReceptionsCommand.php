@@ -213,6 +213,7 @@ final class InjectJulyFishReceptionsCommand extends Command
                 'produitConditionne' => 'Maquereau traite',
                 'tunnel' => $tunnel1,
                 'heureEntreeTunnel' => '16:00',
+                'heureSortieTunnel' => '19:00',
                 'dateSortieTunnel' => sprintf('%d-07-02', $year),
                 'temperatureTunnel' => -40,
                 'temperatureCoeurProduit' => -18,
@@ -256,6 +257,7 @@ final class InjectJulyFishReceptionsCommand extends Command
                 'produitConditionne' => 'Maquereau traite',
                 'tunnel' => $tunnel2,
                 'heureEntreeTunnel' => '17:00',
+                'heureSortieTunnel' => '20:00',
                 'dateSortieTunnel' => sprintf('%d-07-02', $year),
                 'temperatureTunnel' => -40,
                 'temperatureCoeurProduit' => -18,
@@ -397,6 +399,7 @@ final class InjectJulyFishReceptionsCommand extends Command
         $data['poidsNet'] = 0;
         $data['tunnel'] = null;
         $data['heureEntreeTunnel'] = null;
+        $data['heureSortieTunnel'] = null;
         $data['temperatureTunnel'] = null;
         $data['dateSortieTunnel'] = null;
         $data['temperatureCoeurProduit'] = null;
@@ -449,6 +452,7 @@ final class InjectJulyFishReceptionsCommand extends Command
             ->setPoidsNet($row['poidsNet'])
             ->setTunnel($row['tunnel'])
             ->setHeureEntreeTunnel($this->time($row['heureEntreeTunnel']))
+            ->setHeureSortieTunnel($this->time($row['heureSortieTunnel'] ?? null))
             ->setTemperatureTunnel($row['temperatureTunnel'])
             ->setDateSortieTunnel($this->date($row['dateSortieTunnel']))
             ->setTemperatureCoeurProduit($row['temperatureCoeurProduit'])

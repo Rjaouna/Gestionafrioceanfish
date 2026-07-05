@@ -188,7 +188,7 @@ final readonly class CoutRevientEstimationService
                 'badge' => 'text-bg-primary',
                 'icon' => 'bi-snow',
                 'reference' => (string) $reception->getNumeroReception(),
-                'details' => $reception->getTunnel() ?: 'Tunnel non renseigné',
+                'details' => trim(sprintf('%s - %.2f h tunnel', $reception->getTunnel() ?: 'Tunnel non renseigné', $reception->getDureeTunnelHeuresValue()), ' -'),
                 'actor' => $this->userName($reception->getUpdatedBy()),
                 'reception' => $reception,
             ]);
@@ -522,6 +522,9 @@ final readonly class CoutRevientEstimationService
             }
             if ($this->inDateRange($reception->getDateConditionnement(), $from, $to)) {
                 $hours += $this->durationHours($reception->getDateConditionnement(), $reception->getHeureDebutConditionnement(), $reception->getHeureFinConditionnement());
+            }
+            if ($this->inDateRange($reception->getDateSortieTunnel(), $from, $to)) {
+                $hours += $reception->getDureeTunnelHeuresValue();
             }
         }
 

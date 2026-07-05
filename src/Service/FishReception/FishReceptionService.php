@@ -259,6 +259,12 @@ final readonly class FishReceptionService
         if (!$reception->getTunnel()) {
             throw new \DomainException('Sélectionnez le tunnel avant de valider la congélation.');
         }
+        if (!$reception->getHeureEntreeTunnel()) {
+            throw new \DomainException('Indiquez l\'heure d\'entrée du tunnel pour calculer la durée de congélation.');
+        }
+        if (!$reception->getHeureSortieTunnel()) {
+            throw new \DomainException('Indiquez l\'heure de sortie du tunnel pour calculer la durée de congélation.');
+        }
         $this->factoryUnitService->assertTunnelCanReceive($actor, $reception->getTunnel(), $quantity);
         $now = new \DateTimeImmutable();
 
@@ -266,8 +272,8 @@ final readonly class FishReceptionService
             ->setQuantiteCongelee($reception->getQuantiteCongeleeValue() + $quantity)
             ->setStatut(FishReception::STATUS_FROZEN);
 
-        if ($reception->getHeureEntreeTunnel() === null) {
-            $reception->setHeureEntreeTunnel($now);
+        if ($reception->getDateSortieTunnel() === null) {
+            $reception->setDateSortieTunnel($now);
         }
 
         $this->assertQuantitiesCoherent($reception);

@@ -164,8 +164,10 @@
                 <dl class="row mb-0">
                     <dt class="col-6 text-secondary">Tunnel</dt><dd class="col-6 text-end">{{ item.tunnel ?: '-' }}</dd>
                     <dt class="col-6 text-secondary">Heure entree</dt><dd class="col-6 text-end">{{ item.heureEntreeTunnel ? item.heureEntreeTunnel|date('H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Heure sortie</dt><dd class="col-6 text-end">{{ item.heureSortieTunnel ? item.heureSortieTunnel|date('H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Durée tunnel</dt><dd class="col-6 text-end">{{ item.dureeTunnelHeuresValue|number_format(2, ',', ' ') }} h</dd>
                     <dt class="col-6 text-secondary">Temp. tunnel</dt><dd class="col-6 text-end">{{ item.temperatureTunnel is not null ? item.temperatureTunnel|number_format(2, ',', ' ') ~ ' C' : '-' }}</dd>
-                    <dt class="col-6 text-secondary">Date sortie</dt><dd class="col-6 text-end">{{ item.dateSortieTunnel ? item.dateSortieTunnel|date('d/m/Y') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Jour congélation</dt><dd class="col-6 text-end">{{ item.dateSortieTunnel ? item.dateSortieTunnel|date('d/m/Y') : '-' }}</dd>
                     <dt class="col-6 text-secondary">Temp. a coeur</dt><dd class="col-6 text-end">{{ item.temperatureCoeurProduit is not null ? item.temperatureCoeurProduit|number_format(2, ',', ' ') ~ ' C' : '-' }}</dd>
                     <dt class="col-6 text-secondary">Quantité congelée</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteCongelee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                     <dt class="col-6 text-secondary">Reste à stocker</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleCongelationValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>

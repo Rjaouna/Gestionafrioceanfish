@@ -244,6 +244,9 @@ class FishReception
     #[ORM\Column(type: 'time_immutable', nullable: true)]
     private ?\DateTimeImmutable $heureEntreeTunnel = null;
 
+    #[ORM\Column(type: 'time_immutable', nullable: true)]
+    private ?\DateTimeImmutable $heureSortieTunnel = null;
+
     #[ORM\Column(type: 'decimal', precision: 6, scale: 2, nullable: true)]
     private ?string $temperatureTunnel = null;
 
@@ -1006,6 +1009,18 @@ class FishReception
         return $this;
     }
 
+    public function getHeureSortieTunnel(): ?\DateTimeImmutable
+    {
+        return $this->heureSortieTunnel;
+    }
+
+    public function setHeureSortieTunnel(?\DateTimeImmutable $heureSortieTunnel): static
+    {
+        $this->heureSortieTunnel = $heureSortieTunnel;
+
+        return $this;
+    }
+
     public function getTemperatureTunnel(): ?string
     {
         return $this->temperatureTunnel;
@@ -1627,6 +1642,21 @@ class FishReception
     public function getQuantiteCongeleeValue(): float
     {
         return (float) $this->quantiteCongelee;
+    }
+
+    public function getDureeTunnelHeuresValue(): float
+    {
+        if (!$this->heureEntreeTunnel instanceof \DateTimeImmutable || !$this->heureSortieTunnel instanceof \DateTimeImmutable) {
+            return 0.0;
+        }
+
+        $startMinutes = ((int) $this->heureEntreeTunnel->format('H') * 60) + (int) $this->heureEntreeTunnel->format('i');
+        $endMinutes = ((int) $this->heureSortieTunnel->format('H') * 60) + (int) $this->heureSortieTunnel->format('i');
+        if ($endMinutes < $startMinutes) {
+            $endMinutes += 1440;
+        }
+
+        return max(0, $endMinutes - $startMinutes) / 60;
     }
 
     public function getQuantiteStockeeValue(): float
