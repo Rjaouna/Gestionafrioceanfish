@@ -3,6 +3,9 @@
 namespace App\Form;
 
 use App\Entity\CoutRevient;
+use App\Entity\FishReception;
+use App\Repository\FishReceptionRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -47,6 +50,45 @@ final class CoutRevientType extends AbstractType
                 'label' => 'Responsable production',
                 'required' => false,
                 'attr' => ['maxlength' => 150],
+            ])
+            ->add('reception', EntityType::class, [
+                'label' => 'Reception matiere premiere',
+                'class' => FishReception::class,
+                'choice_label' => static fn (FishReception $reception): string => sprintf(
+                    '%s - %s - %s kg dispo',
+                    (string) $reception->getNumeroReception(),
+                    (string) $reception->getEspecePoisson(),
+                    number_format($reception->getQuantiteDisponibleProductionValue(), 3, ',', ' '),
+                ),
+                'query_builder' => static fn (FishReceptionRepository $repository) => $repository->createQueryBuilder('r')
+                    ->andWhere('r.isDeleted = false')
+                    ->andWhere('r.statut NOT IN (:locked)')
+                    ->andWhere('(r.quantiteReceptionnee > r.quantiteUtiliseeProduction OR r.id = :currentReceptionId)')
+                    ->setParameter('locked', [FishReception::STATUS_DRAFT, FishReception::STATUS_BLOCKED, FishReception::STATUS_CLOSED])
+                    ->setParameter('currentReceptionId', $options['current_reception'] instanceof FishReception ? $options['current_reception']->getId() : 0)
+                    ->orderBy('r.dateReception', 'DESC')
+                    ->addOrderBy('r.id', 'DESC'),
+                'choice_attr' => function (FishReception $reception) use ($options): array {
+                    $current = $options['current_reception'];
+                    $currentAllocation = $current instanceof FishReception && $current->getId() === $reception->getId()
+                        ? (float) $options['current_allocation']
+                        : 0.0;
+                    $available = $reception->getQuantiteDisponibleProductionValue() + $currentAllocation;
+
+                    return [
+                        'data-reception-number' => (string) $reception->getNumeroReception(),
+                        'data-lot-number' => (string) $reception->getNumeroLot(),
+                        'data-species' => (string) $reception->getEspecePoisson(),
+                        'data-product' => (string) $reception->getPresentationProduit(),
+                        'data-supplier' => (string) $reception->getFournisseur(),
+                        'data-received' => (string) $reception->getQuantiteReceptionnee(),
+                        'data-used' => (string) $reception->getQuantiteUtiliseeProduction(),
+                        'data-available' => (string) number_format($available, 3, '.', ''),
+                    ];
+                },
+                'placeholder' => 'Choisir une reception disponible',
+                'required' => false,
+                'help' => 'La quantite saisie dans poids mis en production sera deduite de cette reception.',
             ])
             ->add('poidsBrutRecu', NumberType::class, $this->numberOptions('Poids brut recu (kg)', 3, '0.001'))
             ->add('poidsMisEnProduction', NumberType::class, $this->numberOptions('Poids mis en production (kg)', 3, '0.001'))
@@ -108,7 +150,11 @@ final class CoutRevientType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => CoutRevient::class,
+            'current_reception' => null,
+            'current_allocation' => 0.0,
         ]);
+        $resolver->setAllowedTypes('current_reception', [FishReception::class, 'null']);
+        $resolver->setAllowedTypes('current_allocation', ['int', 'float']);
     }
 
     /** @return array<string, mixed> */

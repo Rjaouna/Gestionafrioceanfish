@@ -66,6 +66,39 @@
                 </a>
             </div>
         </section>
+    {% elseif module.slug == 'receptions' %}
+        <section class="sidebar-open-section {{ module_active ? 'active' : '' }}">
+            <div class="sidebar-open-body">
+                <a class="sidebar-sub-link {{ current_route == 'app_fish_reception_index' ? 'active' : '' }}" href="{{ path('app_fish_reception_index') }}">
+                    <i class="bi bi-clipboard2-check"></i>
+                    <span>Reception</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'traitement' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'traitement'}) }}">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <span>Traitement / Production</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'emballage' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'emballage'}) }}">
+                    <i class="bi bi-box"></i>
+                    <span>Emballage</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'congelation' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'congelation'}) }}">
+                    <i class="bi bi-snow"></i>
+                    <span>Congelation</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'stockage' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'stockage'}) }}">
+                    <i class="bi bi-box-seam"></i>
+                    <span>Stockage</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'expedition' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'expedition'}) }}">
+                    <i class="bi bi-truck"></i>
+                    <span>Expedition</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_new' ? 'active' : '' }}" href="{{ path('app_fish_reception_new') }}">
+                    <i class="bi bi-plus-circle"></i>
+                    <span>Nouvelle reception</span>
+                </a>
+            </div>
+        </section>
     {% else %}
         {% set label = module.slug == 'interimaires' ? 'Fiche interimaire' : (module.slug == 'contacts' ? 'Carnet de contacts' : module.name) %}
         <section class="sidebar-open-section {{ module_active ? 'active' : '' }}">
@@ -131,7 +164,7 @@
 {% set configuration_active = current_route starts with 'app_module' %}
 {% set trash_active = current_route starts with 'app_trash' %}
 {% set deleted_items_count = is_granted('ROLE_SUPER_ADMIN') ? trash_deleted_count(app.user) : 0 %}
-{% set primary_business_slugs = ['cout-revient', 'interimaires', 'expenses', 'contacts'] %}
+{% set primary_business_slugs = ['cout-revient', 'factory', 'receptions', 'interimaires', 'expenses', 'contacts'] %}
 {% set secondary_business_slugs = ['documents', 'maintenance'] %}
 {% set ordered_business_slugs = primary_business_slugs|merge(secondary_business_slugs) %}
 

@@ -1,0 +1,88 @@
+<form id="fishReceptionFilters" class="card border-0 shadow-sm mb-4" data-ajax-filter-region="fishReceptionGrid">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-lg-3">
+                <label class="form-label" for="fish-reception-q">Recherche</label>
+                <input id="fish-reception-q" class="form-control" type="search" name="q" value="{{ filters.q|default('') }}" placeholder="Reception, lot, fournisseur...">
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label" for="fish-reception-date-from">Du</label>
+                <input id="fish-reception-date-from" class="form-control" type="date" name="dateFrom" value="{{ filters.dateFrom|default('') }}">
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label" for="fish-reception-date-to">Au</label>
+                <input id="fish-reception-date-to" class="form-control" type="date" name="dateTo" value="{{ filters.dateTo|default('') }}">
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="fish-reception-statut">Statut</label>
+                <select id="fish-reception-statut" class="form-select" name="statut">
+                    <option value="">Tous</option>
+                    {% for value, label in filter_choices.statuts %}
+                        <option value="{{ value }}" {{ filters.statut|default('') == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="fish-reception-usage">Stock</label>
+                <select id="fish-reception-usage" class="form-select" name="usage">
+                    <option value="">Tous</option>
+                    {% for value, label in filter_choices.usages %}
+                        <option value="{{ value }}" {{ filters.usage|default('') == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="fish-reception-fournisseur">Fournisseur</label>
+                <select id="fish-reception-fournisseur" class="form-select" name="fournisseur">
+                    <option value="">Tous</option>
+                    {% for fournisseur in filter_choices.fournisseurs %}
+                        <option value="{{ fournisseur }}" {{ filters.fournisseur|default('') == fournisseur ? 'selected' : '' }}>{{ fournisseur }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="fish-reception-espece">Espece</label>
+                <select id="fish-reception-espece" class="form-select" name="especePoisson">
+                    <option value="">Toutes</option>
+                    {% for espece in filter_choices.especes %}
+                        <option value="{{ espece }}" {{ filters.especePoisson|default('') == espece ? 'selected' : '' }}>{{ espece }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="fish-reception-chambre">Chambre</label>
+                <select id="fish-reception-chambre" class="form-select" name="chambreFroide">
+                    <option value="">Toutes</option>
+                    {% for chambre in filter_choices.chambres %}
+                        <option value="{{ chambre }}" {{ filters.chambreFroide|default('') == chambre ? 'selected' : '' }}>{{ chambre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="fish-reception-sort">Tri</label>
+                <select id="fish-reception-sort" class="form-select" name="sort">
+                    {% for value, label in filter_choices.sorts %}
+                        <option value="{{ value }}" {{ filters.sort|default('date') == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="fish-reception-direction">Sens</label>
+                <select id="fish-reception-direction" class="form-select" name="direction">
+                    <option value="desc" {{ filters.direction|default('desc') == 'desc' ? 'selected' : '' }}>Desc</option>
+                    <option value="asc" {{ filters.direction|default('desc') == 'asc' ? 'selected' : '' }}>Asc</option>
+                </select>
+            </div>
+            <div class="col-12 col-lg-auto ms-lg-auto">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-search me-2"></i>Filtrer
+                    </button>
+                    <a class="btn btn-outline-secondary" href="{{ clear_url|default(path('app_fish_reception_index')) }}">
+                        <i class="bi bi-x-circle me-2"></i>Effacer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

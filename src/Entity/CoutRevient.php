@@ -22,6 +22,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_cout_revient_updated_by', columns: ['updated_by_id'])]
 #[ORM\Index(name: 'idx_cout_revient_deleted_by', columns: ['deleted_by_id'])]
 #[ORM\Index(name: 'idx_cout_revient_validated_by', columns: ['validated_by_id'])]
+#[ORM\Index(name: 'idx_cout_revient_reception', columns: ['reception_id'])]
 #[UniqueEntity(fields: ['numeroLot'], message: 'Ce numero de lot existe deja.')]
 class CoutRevient
 {
@@ -250,6 +251,10 @@ class CoutRevient
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $validatedBy = null;
+
+    #[ORM\ManyToOne(targetEntity: FishReception::class, inversedBy: 'coutRevients')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?FishReception $reception = null;
 
     /** @var Collection<int, CoutRevientChargeLine> */
     #[ORM\OneToMany(targetEntity: CoutRevientChargeLine::class, mappedBy: 'coutRevient', cascade: ['persist'], orphanRemoval: true)]
@@ -892,6 +897,18 @@ class CoutRevient
     public function setValidatedBy(?User $validatedBy): static
     {
         $this->validatedBy = $validatedBy;
+
+        return $this;
+    }
+
+    public function getReception(): ?FishReception
+    {
+        return $this->reception;
+    }
+
+    public function setReception(?FishReception $reception): static
+    {
+        $this->reception = $reception;
 
         return $this;
     }

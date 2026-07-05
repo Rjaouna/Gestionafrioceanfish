@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier {{ item.numeroReception }}{% endblock %}
+
+{% block body %}
+    {% include 'fish_reception/_form.html.twig' with {
+        form: form,
+        item: item,
+        title: title,
+        submit_label: submit_label
+    } %}
+{% endblock %}

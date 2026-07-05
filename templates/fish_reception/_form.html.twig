@@ -1,0 +1,96 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ title }}</h1>
+        <p class="text-secondary mb-0">Creation et controle de la reception matiere premiere.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ path('app_fish_reception_index') }}">
+        <i class="bi bi-arrow-left me-2"></i>Retour
+    </a>
+</div>
+
+{{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
+    <div class="row g-4 align-items-start">
+        <div class="col-12 col-xl-8">
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">1. Reception</h2>
+                    <p class="text-secondary small mb-0">Donnees du bon de livraison, fournisseur, produit et controle a l'arrivee.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.dateReception) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.heureDebutReception) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.heureFinReception) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.fournisseur) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.provenance) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.numeroBonLivraison) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.matriculeVehicule) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.chauffeur) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.especePoisson) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.nomScientifique) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.presentationProduit) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.etatProduit) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.quantiteIndiqueeBl) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.quantiteReceptionnee) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.nombreCaissesReception) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.temperaturePoissonReception) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.categorieFraicheur) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.presenceGlace) }}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Observations et responsable</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">{{ form_row(form.responsableProduction) }}</div>
+                        <div class="col-12 col-md-6">{{ form_row(form.signatureResponsable) }}</div>
+                        <div class="col-12">{{ form_row(form.observations) }}</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <aside class="col-12 col-xl-4">
+            <div class="position-sticky" style="top: 1rem;">
+                <section class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white border-0 pb-0">
+                        <h2 class="h5 mb-1">Suivi automatique</h2>
+                        <p class="text-secondary small mb-0">Numeros generes et etat du stock reception.</p>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-6 text-secondary">Reception</dt>
+                            <dd class="col-6 text-end fw-semibold">{{ item.numeroReception ?: 'Auto' }}</dd>
+                            <dt class="col-6 text-secondary">Lot interne</dt>
+                            <dd class="col-6 text-end fw-semibold">{{ item.numeroLot ?: 'Auto' }}</dd>
+                            <dt class="col-6 text-secondary">Statut</dt>
+                            <dd class="col-6 text-end"><span class="badge {{ item.statutBadgeClass }}">{{ item.statutLabel }}</span></dd>
+                            <dt class="col-6 text-secondary">Envoye traitement</dt>
+                            <dd class="col-6 text-end">{{ item.quantiteTotalePreparee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                            <dt class="col-6 text-secondary">Reste reception</dt>
+                            <dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleReceptionValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                            <dt class="col-6 text-secondary">Reserve cout</dt>
+                            <dd class="col-6 text-end">{{ item.quantiteUtiliseeProduction|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                        </dl>
+                        {% if item.locked %}
+                            <div class="alert alert-warning small mb-0 mt-3">Cette reception est verrouillee.</div>
+                        {% else %}
+                            <div class="alert alert-info small mb-0 mt-3">Les numeros seront generes automatiquement a l'enregistrement.</div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-save me-2"></i>{{ submit_label }}
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+    {{ form_rest(form) }}
+{{ form_end(form) }}

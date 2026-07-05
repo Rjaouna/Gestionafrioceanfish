@@ -60,6 +60,15 @@
                     <dt class="col-5 text-secondary">Espece</dt><dd class="col-7">{{ item.especePoisson ?: '-' }}</dd>
                     <dt class="col-5 text-secondary">Client</dt><dd class="col-7">{{ item.client ?: '-' }}</dd>
                     <dt class="col-5 text-secondary">Responsable</dt><dd class="col-7">{{ item.responsableProduction ?: '-' }}</dd>
+                    <dt class="col-5 text-secondary">Reception</dt>
+                    <dd class="col-7">
+                        {% if item.reception %}
+                            <a href="{{ path('app_fish_reception_view', {id: item.reception.id}) }}">{{ item.reception.numeroReception }}</a>
+                            <div class="small text-secondary">{{ item.reception.numeroLot }}</div>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </dd>
                     <dt class="col-5 text-secondary">Statut</dt><dd class="col-7"><span class="badge {{ item.statutBadgeClass }}">{{ item.statutLabel }}</span></dd>
                     <dt class="col-5 text-secondary">Cree par</dt><dd class="col-7">{{ item.createdBy ? item.createdBy.displayName : '-' }}</dd>
                     <dt class="col-5 text-secondary">Valide le</dt><dd class="col-7">{{ item.validatedAt ? item.validatedAt|date('d/m/Y H:i') : '-' }}</dd>

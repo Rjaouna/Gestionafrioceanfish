@@ -11,6 +11,7 @@
 {% set line_quantity = line ? line.quantity + 0 : '1' %}
 {% set line_total = line ? line.totalAmount : '0.00' %}
 {% set line_note = line ? line.note : '' %}
+{% set selected_other = selected_config_id == '' and line_name is not empty %}
 
 <div class="border rounded-2 p-3 bg-light-subtle" data-cout-charge-line>
     <input type="hidden" name="chargeLines[{{ index }}][name]" value="{{ line_name }}" data-cout-charge-name>
@@ -35,10 +36,15 @@
                         data-unit-cost="{{ config.unitCost }}"
                         {{ selected_config_id == config.id ? 'selected' : '' }}
                     >
-                        {{ config.name }} - {{ config.unitCost|number_format(2, ',', ' ') }} dh / {{ config.calculationUnitShortLabel }}
+                        {{ config.name }}{{ config.factoryUnit ? ' (usine)' : '' }} - {{ config.unitCost|number_format(2, ',', ' ') }} dh / {{ config.calculationUnitShortLabel }}
                     </option>
                 {% endfor %}
+                <option value="__other__" {{ selected_other ? 'selected' : '' }}>Autre - saisir une charge libre</option>
             </select>
+            <div class="mt-2 {{ selected_other ? '' : 'd-none' }}" data-cout-charge-custom-wrapper>
+                <label class="form-label visually-hidden" for="cout-charge-custom-{{ index }}">Nom de la charge libre</label>
+                <input id="cout-charge-custom-{{ index }}" class="form-control form-control-sm" type="text" maxlength="140" value="{{ selected_other ? line_name : '' }}" placeholder="Nom de la charge" data-cout-charge-custom-name>
+            </div>
             <div class="form-text" data-cout-charge-meta>{{ line_category_label }} - {{ line_unit_label }}</div>
         </div>
         <div class="col-6 col-lg-2">

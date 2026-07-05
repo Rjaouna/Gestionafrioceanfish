@@ -106,7 +106,7 @@ final class CoutRevientController extends AbstractController
         return $this->render('cout_revient/new.html.twig', [
             'form' => $this->buildForm($coutRevient, 'app_cout_revient_create'),
             'item' => $coutRevient,
-            'charge_configs' => $this->chargeConfigService->active($this->currentUser()),
+            'charge_configs' => $this->chargeConfigService->forLotSelection($this->currentUser()),
             'title' => 'Nouveau cout de revient',
             'submit_label' => 'Enregistrer brouillon',
         ]);
@@ -123,7 +123,11 @@ final class CoutRevientController extends AbstractController
             return $this->jsonResponder->invalidForm($form);
         }
 
-        $this->coutRevientService->create($coutRevient, $this->currentUser(), $this->shouldValidate($request), $this->chargeRowsFromRequest($request));
+        try {
+            $this->coutRevientService->create($coutRevient, $this->currentUser(), $this->shouldValidate($request), $this->chargeRowsFromRequest($request));
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
 
         return $this->jsonResponder->success('Cout de revient enregistre.', [
             'redirectUrl' => $this->generateUrl('app_cout_revient_view', ['id' => $coutRevient->getId()]),
@@ -154,7 +158,7 @@ final class CoutRevientController extends AbstractController
         return $this->render('cout_revient/edit.html.twig', [
             'form' => $this->buildForm($coutRevient, 'app_cout_revient_update', ['id' => $coutRevient->getId()]),
             'item' => $coutRevient,
-            'charge_configs' => $this->chargeConfigService->active($this->currentUser()),
+            'charge_configs' => $this->chargeConfigService->forLotSelection($this->currentUser()),
             'title' => sprintf('Modifier le lot %s', $coutRevient->getNumeroLot()),
             'submit_label' => 'Enregistrer',
         ]);
@@ -164,13 +168,19 @@ final class CoutRevientController extends AbstractController
     public function update(CoutRevient $coutRevient, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(CoutRevientVoter::EDIT, $coutRevient);
+        $previousReception = $coutRevient->getReception();
+        $previousQuantity = (float) $coutRevient->getPoidsMisEnProduction();
         $form = $this->buildForm($coutRevient, 'app_cout_revient_update', ['id' => $coutRevient->getId()]);
         $form->handleRequest($request);
         if (!$form->isSubmitted() || !$form->isValid()) {
             return $this->jsonResponder->invalidForm($form);
         }
 
-        $this->coutRevientService->update($coutRevient, $this->currentUser(), $this->shouldValidate($request), $this->chargeRowsFromRequest($request));
+        try {
+            $this->coutRevientService->update($coutRevient, $this->currentUser(), $this->shouldValidate($request), $this->chargeRowsFromRequest($request), $previousReception, $previousQuantity);
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
 
         return $this->jsonResponder->success('Cout de revient mis a jour.', [
             'redirectUrl' => $this->generateUrl('app_cout_revient_view', ['id' => $coutRevient->getId()]),
@@ -250,6 +260,8 @@ final class CoutRevientController extends AbstractController
     {
         return $this->createForm(CoutRevientType::class, $coutRevient, [
             'action' => $this->generateUrl($route, $routeParameters),
+            'current_reception' => $coutRevient->getReception(),
+            'current_allocation' => (float) $coutRevient->getPoidsMisEnProduction(),
         ]);
     }
 

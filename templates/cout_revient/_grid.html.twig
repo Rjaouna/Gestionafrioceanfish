@@ -26,6 +26,9 @@
                             <button class="btn btn-link p-0 text-start fw-semibold text-decoration-none" data-remote-modal="{{ path('app_cout_revient_view', {id: item.id}) }}">
                                 {{ item.numeroLot }}
                             </button>
+                            {% if item.reception %}
+                                <div class="small text-secondary">Reception {{ item.reception.numeroReception }}</div>
+                            {% endif %}
                             {% if item.client %}
                                 <div class="small text-secondary">{{ item.client }}</div>
                             {% endif %}

@@ -1,0 +1,14 @@
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">Reception {{ item.numeroReception }}</h2>
+        <div class="small text-secondary">{{ item.fournisseur }} - {{ item.especePoisson }}</div>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    {% include 'fish_reception/_details_content.html.twig' with {item: item} %}
+</div>
+<div class="modal-footer">
+    {% include 'fish_reception/_actions.html.twig' with {item: item, size: 'btn-sm'} %}
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+</div>

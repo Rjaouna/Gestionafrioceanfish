@@ -12,6 +12,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_cout_charge_config_active', columns: ['is_active'])]
 #[ORM\Index(name: 'idx_cout_charge_config_category', columns: ['category'])]
 #[ORM\Index(name: 'idx_cout_charge_config_unit', columns: ['calculation_unit'])]
+#[ORM\Index(name: 'idx_cout_charge_config_factory_unit', columns: ['factory_unit_id'])]
 #[ORM\Index(name: 'idx_cout_charge_config_created_by', columns: ['created_by_id'])]
 #[ORM\Index(name: 'idx_cout_charge_config_updated_by', columns: ['updated_by_id'])]
 class CoutRevientChargeConfig
@@ -115,6 +116,10 @@ class CoutRevientChargeConfig
 
     #[ORM\Column(options: ['default' => 0])]
     private int $sortOrder = 0;
+
+    #[ORM\ManyToOne(targetEntity: FactoryUnit::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?FactoryUnit $factoryUnit = null;
 
     public function getId(): ?int
     {
@@ -225,6 +230,18 @@ class CoutRevientChargeConfig
     public function setSortOrder(int|string|null $sortOrder): static
     {
         $this->sortOrder = max(0, (int) $sortOrder);
+
+        return $this;
+    }
+
+    public function getFactoryUnit(): ?FactoryUnit
+    {
+        return $this->factoryUnit;
+    }
+
+    public function setFactoryUnit(?FactoryUnit $factoryUnit): static
+    {
+        $this->factoryUnit = $factoryUnit;
 
         return $this;
     }

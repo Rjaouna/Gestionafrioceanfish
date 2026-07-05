@@ -52,6 +52,12 @@
                 <tr class="{{ charge.active ? '' : 'opacity-75' }}">
                     <td>
                         <div class="fw-semibold">{{ charge.name }}</div>
+                        {% if charge.factoryUnit %}
+                            <div class="small">
+                                <span class="badge text-bg-info">Usine</span>
+                                <span class="text-secondary">{{ charge.factoryUnit.typeLabel }} - {{ charge.factoryUnit.statusLabel }}</span>
+                            </div>
+                        {% endif %}
                         <div class="small text-secondary">{{ charge.description ?: 'Aucune note.' }}</div>
                     </td>
                     <td><span class="badge text-bg-light">{{ charge.categoryLabel }}</span></td>

@@ -920,6 +920,73 @@ function coutValue(form, name) {
     return coutNumber(coutField(form, name)?.value);
 }
 
+function selectedCoutReceptionOption(form) {
+    const select = coutField(form, 'reception');
+
+    return select?.selectedOptions?.[0] || null;
+}
+
+function applyCoutReceptionDefaults(form) {
+    const option = selectedCoutReceptionOption(form);
+    if (!option?.value) return;
+
+    const received = coutNumber(option.dataset.received);
+    const available = coutNumber(option.dataset.available);
+    const poidsBrutInput = coutField(form, 'poidsBrutRecu');
+    const poidsProductionInput = coutField(form, 'poidsMisEnProduction');
+    const speciesInput = coutField(form, 'especePoisson');
+    const productInput = coutField(form, 'produit');
+
+    if (poidsBrutInput && coutNumber(poidsBrutInput.value) <= 0) {
+        poidsBrutInput.value = received > 0 ? String(received) : '';
+    }
+
+    if (poidsProductionInput && coutNumber(poidsProductionInput.value) <= 0) {
+        poidsProductionInput.value = available > 0 ? String(Math.min(available, received || available)) : '';
+    }
+
+    if (speciesInput && speciesInput.value.trim() === '' && option.dataset.species) {
+        speciesInput.value = option.dataset.species;
+    }
+
+    if (productInput && productInput.value.trim() === '' && option.dataset.product) {
+        productInput.value = option.dataset.product;
+    }
+}
+
+function syncCoutReceptionInfo(form) {
+    const info = form.querySelector('[data-cout-reception-info]');
+    if (!info) return;
+
+    const option = selectedCoutReceptionOption(form);
+    if (!option?.value) {
+        info.className = 'alert alert-secondary small mb-0 mt-3';
+        info.textContent = 'Selectionnez une reception pour suivre automatiquement le stock matiere premiere.';
+        return;
+    }
+
+    const received = coutNumber(option.dataset.received);
+    const used = coutNumber(option.dataset.used);
+    const available = coutNumber(option.dataset.available);
+    const requested = coutValue(form, 'poidsMisEnProduction');
+    const receptionNumber = option.dataset.receptionNumber || 'Reception';
+
+    if (requested > available + 0.001) {
+        info.className = 'alert alert-danger small mb-0 mt-3';
+        info.textContent = `${receptionNumber} : stock insuffisant. ${coutFormat(requested)} kg demandes, ${coutFormat(available)} kg disponibles.`;
+        return;
+    }
+
+    if (requested > 0) {
+        info.className = 'alert alert-success small mb-0 mt-3';
+        info.textContent = `${receptionNumber} : ${coutFormat(received)} kg recus, ${coutFormat(used)} kg deja utilises, ${coutFormat(available)} kg disponibles. Ce lot utilisera ${coutFormat(requested)} kg.`;
+        return;
+    }
+
+    info.className = 'alert alert-warning small mb-0 mt-3';
+    info.textContent = `${receptionNumber} : ${coutFormat(received)} kg recus, ${coutFormat(available)} kg disponibles. Saisissez le poids mis en production pour deduire la reception.`;
+}
+
 function syncCoutChargeLine(row) {
     const select = row.querySelector('[data-cout-charge-select]');
     const selectedOption = select?.selectedOptions?.[0];
@@ -933,8 +1000,24 @@ function syncCoutChargeLine(row) {
     const unitShort = row.querySelector('[data-cout-charge-unit-short]');
     const totalOutput = row.querySelector('[data-cout-charge-total]');
     const formula = row.querySelector('[data-cout-charge-formula]');
+    const customWrapper = row.querySelector('[data-cout-charge-custom-wrapper]');
+    const customNameInput = row.querySelector('[data-cout-charge-custom-name]');
 
-    if (selectedOption?.value) {
+    const isOther = selectedOption?.value === '__other__';
+    customWrapper?.classList.toggle('d-none', !isOther);
+    if (customNameInput) customNameInput.required = isOther;
+
+    if (isOther) {
+        if (nameInput) nameInput.value = customNameInput?.value.trim() || '';
+        if (categoryInput) categoryInput.value = 'autre';
+        if (unitInput) unitInput.value = 'montant_direct';
+        if (unitCostInput && unitCostInput.value === '') unitCostInput.value = '0';
+        if (quantityInput && coutNumber(quantityInput.value) <= 0) quantityInput.value = '1';
+        if (meta) meta.textContent = 'Autre - Montant direct';
+        if (unitShort) unitShort.textContent = 'direct';
+        if (quantityLabel) quantityLabel.textContent = 'Quantite';
+        row.dataset.coutChargeSelected = '__other__';
+    } else if (selectedOption?.value) {
         if (nameInput) nameInput.value = selectedOption.dataset.name || '';
         if (categoryInput) categoryInput.value = selectedOption.dataset.category || 'autre';
         if (unitInput) unitInput.value = selectedOption.dataset.unit || 'montant_direct';
@@ -948,6 +1031,7 @@ function syncCoutChargeLine(row) {
         row.dataset.coutChargeSelected = selectedOption.value;
     } else {
         if (nameInput) nameInput.value = '';
+        if (customNameInput) customNameInput.value = '';
         if (categoryInput) categoryInput.value = 'autre';
         if (unitInput) unitInput.value = 'montant_direct';
         if (meta) meta.textContent = 'Autre - Montant direct';
@@ -1182,6 +1266,7 @@ function syncCoutRevientForm(form) {
     });
 
     const result = calculateCoutRevient(form);
+    syncCoutReceptionInfo(form);
     form.querySelectorAll('[data-cout-output]').forEach((output) => {
         const key = output.dataset.coutOutput;
         output.textContent = coutFormat(result[key] ?? 0);
@@ -1219,6 +1304,9 @@ function initializeCoutRevientForms(root = document) {
             if (event.target.matches('input, textarea')) syncCoutRevientForm(form);
         });
         form.addEventListener('change', (event) => {
+            if (event.target.matches('select') && event.target.name.endsWith('[reception]')) {
+                applyCoutReceptionDefaults(form);
+            }
             if (event.target.matches('select, input')) syncCoutRevientForm(form);
         });
         form.addEventListener('click', (event) => {
@@ -1419,6 +1507,16 @@ async function refreshAjaxRegion(name, options = {}) {
     } finally {
         region.removeAttribute('aria-busy');
         region.classList.remove('opacity-50');
+    }
+}
+
+async function refreshPayloadRegions(payload) {
+    const regions = [];
+    if (payload.data?.refreshRegion) regions.push(payload.data.refreshRegion);
+    if (Array.isArray(payload.data?.refreshRegions)) regions.push(...payload.data.refreshRegions);
+
+    for (const region of [...new Set(regions.filter(Boolean))]) {
+        await refreshAjaxRegion(region);
     }
 }
 
@@ -1823,7 +1921,7 @@ document.addEventListener('submit', async (event) => {
                 if (modalElement) window.bootstrap.Modal.getInstance(modalElement)?.hide();
                 ajaxForm.reset();
             }
-            if (payload.data?.refreshRegion) await refreshAjaxRegion(payload.data.refreshRegion);
+            await refreshPayloadRegions(payload);
             if (payload.data?.redirectUrl) {
                 window.location.href = payload.data.redirectUrl;
                 return;
@@ -2182,7 +2280,7 @@ document.addEventListener('click', async (event) => {
                 status: maintenanceStatusButton.dataset.maintenanceStatus,
             });
             showAlert(payload.message);
-            if (payload.data?.refreshRegion) await refreshAjaxRegion(payload.data.refreshRegion);
+            await refreshPayloadRegions(payload);
             if (payload.data?.reload) window.location.reload();
         } catch (error) {
             showAlert(error.message, 'danger');
@@ -2298,7 +2396,7 @@ document.addEventListener('click', async (event) => {
                 const modalElement = confirmButton.closest('.modal');
                 if (modalElement) window.bootstrap.Modal.getInstance(modalElement)?.hide();
             }
-            if (payload.data?.refreshRegion) await refreshAjaxRegion(payload.data.refreshRegion);
+            await refreshPayloadRegions(payload);
             if (payload.data?.redirectUrl) {
                 window.location.href = payload.data.redirectUrl;
                 return;

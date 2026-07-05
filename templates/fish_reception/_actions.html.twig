@@ -1,0 +1,49 @@
+{% set size = size|default('btn-sm') %}
+{% if is_granted('FISH_RECEPTION_EDIT', item) %}
+    <a class="btn {{ size }} btn-outline-primary" href="{{ path('app_fish_reception_edit', {id: item.id}) }}">
+        <i class="bi bi-pencil me-1"></i>Modifier
+    </a>
+{% endif %}
+{% if is_granted('FISH_RECEPTION_TRANSITION', item) and not item.locked %}
+    {% if item.statut == 'brouillon' %}
+        <button class="btn {{ size }} btn-outline-success" data-confirm-url="{{ path('app_fish_reception_validate', {id: item.id}) }}" data-token="{{ csrf_token('validate_fish_reception_' ~ item.id) }}" data-confirm-message="Valider cette reception ?">
+            <i class="bi bi-check2-circle me-1"></i>Valider
+        </button>
+    {% endif %}
+    {% if item.quantiteDisponibleReceptionValue > 0.001 %}
+        <button class="btn {{ size }} btn-outline-info" data-remote-modal="{{ path('app_fish_reception_treatment_form', {id: item.id}) }}">
+            <i class="bi bi-arrow-repeat me-1"></i>Traiter
+        </button>
+    {% endif %}
+    {% if item.quantiteDisponibleTraitementValue > 0.001 %}
+        <button class="btn {{ size }} btn-outline-warning" data-remote-modal="{{ path('app_fish_reception_packaging_form', {id: item.id}) }}">
+            <i class="bi bi-box me-1"></i>Emballer
+        </button>
+    {% endif %}
+    {% if item.quantiteDisponibleEmballageValue > 0.001 %}
+        <button class="btn {{ size }} btn-outline-primary" data-remote-modal="{{ path('app_fish_reception_freezing_form', {id: item.id}) }}">
+            <i class="bi bi-snow me-1"></i>Congeler
+        </button>
+    {% endif %}
+    {% if item.quantiteDisponibleCongelationValue > 0.001 %}
+        <button class="btn {{ size }} btn-outline-success" data-remote-modal="{{ path('app_fish_reception_storage_form', {id: item.id}) }}">
+            <i class="bi bi-box-seam me-1"></i>Stocker
+        </button>
+    {% endif %}
+    {% if item.quantiteDisponibleStockageValue > 0.001 %}
+        <button class="btn {{ size }} btn-outline-dark" data-remote-modal="{{ path('app_fish_reception_shipping_form', {id: item.id}) }}">
+            <i class="bi bi-truck me-1"></i>Expedier
+        </button>
+    {% endif %}
+    <button class="btn {{ size }} btn-outline-dark" data-confirm-url="{{ path('app_fish_reception_close', {id: item.id}) }}" data-token="{{ csrf_token('close_fish_reception_' ~ item.id) }}" data-confirm-message="Cloturer cette reception ? Elle sera verrouillee.">
+        <i class="bi bi-lock me-1"></i>Cloturer
+    </button>
+    <button class="btn {{ size }} btn-outline-danger" data-remote-modal="{{ path('app_fish_reception_block_form', {id: item.id}) }}">
+        <i class="bi bi-slash-circle me-1"></i>Bloquer
+    </button>
+{% endif %}
+{% if is_granted('FISH_RECEPTION_DELETE', item) %}
+    <button class="btn {{ size }} btn-outline-danger" data-confirm-url="{{ path('app_fish_reception_delete', {id: item.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_fish_reception_' ~ item.id) }}" data-confirm-message="Supprimer cette reception ?">
+        <i class="bi bi-trash me-1"></i>Supprimer
+    </button>
+{% endif %}

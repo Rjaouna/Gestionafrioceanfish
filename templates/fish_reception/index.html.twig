@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+
+{% set stage = stage|default('reception') %}
+{% set stage_config = stage_config|default({
+    title: 'Receptions',
+    description: 'Creation, validation et suivi des receptions matiere premiere.',
+    source_label: 'Quantite recue',
+    moved_label: 'Envoyee traitement',
+    available_label: 'Disponible reception',
+    rate_label: 'Taux traitement'
+}) %}
+
+{% block title %}{{ stage_config.title }}{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ stage_config.title }}</h1>
+        <div class="text-secondary small mb-1">{{ stage_config.description }}</div>
+        <p class="text-secondary mb-0" data-ajax-count-region="fishReceptionGrid">{{ pagination.total }} reception{{ pagination.total > 1 ? 's' : '' }} visible{{ pagination.total > 1 ? 's' : '' }}.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        {% if stage == 'reception' and is_granted('FISH_RECEPTION_CREATE') %}
+            <a class="btn btn-primary" href="{{ path('app_fish_reception_new') }}">
+                <i class="bi bi-plus-circle me-2"></i>Nouvelle reception
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div
+    data-ajax-region="fishReceptionFactoryOverview"
+    data-refresh-url="{{ path('app_fish_reception_factory_overview') }}"
+>
+    {% include 'fish_reception/_factory_storage_overview.html.twig' with {
+        factory_storage_overview: factory_storage_overview|default({})
+    } %}
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Receptions</div>
+                <div class="h5 mb-0">{{ stats.count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">{{ stage_config.source_label }}</div>
+                <div class="h5 mb-0">{{ stats.received|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">{{ stage_config.moved_label }}</div>
+                <div class="h5 mb-0">{{ stats.used|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">{{ stage_config.available_label }}</div>
+                <div class="h5 mb-0">{{ stats.available|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">{{ stage_config.rate_label }}</div>
+                <div class="h5 mb-0">{{ stats.usage_rate|number_format(2, ',', ' ') }} %</div>
+                {% if stats.blocked > 0 %}
+                    <span class="badge text-bg-danger mt-2">{{ stats.blocked }} bloquee{{ stats.blocked > 1 ? 's' : '' }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'fish_reception/_filters.html.twig' with {
+    filters: filters,
+    filter_choices: filter_choices,
+    clear_url: clear_url|default(path('app_fish_reception_index'))
+} %}
+
+<div
+    data-ajax-region="fishReceptionGrid"
+    data-refresh-url="{{ refresh_url|default(path('app_fish_reception_search')) }}"
+    data-refresh-form="#fishReceptionFilters"
+>
+    {% include 'fish_reception/_grid.html.twig' with {items: items, pagination: pagination, stage: stage} %}
+</div>
+{% endblock %}

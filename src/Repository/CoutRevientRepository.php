@@ -176,7 +176,8 @@ class CoutRevientRepository extends ServiceEntityRepository
             ->leftJoin('c.createdBy', 'creator')
             ->leftJoin('c.updatedBy', 'updater')
             ->leftJoin('c.validatedBy', 'validator')
-            ->addSelect('creator', 'updater', 'validator')
+            ->leftJoin('c.reception', 'reception')
+            ->addSelect('creator', 'updater', 'validator', 'reception')
             ->andWhere('c.isDeleted = false');
 
         $query = mb_strtolower(trim((string) ($filters['q'] ?? '')));
@@ -186,7 +187,9 @@ class CoutRevientRepository extends ServiceEntityRepository
                     OR LOWER(c.produit) LIKE :query
                     OR LOWER(COALESCE(c.especePoisson, \'\')) LIKE :query
                     OR LOWER(COALESCE(c.client, \'\')) LIKE :query
-                    OR LOWER(COALESCE(c.responsableProduction, \'\')) LIKE :query')
+                    OR LOWER(COALESCE(c.responsableProduction, \'\')) LIKE :query
+                    OR LOWER(COALESCE(reception.numeroReception, \'\')) LIKE :query
+                    OR LOWER(COALESCE(reception.numeroLot, \'\')) LIKE :query')
                 ->setParameter('query', '%'.$query.'%');
         }
 

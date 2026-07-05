@@ -33,6 +33,14 @@ final readonly class CoutRevientChargeConfigService
         return $this->repository->findActive();
     }
 
+    /** @return list<CoutRevientChargeConfig> */
+    public function forLotSelection(User $actor): array
+    {
+        $this->assertAccess($actor);
+
+        return $this->repository->findForLotSelection();
+    }
+
     public function create(CoutRevientChargeConfig $config, User $actor): CoutRevientChargeConfig
     {
         $this->assertAccess($actor);

@@ -7,6 +7,7 @@ use App\Entity\Contact;
 use App\Entity\CoutRevient;
 use App\Entity\Document;
 use App\Entity\Expense;
+use App\Entity\FishReception;
 use App\Entity\InterimWorker;
 use App\Entity\InventoryItem;
 use App\Entity\Intervenant;
@@ -32,6 +33,7 @@ final readonly class TrashService
         'password' => ['class' => PasswordEntry::class, 'label' => 'Mot de passe', 'module' => 'Coffre de mots de passe', 'icon' => 'bi-key'],
         'expense' => ['class' => Expense::class, 'label' => 'Dépense', 'module' => 'Dépenses', 'icon' => 'bi-cash-coin'],
         'cout-revient' => ['class' => CoutRevient::class, 'label' => 'Cout de revient', 'module' => 'Cout de revient', 'icon' => 'bi-calculator'],
+        'fish-reception' => ['class' => FishReception::class, 'label' => 'Reception', 'module' => 'Receptions', 'icon' => 'bi-clipboard2-check'],
         'maintenance-contract' => ['class' => MaintenanceContract::class, 'label' => 'Contrat de maintenance', 'module' => 'Maintenance', 'icon' => 'bi-clipboard-check'],
         'intervention' => ['class' => Intervention::class, 'label' => 'Intervention', 'module' => 'Maintenance', 'icon' => 'bi-tools'],
         'intervenant' => ['class' => Intervenant::class, 'label' => 'Intervenant', 'module' => 'Maintenance', 'icon' => 'bi-person-gear'],
@@ -242,6 +244,7 @@ final readonly class TrashService
             $entity instanceof PasswordEntry => (string) $entity->getName(),
             $entity instanceof Expense => (string) $entity->getTitle(),
             $entity instanceof CoutRevient => (string) ($entity->getNumeroLot().' - '.$entity->getProduit()),
+            $entity instanceof FishReception => (string) ($entity->getNumeroReception().' - '.$entity->getEspecePoisson()),
             $entity instanceof MaintenanceContract => (string) ($entity->getReference().' - '.$entity->getCustomerName()),
             $entity instanceof Intervention => (string) ($entity->getReference().' - '.$entity->getTitle()),
             $entity instanceof Intervenant => (string) $entity->getDisplayName(),

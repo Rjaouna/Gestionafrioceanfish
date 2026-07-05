@@ -1,0 +1,23 @@
+<form method="post" action="{{ path('app_fish_reception_block', {id: item.id}) }}" data-ajax-form>
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">Bloquer {{ item.numeroReception }}</h2>
+            <div class="small text-secondary">{{ item.fournisseur }} - {{ item.especePoisson }}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-danger small">
+            Cette action verrouille la reception dans tout le workflow.
+        </div>
+        <input type="hidden" name="token" value="{{ csrf_token('block_fish_reception_' ~ item.id) }}">
+        <label class="form-label" for="fishReceptionBlockReason">Motif du blocage</label>
+        <textarea id="fishReceptionBlockReason" class="form-control" name="reason" rows="4" maxlength="1000" required placeholder="Ex. probleme qualite, temperature non conforme, produit a retourner...">{{ item.blockReason }}</textarea>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-slash-circle me-2"></i>Bloquer
+        </button>
+    </div>
+</form>

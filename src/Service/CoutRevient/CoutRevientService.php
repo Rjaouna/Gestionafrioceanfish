@@ -5,9 +5,11 @@ namespace App\Service\CoutRevient;
 use App\Entity\CoutRevient;
 use App\Entity\CoutRevientChargeConfig;
 use App\Entity\CoutRevientChargeLine;
+use App\Entity\FishReception;
 use App\Entity\User;
 use App\Repository\CoutRevientChargeConfigRepository;
 use App\Repository\CoutRevientRepository;
+use App\Service\FishReception\FishReceptionService;
 use App\Service\Trash\TrashService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -20,6 +22,7 @@ final readonly class CoutRevientService
         private CoutRevientPermissionService $permission,
         private CoutRevientCalculatorService $calculator,
         private CoutRevientChargeConfigRepository $chargeConfigRepository,
+        private FishReceptionService $receptionService,
         private TrashService $trashService,
     ) {
     }
@@ -88,6 +91,7 @@ final readonly class CoutRevientService
 
         $this->prepare($coutRevient);
         $this->syncChargeLines($coutRevient, $chargeRows, $actor);
+        $this->receptionService->syncProductionAllocation($coutRevient, null, 0.0);
         if ($validate) {
             $this->applyValidation($coutRevient, $actor);
         } else {
@@ -103,7 +107,7 @@ final readonly class CoutRevientService
     }
 
     /** @param array<int|string, mixed> $chargeRows */
-    public function update(CoutRevient $coutRevient, User $actor, bool $validate = false, array $chargeRows = []): CoutRevient
+    public function update(CoutRevient $coutRevient, User $actor, bool $validate = false, array $chargeRows = [], ?FishReception $previousReception = null, float $previousQuantity = 0.0): CoutRevient
     {
         if (!$this->permission->canEdit($actor, $coutRevient)) {
             throw new AccessDeniedException();
@@ -111,6 +115,7 @@ final readonly class CoutRevientService
 
         $this->prepare($coutRevient);
         $this->syncChargeLines($coutRevient, $chargeRows, $actor);
+        $this->receptionService->syncProductionAllocation($coutRevient, $previousReception, $previousQuantity);
         if ($validate) {
             $this->applyValidation($coutRevient, $actor);
         } else {
@@ -207,6 +212,11 @@ final readonly class CoutRevientService
         if (!$this->permission->canDelete($actor, $coutRevient)) {
             throw new AccessDeniedException();
         }
+
+        $previousReception = $coutRevient->getReception();
+        $previousQuantity = (float) $coutRevient->getPoidsMisEnProduction();
+        $coutRevient->setReception(null);
+        $this->receptionService->syncProductionAllocation($coutRevient, $previousReception, $previousQuantity);
 
         if (!$this->permission->isSuperAdmin($actor)) {
             $this->trashService->moveToTrash($coutRevient, $actor);

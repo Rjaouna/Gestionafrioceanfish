@@ -1,0 +1,30 @@
+{{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">{{ title }}</h2>
+            <p class="text-secondary small mb-0">{{ item.numeroReception }} - {{ item.fournisseur }} - {{ item.especePoisson }}</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-info small">
+            <i class="bi {{ icon }} me-2"></i>{{ message }}
+        </div>
+        <div class="row g-3">
+            {% for child in form %}
+                {% if child.vars.name != '_token' %}
+                    <div class="{{ child.vars.name == 'quantity' ? 'col-12' : 'col-md-6' }}">
+                        {{ form_row(child) }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {{ form_rest(form) }}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn {{ button_class }}">
+            <i class="bi {{ icon }} me-2"></i>Confirmer
+        </button>
+    </div>
+{{ form_end(form) }}

@@ -1,0 +1,254 @@
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Quantite recue</div>
+                <div class="h5 mb-0">{{ item.quantiteReceptionnee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Envoyee traitement</div>
+                <div class="h5 mb-0">{{ item.quantiteTotalePreparee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Reste reception</div>
+                <div class="h5 mb-0">{{ item.quantiteDisponibleReceptionValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Taux traitement</div>
+                <div class="h5 mb-0">{{ item.tauxUtilisation|number_format(2, ',', ' ') }} %</div>
+                <span class="badge {{ item.usageBadgeClass }} mt-2">{{ item.usageLabel }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Statut</div>
+                <div><span class="badge {{ item.statutBadgeClass }}">{{ item.statutLabel }}</span></div>
+                {% if item.locked %}
+                    <div class="small text-secondary mt-2">Reception verrouillee</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if item.statut == 'bloquee' %}
+    <div class="alert alert-danger">
+        <i class="bi bi-slash-circle me-2"></i>{{ item.blockReason ?: 'Reception bloquee.' }}
+    </div>
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Identification</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-5 text-secondary">Numero reception</dt><dd class="col-7">{{ item.numeroReception }}</dd>
+                    <dt class="col-5 text-secondary">Numero lot</dt><dd class="col-7">{{ item.numeroLot }}</dd>
+                    <dt class="col-5 text-secondary">Date reception</dt><dd class="col-7">{{ item.dateReception ? item.dateReception|date('d/m/Y') : '-' }}</dd>
+                    <dt class="col-5 text-secondary">Heure debut</dt><dd class="col-7">{{ item.heureDebutReception ? item.heureDebutReception|date('H:i') : '-' }}</dd>
+                    <dt class="col-5 text-secondary">Heure fin</dt><dd class="col-7">{{ item.heureFinReception ? item.heureFinReception|date('H:i') : '-' }}</dd>
+                    <dt class="col-5 text-secondary">Cree par</dt><dd class="col-7">{{ item.createdBy ? item.createdBy.displayName : '-' }}</dd>
+                    <dt class="col-5 text-secondary">Mis a jour</dt><dd class="col-7">{{ item.updatedAt ? item.updatedAt|date('d/m/Y H:i') : '-' }}</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Reception</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6 text-secondary">Fournisseur</dt><dd class="col-6 text-end">{{ item.fournisseur }}</dd>
+                    <dt class="col-6 text-secondary">Provenance</dt><dd class="col-6 text-end">{{ item.provenance ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Matricule vehicule</dt><dd class="col-6 text-end">{{ item.matriculeVehicule ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Chauffeur</dt><dd class="col-6 text-end">{{ item.chauffeur ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Espece poisson</dt><dd class="col-6 text-end">{{ item.especePoisson }}</dd>
+                    <dt class="col-6 text-secondary">Nom scientifique</dt><dd class="col-6 text-end">{{ item.nomScientifique ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Presentation</dt><dd class="col-6 text-end">{{ item.presentationProduit }}</dd>
+                    <dt class="col-6 text-secondary">Etat produit</dt><dd class="col-6 text-end">{{ item.etatProduit }}</dd>
+                    <dt class="col-6 text-secondary">BL</dt><dd class="col-6 text-end">{{ item.numeroBonLivraison ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Quantite BL</dt><dd class="col-6 text-end">{{ item.quantiteIndiqueeBl|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Ecart BL</dt><dd class="col-6 text-end {{ item.ecartBlReceptionValue < 0 ? 'text-danger' : '' }}">{{ item.ecartBlReceptionValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Caisses reception</dt><dd class="col-6 text-end">{{ item.nombreCaissesReception }}</dd>
+                    <dt class="col-6 text-secondary">Temp. poisson</dt><dd class="col-6 text-end">{{ item.temperaturePoissonReception is not null ? item.temperaturePoissonReception|number_format(2, ',', ' ') ~ ' C' : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Fraicheur</dt><dd class="col-6 text-end">{{ item.categorieFraicheur }}</dd>
+                    <dt class="col-6 text-secondary">Glace</dt><dd class="col-6 text-end">{{ item.presenceGlace ? 'Oui' : 'Non' }}</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Traitement / Production</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6 text-secondary">Heure debut</dt><dd class="col-6 text-end">{{ item.heureDebutTraitement ? item.heureDebutTraitement|date('H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Temp. eau glacee</dt><dd class="col-6 text-end">{{ item.temperatureEauGlacee is not null ? item.temperatureEauGlacee|number_format(2, ',', ' ') ~ ' C' : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Caisses apres traitement</dt><dd class="col-6 text-end">{{ item.nombreCaissesApresTraitement }}</dd>
+                    <dt class="col-6 text-secondary">Poids moyen caisse</dt><dd class="col-6 text-end">{{ item.poidsMoyenParCaisse|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Moules</dt><dd class="col-6 text-end">{{ item.nombreMoules }}</dd>
+                    <dt class="col-6 text-secondary">Caisses / palette</dt><dd class="col-6 text-end">{{ item.nombreCaissesParPalette }}</dd>
+                    <dt class="col-6 text-secondary">Palettes</dt><dd class="col-6 text-end">{{ item.nombreTotalPalettes }}</dd>
+                    <dt class="col-6 text-secondary">Quantite preparee</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteTotalePreparee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Reste a emballer</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleTraitementValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Conditionnement / Emballage</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6 text-secondary">Date conditionnement</dt><dd class="col-6 text-end">{{ item.dateConditionnement ? item.dateConditionnement|date('d/m/Y') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Heure debut</dt><dd class="col-6 text-end">{{ item.heureDebutConditionnement ? item.heureDebutConditionnement|date('H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Heure fin</dt><dd class="col-6 text-end">{{ item.heureFinConditionnement ? item.heureFinConditionnement|date('H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Produit</dt><dd class="col-6 text-end">{{ item.produitConditionne ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Quantite emballee</dt><dd class="col-6 text-end">{{ item.quantiteConditionnee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Poids net</dt><dd class="col-6 text-end">{{ item.poidsNet|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Reste a congeler</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleEmballageValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Congelation</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6 text-secondary">Tunnel</dt><dd class="col-6 text-end">{{ item.tunnel ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Heure entree</dt><dd class="col-6 text-end">{{ item.heureEntreeTunnel ? item.heureEntreeTunnel|date('H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Temp. tunnel</dt><dd class="col-6 text-end">{{ item.temperatureTunnel is not null ? item.temperatureTunnel|number_format(2, ',', ' ') ~ ' C' : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Date sortie</dt><dd class="col-6 text-end">{{ item.dateSortieTunnel ? item.dateSortieTunnel|date('d/m/Y') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Temp. a coeur</dt><dd class="col-6 text-end">{{ item.temperatureCoeurProduit is not null ? item.temperatureCoeurProduit|number_format(2, ',', ' ') ~ ' C' : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Quantite congelee</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteCongelee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Reste a stocker</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleCongelationValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Stockage</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6 text-secondary">Chambre froide</dt><dd class="col-6 text-end">{{ item.chambreFroide ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Temp. chambre</dt><dd class="col-6 text-end">{{ item.temperatureChambre is not null ? item.temperatureChambre|number_format(2, ',', ' ') ~ ' C' : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Temp. produit stocke</dt><dd class="col-6 text-end">{{ item.temperatureStockage is not null ? item.temperatureStockage|number_format(2, ',', ' ') ~ ' C' : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Date entree</dt><dd class="col-6 text-end">{{ item.dateEntreeStockage ? item.dateEntreeStockage|date('d/m/Y') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Heure entree</dt><dd class="col-6 text-end">{{ item.heureEntreeStockage ? item.heureEntreeStockage|date('H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Quantite stockee</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteStockee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Reste a expedier</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleStockageValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Expedition</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6 text-secondary">Derniere expedition</dt><dd class="col-6 text-end">{{ item.expeditedAt ? item.expeditedAt|date('d/m/Y H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Par</dt><dd class="col-6 text-end">{{ item.expeditedBy ? item.expeditedBy.displayName : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Quantite expediee</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteTotaleExpediee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Reste a expedier</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleStockageValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Destination</dt><dd class="col-6 text-end">{{ item.destinationFinaleClient ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Date depart</dt><dd class="col-6 text-end">{{ item.expeditionDateDepart ? item.expeditionDateDepart|date('d/m/Y') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Heure depart</dt><dd class="col-6 text-end">{{ item.expeditionHeureDepart ? item.expeditionHeureDepart|date('H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Camion</dt><dd class="col-6 text-end">{{ item.expeditionMatriculeVehicule ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Chauffeur</dt><dd class="col-6 text-end">{{ item.expeditionChauffeur ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Responsable chargement</dt><dd class="col-6 text-end">{{ item.expeditionResponsableChargement ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Temp. chargement</dt><dd class="col-6 text-end">{{ item.expeditionTemperatureProduit is not null ? item.expeditionTemperatureProduit|number_format(2, ',', ' ') ~ ' C' : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Plomb / scelle</dt><dd class="col-6 text-end">{{ item.expeditionNumeroPlomb ?: '-' }}</dd>
+                    {% if item.expeditionObservations %}
+                        <dt class="col-12 text-secondary">Observation expedition</dt><dd class="col-12 mb-0 text-pre-wrap">{{ item.expeditionObservations }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Actions et signatures</h2></div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-6 text-secondary">Reception validee</dt><dd class="col-6 text-end">{{ item.receivedAt ? item.receivedAt|date('d/m/Y H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Par</dt><dd class="col-6 text-end">{{ item.receivedBy ? item.receivedBy.displayName : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Traitement lance</dt><dd class="col-6 text-end">{{ item.treatmentStartedAt ? item.treatmentStartedAt|date('d/m/Y H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Stockage valide</dt><dd class="col-6 text-end">{{ item.storedAt ? item.storedAt|date('d/m/Y H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Expedition validee</dt><dd class="col-6 text-end">{{ item.expeditedAt ? item.expeditedAt|date('d/m/Y H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Cloturee</dt><dd class="col-6 text-end">{{ item.closedAt ? item.closedAt|date('d/m/Y H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Responsable</dt><dd class="col-6 text-end">{{ item.responsableProduction ?: '-' }}</dd>
+                    <dt class="col-6 text-secondary">Signature</dt><dd class="col-6 text-end">{{ item.signatureResponsable ?: '-' }}</dd>
+                </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Observations</h2></div>
+            <div class="card-body">
+                <p class="mb-0 text-pre-wrap">{{ item.observations ?: 'Aucune observation.' }}</p>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12">
+        <section class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Lots de production lies</h2></div>
+            <div class="card-body">
+                {% if item.coutRevients|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Lot cout de revient</th>
+                                    <th>Produit</th>
+                                    <th class="text-end">Kg utilises</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for lot in item.coutRevients %}
+                                <tr>
+                                    <td>{{ lot.dateProduction ? lot.dateProduction|date('d/m/Y') : '-' }}</td>
+                                    <td><a href="{{ path('app_cout_revient_view', {id: lot.id}) }}">{{ lot.numeroLot }}</a></td>
+                                    <td>{{ lot.produit }}</td>
+                                    <td class="text-end">{{ lot.poidsMisEnProduction|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</td>
+                                    <td><span class="badge {{ lot.statutBadgeClass }}">{{ lot.statutLabel }}</span></td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-secondary mb-0">Aucun lot de production n'utilise encore cette reception.</p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
