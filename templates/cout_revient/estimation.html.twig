@@ -1,0 +1,308 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Estimation des couts{% endblock %}
+
+{% block body %}
+{% set stats = estimation.stats %}
+{% set operation = estimation.operation %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Estimation des couts</h1>
+        <p class="text-secondary mb-0">Audit du cycle reception et estimation depuis les charges production actives.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_cout_revient_index') }}">
+            <i class="bi bi-table me-2"></i>Lots
+        </a>
+        <a class="btn btn-outline-secondary" href="{{ path('app_cout_revient_charge_index') }}">
+            <i class="bi bi-sliders me-2"></i>Charges
+        </a>
+    </div>
+</div>
+
+<form class="card border-0 shadow-sm mb-4" method="get">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="cost-estimation-from">Du</label>
+                <input id="cost-estimation-from" class="form-control" type="date" name="dateFrom" value="{{ filters.dateFrom }}">
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label" for="cost-estimation-to">Au</label>
+                <input id="cost-estimation-to" class="form-control" type="date" name="dateTo" value="{{ filters.dateTo }}">
+            </div>
+            <div class="col-12 col-md-auto ms-md-auto">
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-search me-2"></i>Analyser
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% for warning in estimation.warnings %}
+    <div class="alert alert-{{ warning.tone }} border-0 shadow-sm">
+        <i class="bi bi-info-circle me-2"></i>{{ warning.text }}
+    </div>
+{% endfor %}
+
+<div class="dashboard-kpi-grid mb-4">
+    <div class="dashboard-kpi-card card border-0 shadow-sm">
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Evenements</span><span class="dashboard-kpi-icon"><i class="bi bi-clock-history"></i></span></div>
+        <div class="dashboard-kpi-value">{{ stats.events }}</div>
+        <div class="dashboard-kpi-hint">actions detectees</div>
+    </div>
+    <div class="dashboard-kpi-card card border-0 shadow-sm">
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Kg reference</span><span class="dashboard-kpi-icon"><i class="bi bi-speedometer2"></i></span></div>
+        <div class="dashboard-kpi-value">{{ stats.kg_reference|number_format(0, ',', ' ') }}</div>
+        <div class="dashboard-kpi-hint">kg pour charges au kg</div>
+    </div>
+    <div class="dashboard-kpi-card card border-0 shadow-sm">
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Heures</span><span class="dashboard-kpi-icon"><i class="bi bi-stopwatch"></i></span></div>
+        <div class="dashboard-kpi-value">{{ stats.known_hours|number_format(1, ',', ' ') }}</div>
+        <div class="dashboard-kpi-hint">base charges horaires</div>
+    </div>
+    <div class="dashboard-kpi-card card border-0 shadow-sm">
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Charges estimees</span><span class="dashboard-kpi-icon"><i class="bi bi-cash-stack"></i></span></div>
+        <div class="dashboard-kpi-value">{{ stats.estimated_charges|number_format(0, ',', ' ') }}</div>
+        <div class="dashboard-kpi-hint">dh selon charges actives</div>
+    </div>
+    <div class="dashboard-kpi-card card border-0 shadow-sm">
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Cout lots</span><span class="dashboard-kpi-icon"><i class="bi bi-calculator"></i></span></div>
+        <div class="dashboard-kpi-value">{{ stats.real_cost_total|number_format(0, ',', ' ') }}</div>
+        <div class="dashboard-kpi-hint">dh lots cout existants</div>
+    </div>
+    <div class="dashboard-kpi-card card border-0 shadow-sm">
+        <div class="dashboard-kpi-head"><span class="dashboard-kpi-title">Estime / kg</span><span class="dashboard-kpi-icon"><i class="bi bi-percent"></i></span></div>
+        <div class="dashboard-kpi-value">{{ stats.estimated_cost_kg|number_format(2, ',', ' ') }}</div>
+        <div class="dashboard-kpi-hint">dh/kg de charges</div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    {% for stage in estimation.workflow %}
+        <div class="col-6 col-xl-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <div class="small text-secondary">{{ stage.label }}</div>
+                            <div class="h5 mb-0">{{ stage.quantity|number_format(0, ',', ' ') }} kg</div>
+                        </div>
+                        <span class="badge text-bg-{{ stage.tone }}"><i class="bi {{ stage.icon }}"></i></span>
+                    </div>
+                    <div class="small text-secondary mt-2">{{ stage.events }} action{{ stage.events > 1 ? 's' : '' }}</div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-7">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h2 class="h5 mb-1">Ce qui s'est passe</h2>
+                <p class="text-secondary small mb-0">{{ estimation.period.from|date('d/m/Y') }} au {{ estimation.period.to|date('d/m/Y') }}</p>
+            </div>
+            <div class="card-body">
+                {% if estimation.events is empty %}
+                    <div class="text-center text-secondary py-5">Aucun mouvement detecte sur cette plage.</div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                    <th>Reference</th>
+                                    <th class="text-end">Quantite</th>
+                                    <th>Details</th>
+                                    <th>Par</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in estimation.events %}
+                                    <tr>
+                                        <td class="text-nowrap">
+                                            <div class="fw-semibold">{{ event.at|date('d/m/Y') }}</div>
+                                            <div class="small text-secondary">{{ event.at|date('H:i') }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge {{ event.badge }}"><i class="bi {{ event.icon }} me-1"></i>{{ event.stage_label }}</span>
+                                            <div class="small fw-semibold mt-1">{{ event.title }}</div>
+                                        </td>
+                                        <td>
+                                            {% if event.reception is defined and event.reception %}
+                                                <a href="{{ path('app_fish_reception_view', {id: event.reception.id}) }}">{{ event.reference }}</a>
+                                            {% elseif event.cost_lot is defined and event.cost_lot %}
+                                                <a href="{{ path('app_cout_revient_view', {id: event.cost_lot.id}) }}">{{ event.reference }}</a>
+                                            {% else %}
+                                                {{ event.reference }}
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end text-nowrap">
+                                            {% if event.quantity is defined %}
+                                                {{ event.quantity|number_format(3, ',', ' ')|replace({',000': ''}) }} {{ event.unit|default('') }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ event.details ?: '-' }}</td>
+                                        <td class="text-nowrap">{{ event.actor ?: '-' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-5">
+        <section class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 pb-0">
+                <h2 class="h5 mb-1">Base de calcul</h2>
+                <p class="text-secondary small mb-0">Utilisee pour appliquer les charges production.</p>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-7 text-secondary">Jours inclus</dt><dd class="col-5 text-end">{{ operation.period_days }}</dd>
+                    <dt class="col-7 text-secondary">Kg reference</dt><dd class="col-5 text-end">{{ operation.kg_reference|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-7 text-secondary">Lots / receptions actifs</dt><dd class="col-5 text-end">{{ operation.lot_reference }}</dd>
+                    <dt class="col-7 text-secondary">Heures retenues</dt><dd class="col-5 text-end">{{ operation.known_hours|number_format(2, ',', ' ') }} h</dd>
+                    <dt class="col-7 text-secondary">Heures workflow</dt><dd class="col-5 text-end">{{ operation.workflow_hours|number_format(2, ',', ' ') }} h</dd>
+                    <dt class="col-7 text-secondary">Heures lots cout</dt><dd class="col-5 text-end">{{ operation.cost_lot_hours|number_format(2, ',', ' ') }} h</dd>
+                </dl>
+            </div>
+        </section>
+
+        <section class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0">
+                <h2 class="h5 mb-1">Repartition charges estimees</h2>
+                <p class="text-secondary small mb-0">{{ estimation.charges.count }} charge{{ estimation.charges.count > 1 ? 's' : '' }} active{{ estimation.charges.count > 1 ? 's' : '' }}.</p>
+            </div>
+            <div class="card-body">
+                {% if estimation.charges.by_category is empty %}
+                    <div class="text-secondary">Aucune charge active.</div>
+                {% else %}
+                    {% for category in estimation.charges.by_category %}
+                        {% set percent = estimation.charges.total > 0 ? (category.total / estimation.charges.total * 100) : 0 %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>{{ category.label }}</span>
+                                <strong>{{ category.total|number_format(0, ',', ' ') }} dh</strong>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" style="width: {{ percent > 100 ? 100 : percent }}%"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+
+<section class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-white border-0 pb-0">
+        <h2 class="h5 mb-1">Charges production appliquees</h2>
+        <p class="text-secondary small mb-0">Calcul automatique selon l'unite de chaque charge active.</p>
+    </div>
+    <div class="card-body">
+        {% if estimation.charges.lines is empty %}
+            <div class="text-center text-secondary py-5">Aucune charge active a calculer.</div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Charge</th>
+                            <th>Categorie</th>
+                            <th>Unite</th>
+                            <th>Base utilisee</th>
+                            <th class="text-end">Cout unitaire</th>
+                            <th class="text-end">Quantite</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line in estimation.charges.lines %}
+                            <tr class="{{ line.needs_attention ? 'table-warning' : '' }}">
+                                <td>
+                                    <div class="fw-semibold">{{ line.name }}</div>
+                                    <div class="small text-secondary">{{ line.factory_unit ?: '-' }}</div>
+                                </td>
+                                <td>{{ line.category_label }}</td>
+                                <td>{{ line.unit_label }}</td>
+                                <td class="small text-secondary">{{ line.basis }}</td>
+                                <td class="text-end">{{ line.applied_unit_cost|number_format(4, ',', ' ') }} dh</td>
+                                <td class="text-end">{{ line.quantity|number_format(3, ',', ' ')|replace({',000': ''}) }}</td>
+                                <td class="text-end fw-semibold">{{ line.total|number_format(2, ',', ' ') }} dh</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="6" class="text-end">Total charges estimees</th>
+                            <th class="text-end">{{ estimation.charges.total|number_format(2, ',', ' ') }} dh</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-white border-0 pb-0">
+        <h2 class="h5 mb-1">Lots cout de revient dans la plage</h2>
+        <p class="text-secondary small mb-0">Comparaison avec les couts deja calcules lot par lot.</p>
+    </div>
+    <div class="card-body">
+        {% if estimation.cost_lots is empty %}
+            <div class="text-center text-secondary py-5">Aucun lot cout de revient sur cette plage.</div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Lot</th>
+                            <th>Produit</th>
+                            <th class="text-end">Poids fini</th>
+                            <th class="text-end">Charges</th>
+                            <th class="text-end">Cout total</th>
+                            <th class="text-end">Cout/kg</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lot in estimation.cost_lots %}
+                            <tr>
+                                <td>{{ lot.dateProduction ? lot.dateProduction|date('d/m/Y') : '-' }}</td>
+                                <td><a href="{{ path('app_cout_revient_view', {id: lot.id}) }}">{{ lot.numeroLot }}</a></td>
+                                <td>{{ lot.produit }}</td>
+                                <td class="text-end">{{ lot.poidsProduitFini|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</td>
+                                <td class="text-end">{{ lot.coutChargesTotal|number_format(2, ',', ' ') }} dh</td>
+                                <td class="text-end">{{ lot.coutTotalProduction|number_format(2, ',', ' ') }} dh</td>
+                                <td class="text-end fw-semibold">{{ lot.coutRevientKg|number_format(2, ',', ' ') }} dh</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3" class="text-end">Total</th>
+                            <th class="text-end">{{ estimation.cost_lot_stats.finished_weight|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</th>
+                            <th class="text-end">{{ estimation.cost_lot_stats.charges|number_format(2, ',', ' ') }} dh</th>
+                            <th class="text-end">{{ estimation.cost_lot_stats.total_cost|number_format(2, ',', ' ') }} dh</th>
+                            <th class="text-end">{{ stats.real_cost_kg|number_format(2, ',', ' ') }} dh</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -80,6 +80,50 @@ class FishReceptionRepository extends ServiceEntityRepository
         return $builder->getQuery()->getResult();
     }
 
+    /** @return list<FishReception> */
+    public function findActivityBetween(\DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        $fromDay = $from->setTime(0, 0);
+        $toDay = $to->setTime(0, 0);
+        $toEnd = $to->setTime(23, 59, 59);
+
+        return $this->createQueryBuilder('r')
+            ->leftJoin('r.createdBy', 'creator')
+            ->leftJoin('r.updatedBy', 'updater')
+            ->leftJoin('r.receivedBy', 'receiver')
+            ->leftJoin('r.treatmentStartedBy', 'treatmentStarter')
+            ->leftJoin('r.storedBy', 'storageUser')
+            ->leftJoin('r.expeditedBy', 'shippingUser')
+            ->leftJoin('r.closedBy', 'closingUser')
+            ->leftJoin('r.blockedBy', 'blockingUser')
+            ->addSelect('creator', 'updater', 'receiver', 'treatmentStarter', 'storageUser', 'shippingUser', 'closingUser', 'blockingUser')
+            ->andWhere('r.isDeleted = false')
+            ->andWhere('(
+                r.createdAt BETWEEN :fromDateTime AND :toDateTime
+                OR r.updatedAt BETWEEN :fromDateTime AND :toDateTime
+                OR r.dateReception BETWEEN :fromDay AND :toDay
+                OR r.receivedAt BETWEEN :fromDateTime AND :toDateTime
+                OR r.treatmentStartedAt BETWEEN :fromDateTime AND :toDateTime
+                OR r.dateDebutTraitement BETWEEN :fromDay AND :toDay
+                OR r.dateConditionnement BETWEEN :fromDay AND :toDay
+                OR r.dateSortieTunnel BETWEEN :fromDay AND :toDay
+                OR r.storedAt BETWEEN :fromDateTime AND :toDateTime
+                OR r.dateEntreeStockage BETWEEN :fromDay AND :toDay
+                OR r.expeditedAt BETWEEN :fromDateTime AND :toDateTime
+                OR r.expeditionDateDepart BETWEEN :fromDay AND :toDay
+                OR r.closedAt BETWEEN :fromDateTime AND :toDateTime
+                OR r.blockedAt BETWEEN :fromDateTime AND :toDateTime
+            )')
+            ->setParameter('fromDateTime', $from)
+            ->setParameter('toDateTime', $toEnd)
+            ->setParameter('fromDay', $fromDay)
+            ->setParameter('toDay', $toDay)
+            ->orderBy('r.dateReception', 'DESC')
+            ->addOrderBy('r.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     /** @return list<string> */
     public function distinctValues(string $field): array
     {

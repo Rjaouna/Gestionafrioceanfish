@@ -11,6 +11,7 @@ use App\Security\Voter\ModuleAccessVoter;
 use App\Service\CoutRevient\CoutRevientCalculatorService;
 use App\Service\CoutRevient\CoutRevientChargeConfigService;
 use App\Service\CoutRevient\CoutRevientDashboardService;
+use App\Service\CoutRevient\CoutRevientEstimationService;
 use App\Service\CoutRevient\CoutRevientExcelExporterService;
 use App\Service\CoutRevient\CoutRevientService;
 use App\Service\JsonResponder;
@@ -31,6 +32,7 @@ final class CoutRevientController extends AbstractController
     public function __construct(
         private readonly CoutRevientService $coutRevientService,
         private readonly CoutRevientDashboardService $dashboardService,
+        private readonly CoutRevientEstimationService $estimationService,
         private readonly CoutRevientCalculatorService $calculator,
         private readonly CoutRevientChargeConfigService $chargeConfigService,
         private readonly CoutRevientExcelExporterService $excelExporter,
@@ -94,6 +96,18 @@ final class CoutRevientController extends AbstractController
                 'dashboard' => $dashboard,
             ]),
             'stats' => $dashboard['stats'],
+        ]);
+    }
+
+    #[Route('/estimation-couts', name: 'app_cout_revient_estimation', methods: ['GET'])]
+    public function estimation(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'cout-revient');
+        $estimation = $this->estimationService->build($this->currentUser(), $this->estimationFiltersFromRequest($request));
+
+        return $this->render('cout_revient/estimation.html.twig', [
+            'estimation' => $estimation,
+            'filters' => $estimation['filters'],
         ]);
     }
 
@@ -284,6 +298,15 @@ final class CoutRevientController extends AbstractController
     private function shouldValidate(Request $request): bool
     {
         return (string) $request->request->get('saveMode', '') === 'validate';
+    }
+
+    /** @return array<string, string> */
+    private function estimationFiltersFromRequest(Request $request): array
+    {
+        return [
+            'dateFrom' => trim((string) $request->query->get('dateFrom', '')),
+            'dateTo' => trim((string) $request->query->get('dateTo', '')),
+        ];
     }
 
     /** @return array<int|string, mixed> */

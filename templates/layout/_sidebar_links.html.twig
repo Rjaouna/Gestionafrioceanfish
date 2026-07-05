@@ -64,6 +64,10 @@
                     <i class="bi bi-sliders"></i>
                     <span>Charges production</span>
                 </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route == 'app_cout_revient_estimation' ? 'active' : '' }}" href="{{ path('app_cout_revient_estimation') }}">
+                    <i class="bi bi-clipboard-data"></i>
+                    <span>Estimation des couts</span>
+                </a>
             </div>
         </section>
     {% elseif module.slug == 'receptions' %}
