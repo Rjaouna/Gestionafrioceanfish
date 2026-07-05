@@ -170,6 +170,18 @@
                             >
                                 <i class="bi {{ item.active ? 'bi-eye-slash' : 'bi-eye' }}"></i>
                             </button>
+                            <button
+                                class="btn btn-outline-danger"
+                                type="button"
+                                title="Supprimer si vide"
+                                aria-label="Supprimer si vide"
+                                data-confirm-url="{{ path('app_factory_unit_delete', {id: item.id}) }}"
+                                data-confirm-method="DELETE"
+                                data-token="{{ csrf_token('factory_unit_delete_' ~ item.id) }}"
+                                data-confirm-message="Supprimer cette piece usine ? L'action sera refusee si elle contient encore du stock ou un lot en cours."
+                            >
+                                <i class="bi bi-trash"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>

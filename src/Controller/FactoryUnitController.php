@@ -120,6 +120,21 @@ final class FactoryUnitController extends AbstractController
         );
     }
 
+    #[Route('/{id}/supprimer', name: 'app_factory_unit_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function delete(FactoryUnit $unit, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'factory');
+        $this->assertCsrf($request, 'factory_unit_delete_'.$unit->getId());
+
+        try {
+            $this->factoryUnitService->delete($unit, $this->currentUser());
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
+
+        return $this->jsonResponder->success('Piece usine vide supprimee.', ['reload' => true]);
+    }
+
     /** @param array<string, int|string|null> $parameters */
     private function buildForm(FactoryUnit $unit, string $route, array $parameters = []): FormInterface
     {

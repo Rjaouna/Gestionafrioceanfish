@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\CoutRevientChargeConfig;
 use App\Entity\FactoryUnit;
 use App\Entity\User;
+use App\Repository\CoutRevientChargeLineRepository;
 use App\Repository\CoutRevientChargeConfigRepository;
 use App\Repository\FishReceptionRepository;
 use App\Repository\FactoryUnitRepository;
@@ -43,6 +44,7 @@ final readonly class FactoryUnitService
     public function __construct(
         private FactoryUnitRepository $repository,
         private CoutRevientChargeConfigRepository $chargeRepository,
+        private CoutRevientChargeLineRepository $chargeLineRepository,
         private FishReceptionRepository $fishReceptionRepository,
         private EntityManagerInterface $entityManager,
         private SecurityAccessService $access,
@@ -109,6 +111,34 @@ final readonly class FactoryUnitService
         $this->entityManager->flush();
 
         return $unit->isActive();
+    }
+
+    public function delete(FactoryUnit $unit, User $actor): void
+    {
+        $this->assertAccess($actor);
+        $load = $this->currentLoadForUnit($unit);
+        if ($load > 0.001) {
+            throw new \DomainException(sprintf(
+                'Impossible de supprimer %s : la piece contient encore %s.',
+                $unit->getDisplayName(),
+                $this->formatKg($load),
+            ));
+        }
+
+        $charge = $this->chargeRepository->findOneBy(['factoryUnit' => $unit]);
+        if ($charge instanceof CoutRevientChargeConfig) {
+            if ($this->chargeLineRepository->countForConfig($charge) > 0) {
+                $charge
+                    ->setFactoryUnit(null)
+                    ->setIsActive(false)
+                    ->setUpdatedBy($actor);
+            } else {
+                $this->entityManager->remove($charge);
+            }
+        }
+
+        $this->entityManager->remove($unit);
+        $this->entityManager->flush();
     }
 
     /** @return array<string, string> */
