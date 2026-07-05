@@ -51,7 +51,13 @@ final class FishReceptionStorageType extends AbstractType
                 'min' => 0.001,
                 'max' => max(0.001, round($available, 3)),
                 'step' => '0.001',
+                'placeholder' => 'Ex. 500',
                 'data-factory-capacity-quantity' => 'true',
+                'data-stage-quantity-limit' => 'true',
+                'data-stage-available' => (string) round(max(0.0, $available), 3),
+                'data-stage-requested-label' => 'a stocker',
+                'data-stage-available-label' => 'apres congelation',
+                'data-stage-submit-message' => 'Quantite a stocker superieure au reste congele.',
             ],
             'help' => sprintf('Disponible après congélation : %.3f kg', max(0.0, $available)),
         ];
@@ -60,7 +66,7 @@ final class FishReceptionStorageType extends AbstractType
     /** @return array<string, mixed> */
     private function numberOptions(string $label, int $scale = 2, string $step = '0.01', bool $required = true, bool $allowNegative = false): array
     {
-        $attr = ['step' => $step];
+        $attr = ['step' => $step, 'placeholder' => $allowNegative ? 'Ex. -20' : 'Ex. 0'];
         if (!$allowNegative) {
             $attr['min'] = 0;
         }
@@ -81,6 +87,7 @@ final class FishReceptionStorageType extends AbstractType
             'required' => $required,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
+            'attr' => ['placeholder' => 'Date d entree en stock'],
         ];
     }
 
@@ -92,6 +99,7 @@ final class FishReceptionStorageType extends AbstractType
             'required' => $required,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
+            'attr' => ['placeholder' => $required ? 'Ex. 12:30' : 'Ex. 13:00'],
         ];
     }
 

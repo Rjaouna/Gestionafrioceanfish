@@ -659,6 +659,7 @@ final class FishReceptionController extends AbstractController
             $options['attr'] = ['data-fish-packaging-form' => 'true'];
         } elseif ($formType === FishReceptionShippingType::class) {
             $options['choice_lists'] = $this->receptionService->formChoiceLists($this->currentUser());
+            $options['attr'] = ['data-fish-shipping-form' => 'true'];
         }
 
         return $this->createForm($formType, $reception, $options);

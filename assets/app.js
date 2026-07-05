@@ -948,6 +948,44 @@ function setFishPackagingOutput(form, key, value) {
     if (output) output.textContent = value;
 }
 
+function syncFishPackagingQuantityAvailability(form) {
+    const quantityField = form.querySelector('[data-fish-packaging-quantity]');
+    if (!quantityField) return true;
+
+    const requested = parseDecimalInput(quantityField.value);
+    const available = parseDecimalInput(quantityField.dataset.fishPackagingAvailable);
+    const exceeded = requested - available > 0.001;
+    const wrapper = quantityField.closest('.mb-3') || quantityField.parentElement;
+    let feedback = wrapper?.querySelector('[data-fish-packaging-quantity-feedback]');
+    if (!feedback && wrapper) {
+        feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback d-block';
+        feedback.dataset.fishPackagingQuantityFeedback = 'true';
+        wrapper.appendChild(feedback);
+    }
+
+    quantityField.classList.toggle('is-invalid', exceeded);
+    if (exceeded) {
+        quantityField.setAttribute('aria-invalid', 'true');
+        if (feedback) {
+            feedback.textContent = `Quantité insuffisante : ${coutFormatCompact(requested)} kg à emballer, ${coutFormatCompact(available)} kg traités disponibles.`;
+            feedback.classList.remove('d-none');
+        }
+    } else {
+        quantityField.removeAttribute('aria-invalid');
+        if (feedback) {
+            feedback.textContent = '';
+            feedback.classList.add('d-none');
+        }
+    }
+
+    form.dataset.fishPackagingQuantityAllowed = exceeded ? '0' : '1';
+    const submitButton = form.querySelector('[type="submit"]');
+    if (submitButton) submitButton.disabled = exceeded;
+
+    return !exceeded;
+}
+
 function syncFishPackagingForm(form) {
     const quantity = fishReceptionValue(form, 'quantity');
     const net = fishReceptionValue(form, 'poidsNet');
@@ -965,6 +1003,7 @@ function syncFishPackagingForm(form) {
     setFishPackagingOutput(form, 'total', `${coutFormatCompact(totalOutput)} kg`);
     setFishPackagingOutput(form, 'gap', `${coutFormatCompact(gap)} kg`);
     setFishPackagingOutput(form, 'cost', `${coutFormat(cost)} ${currency}`);
+    syncFishPackagingQuantityAvailability(form);
 
     const status = form.querySelector('[data-fish-packaging-status]');
     if (!status) return;
@@ -1207,10 +1246,12 @@ async function handleFishReceptionExcelImport(input) {
         }
         if (form.matches('[data-fish-packaging-form]')) {
             syncFishPackagingForm(form);
+            syncFishPackagingQuantityAvailability(form);
         }
         if (form.matches('[data-fish-tunnel-exit-form]')) {
             syncFishTunnelExitForm(form);
         }
+        syncStageQuantityAvailability(form);
         if (form.matches('[data-freezing-capacity-form], [data-factory-capacity-form]')) {
             checkFreezingCapacity(form).catch((error) => showAlert(error.message, 'danger'));
         }
@@ -2001,6 +2042,89 @@ function parseDecimalInput(value) {
     return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function syncStageQuantityAvailability(form) {
+    const fields = [...form.querySelectorAll('[data-stage-quantity-limit]')];
+    if (!fields.length) return true;
+
+    let allowed = true;
+    let message = '';
+    fields.forEach((field) => {
+        const requested = parseDecimalInput(field.value);
+        const available = parseDecimalInput(field.dataset.stageAvailable);
+        const exceeded = requested - available > 0.001;
+        const requestedLabel = field.dataset.stageRequestedLabel || 'demandes';
+        const availableLabel = field.dataset.stageAvailableLabel || 'disponibles';
+        const wrapper = field.closest('.mb-3') || field.parentElement;
+        let summary = wrapper?.querySelector('[data-stage-quantity-summary]');
+        if (!summary && wrapper) {
+            summary = document.createElement('div');
+            summary.className = 'form-text text-secondary';
+            summary.dataset.stageQuantitySummary = 'true';
+            wrapper.appendChild(summary);
+        }
+        let feedback = wrapper?.querySelector('[data-stage-quantity-feedback]');
+        if (!feedback && wrapper) {
+            feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback d-block';
+            feedback.dataset.stageQuantityFeedback = 'true';
+            wrapper.appendChild(feedback);
+        }
+
+        if (summary) {
+            const remaining = Math.max(0, available - Math.max(0, requested));
+            summary.textContent = `Disponible : ${coutFormatCompact(available)} kg. Reste apres action : ${coutFormatCompact(remaining)} kg.`;
+        }
+        field.classList.toggle('is-invalid', exceeded);
+        if (exceeded) {
+            field.setAttribute('aria-invalid', 'true');
+            message = field.dataset.stageSubmitMessage || 'Quantite superieure au disponible.';
+            if (feedback) {
+                feedback.textContent = `Quantite insuffisante : ${coutFormatCompact(requested)} kg ${requestedLabel}, ${coutFormatCompact(available)} kg ${availableLabel}.`;
+                feedback.classList.remove('d-none');
+            }
+            allowed = false;
+        } else {
+            field.removeAttribute('aria-invalid');
+            if (feedback) {
+                feedback.textContent = '';
+                feedback.classList.add('d-none');
+            }
+        }
+    });
+
+    form.dataset.stageQuantityAllowed = allowed ? '1' : '0';
+    form.dataset.stageQuantityMessage = message;
+    const submitButton = form.querySelector('[type="submit"]');
+    if (submitButton) {
+        if (!allowed) {
+            submitButton.disabled = true;
+        } else if (form.dataset.freezingCapacityAllowed !== '0' && form.dataset.factoryCapacityAllowed !== '0') {
+            submitButton.disabled = false;
+        }
+    }
+
+    return allowed;
+}
+
+function initializeStageQuantityAvailabilityForms(root = document) {
+    const forms = new Set();
+    root.querySelectorAll('[data-stage-quantity-limit]').forEach((field) => {
+        const form = field.closest('form');
+        if (form) forms.add(form);
+    });
+
+    forms.forEach((form) => {
+        syncStageQuantityAvailability(form);
+        if (form.dataset.stageQuantityInitialized === '1') return;
+        form.dataset.stageQuantityInitialized = '1';
+
+        form.querySelectorAll('[data-stage-quantity-limit]').forEach((field) => {
+            field.addEventListener('input', () => syncStageQuantityAvailability(form));
+            field.addEventListener('change', () => syncStageQuantityAvailability(form));
+        });
+    });
+}
+
 function syncTreatmentQuantityAvailability(form) {
     const totalWeightField = form.querySelector('[data-treatment-total-weight]');
     if (!totalWeightField) return true;
@@ -2209,7 +2333,7 @@ function setFreezingCapacitySubmitState(form, canSubmit, message = '') {
     form.dataset.factoryCapacityMessage = message;
 
     const submitButton = form.querySelector('[type="submit"]');
-    if (submitButton) submitButton.disabled = !canSubmit;
+    if (submitButton) submitButton.disabled = !canSubmit || form.dataset.stageQuantityAllowed === '0';
 }
 
 function renderFreezingCapacityFeedback(form, data) {
@@ -2678,6 +2802,7 @@ function initializePageBehaviors() {
     initializeExpenseForms();
     initializeReceptionSmartChoices();
     initializeFishReceptionCostForms();
+    initializeStageQuantityAvailabilityForms();
     initializeFishPackagingForms();
     initializeFishTunnelExitForms();
     initializeFactoryUnitForms();
@@ -2703,10 +2828,21 @@ document.addEventListener('submit', async (event) => {
         if (ajaxForm.matches('[data-maintenance-contract-form]') && !validateMaintenanceContractDates(ajaxForm)) {
             return;
         }
+        if (!syncStageQuantityAvailability(ajaxForm)) {
+            showAlert(ajaxForm.dataset.stageQuantityMessage || 'Quantite superieure au disponible.', 'danger');
+            return;
+        }
         if (ajaxForm.matches('[data-treatment-box-form]')) {
             syncTreatmentBoxCounts(ajaxForm);
             if (!syncTreatmentQuantityAvailability(ajaxForm)) {
                 showAlert('Quantité à envoyer au traitement supérieure au disponible réception.', 'danger');
+                return;
+            }
+        }
+        if (ajaxForm.matches('[data-fish-packaging-form]')) {
+            syncFishPackagingForm(ajaxForm);
+            if (!syncFishPackagingQuantityAvailability(ajaxForm)) {
+                showAlert('Quantité à conditionner supérieure à la quantité traitée disponible.', 'danger');
                 return;
             }
         }
@@ -3172,6 +3308,7 @@ document.addEventListener('click', async (event) => {
             initializeExpenseForms(content);
             initializeReceptionSmartChoices(content);
             initializeFishReceptionCostForms(content);
+            initializeStageQuantityAvailabilityForms(content);
             initializeFishPackagingForms(content);
             initializeFishTunnelExitForms(content);
             initializeFactoryUnitForms(content);

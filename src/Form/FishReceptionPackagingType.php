@@ -59,7 +59,13 @@ final class FishReceptionPackagingType extends AbstractType
             'mapped' => false,
             'required' => true,
             'data' => $available > 0 ? round($available, 3) : null,
-            'attr' => ['min' => 0.001, 'max' => max(0.001, round($available, 3)), 'step' => '0.001'],
+            'attr' => [
+                'min' => 0.001,
+                'max' => max(0.001, round($available, 3)),
+                'step' => '0.001',
+                'placeholder' => 'Ex. 604',
+                'data-fish-packaging-available' => (string) round(max(0.0, $available), 3),
+            ],
             'help' => sprintf('Disponible apres traitement : %.3f kg', max(0.0, $available)),
         ];
     }
@@ -67,7 +73,7 @@ final class FishReceptionPackagingType extends AbstractType
     /** @return array<string, mixed> */
     private function numberOptions(string $label, int $scale = 2, string $step = '0.01', bool $required = true, bool $allowNegative = false): array
     {
-        $attr = ['step' => $step];
+        $attr = ['step' => $step, 'placeholder' => $allowNegative ? 'Ex. -18' : 'Ex. 0'];
         if (!$allowNegative) {
             $attr['min'] = 0;
         }
@@ -88,6 +94,7 @@ final class FishReceptionPackagingType extends AbstractType
             'required' => $required,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
+            'attr' => ['placeholder' => 'Date conditionnement'],
         ];
     }
 
@@ -99,6 +106,7 @@ final class FishReceptionPackagingType extends AbstractType
             'required' => false,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
+            'attr' => ['placeholder' => 'Ex. 10:30'],
         ];
     }
 

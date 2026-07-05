@@ -24,4 +24,15 @@ class CoutRevientChargeLineRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function detachConfigReferences(CoutRevientChargeConfig $config): int
+    {
+        return $this->getEntityManager()->createQueryBuilder()
+            ->update(CoutRevientChargeLine::class, 'line')
+            ->set('line.chargeConfig', 'NULL')
+            ->andWhere('line.chargeConfig = :config')
+            ->setParameter('config', $config)
+            ->getQuery()
+            ->execute();
+    }
 }

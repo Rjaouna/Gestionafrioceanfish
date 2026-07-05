@@ -72,7 +72,7 @@ final class FishReceptionType extends AbstractType
             ->add('observations', TextareaType::class, [
                 'label' => 'Observations',
                 'required' => false,
-                'attr' => ['rows' => 4, 'maxlength' => 2000],
+                'attr' => ['rows' => 4, 'maxlength' => 2000, 'placeholder' => 'Remarques qualite, ecart BL, etat camion, decision prise...'],
             ]);
 
         $this->addReceptionSmartChoice($builder, 'fournisseur', 'Fournisseur', $smartFields['fournisseur']['values'], true, 150, $reception instanceof FishReception ? $reception->getFournisseur() : null);
@@ -99,7 +99,7 @@ final class FishReceptionType extends AbstractType
         return [
             'label' => $label,
             'required' => $required,
-            'attr' => ['maxlength' => $maxlength],
+            'attr' => ['maxlength' => $maxlength, 'placeholder' => 'A renseigner si disponible'],
         ];
     }
 
@@ -110,14 +110,14 @@ final class FishReceptionType extends AbstractType
             'label' => $label,
             'required' => $required,
             'empty_data' => '0',
-            'attr' => ['min' => 0, 'step' => 1],
+            'attr' => ['min' => 0, 'step' => 1, 'placeholder' => 'Ex. 200'],
         ];
     }
 
     /** @return array<string, mixed> */
     private function numberOptions(string $label, int $scale = 2, string $step = '0.01', bool $required = true, bool $allowNegative = false): array
     {
-        $attr = ['step' => $step];
+        $attr = ['step' => $step, 'placeholder' => $allowNegative ? 'Ex. -2' : 'Ex. 0'];
         if (!$allowNegative) {
             $attr['min'] = 0;
         }
@@ -138,6 +138,7 @@ final class FishReceptionType extends AbstractType
             'required' => $required,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
+            'attr' => ['placeholder' => 'Selectionner une date'],
         ];
     }
 
@@ -149,6 +150,7 @@ final class FishReceptionType extends AbstractType
             'required' => false,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
+            'attr' => ['placeholder' => 'Ex. 08:30'],
         ];
     }
 }

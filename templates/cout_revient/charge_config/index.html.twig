@@ -82,6 +82,18 @@
                             >
                                 <i class="bi {{ charge.active ? 'bi-slash-circle' : 'bi-check-circle' }}"></i>
                             </button>
+                            <button
+                                class="btn btn-outline-danger"
+                                type="button"
+                                title="Supprimer"
+                                aria-label="Supprimer"
+                                data-confirm-url="{{ path('app_cout_revient_charge_delete', {id: charge.id}) }}"
+                                data-confirm-method="DELETE"
+                                data-token="{{ csrf_token('delete_cout_charge_' ~ charge.id) }}"
+                                data-confirm-message="Supprimer cette charge ? Les anciens lots garderont leurs lignes de charge, mais elle ne sera plus proposée."
+                            >
+                                <i class="bi bi-trash3"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>

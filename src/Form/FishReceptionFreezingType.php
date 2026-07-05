@@ -48,7 +48,13 @@ final class FishReceptionFreezingType extends AbstractType
                 'min' => 0.001,
                 'max' => max(0.001, round($available, 3)),
                 'step' => '0.001',
+                'placeholder' => 'Ex. 500',
                 'data-freezing-capacity-quantity' => 'true',
+                'data-stage-quantity-limit' => 'true',
+                'data-stage-available' => (string) round(max(0.0, $available), 3),
+                'data-stage-requested-label' => 'a congeler',
+                'data-stage-available-label' => 'apres emballage',
+                'data-stage-submit-message' => 'Quantite a congeler superieure au reste emballage.',
             ],
             'help' => sprintf('Disponible apres emballage : %.3f kg', max(0.0, $available)),
         ];
@@ -57,7 +63,7 @@ final class FishReceptionFreezingType extends AbstractType
     /** @return array<string, mixed> */
     private function numberOptions(string $label, int $scale = 2, string $step = '0.01', bool $required = true, bool $allowNegative = false): array
     {
-        $attr = ['step' => $step];
+        $attr = ['step' => $step, 'placeholder' => $allowNegative ? 'Ex. -40' : 'Ex. 0'];
         if (!$allowNegative) {
             $attr['min'] = 0;
         }
@@ -78,6 +84,7 @@ final class FishReceptionFreezingType extends AbstractType
             'required' => true,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
+            'attr' => ['placeholder' => 'Ex. 09:15'],
         ];
     }
 

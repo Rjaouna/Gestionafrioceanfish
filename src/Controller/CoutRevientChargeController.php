@@ -98,6 +98,23 @@ final class CoutRevientChargeController extends AbstractController
         );
     }
 
+    #[Route('/{id}/supprimer', name: 'app_cout_revient_charge_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function delete(CoutRevientChargeConfig $config, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'cout-revient');
+        $payload = $request->toArray();
+        if (!$this->isCsrfTokenValid('delete_cout_charge_'.$config->getId(), (string) ($payload['token'] ?? ''))) {
+            throw new \DomainException('Jeton de securite invalide. Rechargez la page.');
+        }
+
+        $detachedLines = $this->chargeConfigService->delete($config, $this->currentUser());
+        $message = $detachedLines > 0
+            ? sprintf('Charge supprimee. %d ligne%s historique%s conservee%s dans les lots existants.', $detachedLines, $detachedLines > 1 ? 's' : '', $detachedLines > 1 ? 's' : '', $detachedLines > 1 ? 's' : '')
+            : 'Charge supprimee.';
+
+        return $this->jsonResponder->success($message, ['reload' => true]);
+    }
+
     /** @param array<string, int|string|null> $parameters */
     private function buildForm(CoutRevientChargeConfig $config, string $route, array $parameters = []): FormInterface
     {

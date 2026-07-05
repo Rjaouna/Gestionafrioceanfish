@@ -5,6 +5,7 @@ namespace App\Service\CoutRevient;
 use App\Entity\CoutRevientChargeConfig;
 use App\Entity\User;
 use App\Repository\CoutRevientChargeConfigRepository;
+use App\Repository\CoutRevientChargeLineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -12,6 +13,7 @@ final readonly class CoutRevientChargeConfigService
 {
     public function __construct(
         private CoutRevientChargeConfigRepository $repository,
+        private CoutRevientChargeLineRepository $chargeLineRepository,
         private EntityManagerInterface $entityManager,
         private CoutRevientPermissionService $permission,
     ) {
@@ -72,6 +74,17 @@ final readonly class CoutRevientChargeConfigService
         $this->entityManager->flush();
 
         return $config->isActive();
+    }
+
+    public function delete(CoutRevientChargeConfig $config, User $actor): int
+    {
+        $this->assertAccess($actor);
+        $detachedLines = $this->chargeLineRepository->detachConfigReferences($config);
+
+        $this->entityManager->remove($config);
+        $this->entityManager->flush();
+
+        return $detachedLines;
     }
 
     private function assertAccess(User $actor): void

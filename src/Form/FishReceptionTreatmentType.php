@@ -87,6 +87,7 @@ final class FishReceptionTreatmentType extends AbstractType
                 'min' => 0.001,
                 'max' => max(0.001, round($available, 3)),
                 'step' => '0.001',
+                'placeholder' => 'Ex. 604',
                 'data-treatment-total-weight' => 'true',
                 'data-treatment-available' => (string) round(max(0.0, $available), 3),
             ],
@@ -102,18 +103,20 @@ final class FishReceptionTreatmentType extends AbstractType
             'required' => true,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
+            'attr' => ['placeholder' => 'Date debut traitement'],
         ];
     }
 
     /** @return array<string, mixed> */
     private function numberOptions(string $label, int $scale = 2, string $step = '0.01', bool $required = true, bool $allowNegative = false): array
     {
-        $attr = ['step' => $step];
+        $attr = ['step' => $step, 'placeholder' => $allowNegative ? 'Ex. -2' : 'Ex. 0'];
         if (!$allowNegative) {
             $attr['min'] = 0;
         }
         if ($label === 'Poids moyen par caisse (kg)') {
             $attr['data-treatment-box-weight'] = 'true';
+            $attr['placeholder'] = 'Ex. 11';
         }
 
         return [
@@ -131,6 +134,13 @@ final class FishReceptionTreatmentType extends AbstractType
      */
     private function integerOptions(string $label, bool $required = true, array $attr = [], ?string $help = null, bool $mapped = true, ?int $data = null): array
     {
+        $attr['placeholder'] ??= match ($label) {
+            'Nombre de caisses par etage' => 'Ex. 5',
+            'Nombre de niveaux' => 'Ex. 16',
+            'Nombre de moules' => 'Ex. 8',
+            default => 'Calcule automatiquement',
+        };
+
         $options = [
             'label' => $label,
             'mapped' => $mapped,
@@ -155,6 +165,7 @@ final class FishReceptionTreatmentType extends AbstractType
             'required' => false,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
+            'attr' => ['placeholder' => 'Ex. 08:30'],
         ];
     }
 }

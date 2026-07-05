@@ -43,6 +43,7 @@ final class FishReceptionShippingType extends AbstractType
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'data' => $dateDepart,
+                'attr' => ['placeholder' => 'Date de depart du camion'],
             ])
             ->add('expeditionHeureDepart', TimeType::class, [
                 'label' => 'Heure départ camion',
@@ -50,6 +51,7 @@ final class FishReceptionShippingType extends AbstractType
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'data' => $heureDepart,
+                'attr' => ['placeholder' => 'Ex. 16:30'],
             ])
             ->add('expeditionMatriculeVehicule', TextType::class, $this->textOptions('Matricule camion', true, 80, 'Ex. 12345-A-6'))
             ->add('expeditionChauffeur', TextType::class, $this->textOptions('Nom chauffeur', true, 150, 'Nom et prenom du chauffeur'))
@@ -85,7 +87,17 @@ final class FishReceptionShippingType extends AbstractType
             'mapped' => false,
             'required' => true,
             'data' => $available > 0 ? round($available, 3) : null,
-            'attr' => ['min' => 0.001, 'max' => max(0.001, round($available, 3)), 'step' => '0.001'],
+            'attr' => [
+                'min' => 0.001,
+                'max' => max(0.001, round($available, 3)),
+                'step' => '0.001',
+                'placeholder' => 'Ex. 500',
+                'data-stage-quantity-limit' => 'true',
+                'data-stage-available' => (string) round(max(0.0, $available), 3),
+                'data-stage-requested-label' => 'a expedier',
+                'data-stage-available-label' => 'en stock disponible',
+                'data-stage-submit-message' => 'Quantite a expedier superieure au stock disponible.',
+            ],
             'help' => sprintf('Disponible en stock : %.3f kg', max(0.0, $available)),
         ];
     }
@@ -103,7 +115,7 @@ final class FishReceptionShippingType extends AbstractType
     /** @return array<string, mixed> */
     private function numberOptions(string $label, bool $required = true, bool $allowNegative = false): array
     {
-        $attr = ['step' => '0.01'];
+        $attr = ['step' => '0.01', 'placeholder' => $allowNegative ? 'Ex. -18' : 'Ex. 0'];
         if (!$allowNegative) {
             $attr['min'] = 0;
         }
