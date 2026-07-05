@@ -208,6 +208,12 @@
                     {{ ui.row('Produit conditionné', ui.text(item.produitConditionne)) }}
                     {{ ui.row('Quantité emballée', ui.kg(item.quantiteConditionnee), 'text-primary') }}
                     {{ ui.row('Poids net', ui.kg(item.poidsNet)) }}
+                    {{ ui.row('Déchets emballage', ui.kg(item.poidsDechetsEmballage)) }}
+                    {{ ui.row('Pertes emballage', ui.kg(item.poidsPertesEmballage)) }}
+                    {{ ui.row('Écart emballage', ui.kg(item.ecartEmballageValue), ((item.ecartEmballageValue > 1) or (item.ecartEmballageValue < -1)) ? 'text-danger' : 'text-success') }}
+                    {{ ui.row('Durée emballage', item.dureeConditionnementHeuresValue|number_format(2, ',', ' ') ~ ' h') }}
+                    {{ ui.row('Coût emballage', item.coutEmballageValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'text-primary') }}
+                    {{ ui.row('Coût emballage / kg net', item.coutKgEmballageValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
                     {{ ui.row('Reste à congeler', ui.kg(item.quantiteDisponibleEmballageValue), 'text-warning') }}
                     {{ ui.row('Tunnel', ui.text(item.tunnel)) }}
                     {{ ui.row('Heure entrée tunnel', ui.time(item.heureEntreeTunnel)) }}

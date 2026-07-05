@@ -234,7 +234,8 @@ final readonly class FishReceptionService
 
         $reception
             ->setQuantiteConditionnee($reception->getQuantiteConditionneeValue() + $quantity)
-            ->setStatut(FishReception::STATUS_PACKAGED);
+            ->setStatut(FishReception::STATUS_PACKAGED)
+            ->refreshCoutEmballage();
 
         if ($reception->getDateConditionnement() === null) {
             $reception->setDateConditionnement($now);
@@ -512,7 +513,7 @@ final readonly class FishReceptionService
             (float) $reception->getQuantiteTotaleExpediee() > 0 || $reception->getExpeditedAt() !== null => FishReception::STATUS_SHIPPED,
             (float) $reception->getQuantiteStockee() > 0 || $reception->getChambreFroide() !== null => FishReception::STATUS_STORED,
             (float) $reception->getQuantiteCongelee() > 0 || $reception->getTunnel() !== null => FishReception::STATUS_FROZEN,
-            (float) $reception->getQuantiteConditionnee() > 0 || (float) $reception->getPoidsNet() > 0 || $reception->getProduitConditionne() !== null => FishReception::STATUS_PACKAGED,
+            (float) $reception->getQuantiteConditionnee() > 0 || (float) $reception->getPoidsNet() > 0 || $reception->getPoidsDechetsEmballageValue() > 0 || $reception->getPoidsPertesEmballageValue() > 0 || $reception->getProduitConditionne() !== null => FishReception::STATUS_PACKAGED,
             (float) $reception->getQuantiteTotalePreparee() > 0 => FishReception::STATUS_PROCESSING,
             $reception->getQuantiteReceptionneeValue() > 0 => FishReception::STATUS_RECEIVED,
             default => FishReception::STATUS_DRAFT,

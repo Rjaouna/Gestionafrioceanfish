@@ -27,11 +27,14 @@ final class FishReceptionPackagingType extends AbstractType
         ];
 
         $builder
-            ->add('quantity', NumberType::class, $this->quantityOptions('Quantité à conditionner / emballer (kg)', (float) $options['available_quantity']))
+            ->add('quantity', NumberType::class, $this->withAttr($this->quantityOptions('Quantité à conditionner / emballer (kg)', (float) $options['available_quantity']), ['data-fish-packaging-quantity' => 'true']))
             ->add('dateConditionnement', DateType::class, $this->dateOptions('Date conditionnement', false))
-            ->add('heureDebutConditionnement', TimeType::class, $this->timeOptions('Heure début conditionnement'))
-            ->add('heureFinConditionnement', TimeType::class, $this->timeOptions('Heure fin conditionnement'))
-            ->add('poidsNet', NumberType::class, $this->numberOptions('Poids net (kg)', 3, '0.001', false));
+            ->add('heureDebutConditionnement', TimeType::class, $this->withAttr($this->timeOptions('Heure début conditionnement'), ['data-fish-packaging-start' => 'true']))
+            ->add('heureFinConditionnement', TimeType::class, $this->withAttr($this->timeOptions('Heure fin conditionnement'), ['data-fish-packaging-end' => 'true']))
+            ->add('poidsNet', NumberType::class, $this->withAttr($this->numberOptions('Poids net (kg)', 3, '0.001', false), ['data-fish-packaging-net' => 'true']))
+            ->add('poidsDechetsEmballage', NumberType::class, $this->withAttr($this->numberOptions('Déchets emballage (kg)', 3, '0.001', false), ['data-fish-packaging-waste' => 'true']))
+            ->add('poidsPertesEmballage', NumberType::class, $this->withAttr($this->numberOptions('Pertes emballage (kg)', 3, '0.001', false), ['data-fish-packaging-loss' => 'true']))
+            ->add('coutHoraireEmballage', NumberType::class, $this->withAttr($this->numberOptions('Coût horaire emballage (MAD / heure)', 2, '0.01', false), ['data-fish-packaging-hourly-cost' => 'true']));
 
         $this->addReceptionSmartChoice($builder, 'produitConditionne', 'Produit conditionné', $smartFields['produitConditionne']['values'], true, 150, $reception instanceof FishReception ? $reception->getProduitConditionne() : null);
         $this->addReceptionSmartChoiceSubmitListener($builder, $smartFields);
@@ -97,6 +100,14 @@ final class FishReceptionPackagingType extends AbstractType
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
         ];
+    }
+
+    /** @param array<string, mixed> $options */
+    private function withAttr(array $options, array $attr): array
+    {
+        $options['attr'] = array_merge($options['attr'] ?? [], $attr);
+
+        return $options;
     }
 
 }

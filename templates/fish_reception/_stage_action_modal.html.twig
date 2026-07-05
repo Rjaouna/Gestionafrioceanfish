@@ -1,3 +1,5 @@
+{% set is_packaging_form = form.vars.attr['data-fish-packaging-form']|default(false) %}
+{% set field_col = is_packaging_form ? 'col-md-4' : 'col-md-6' %}
 {{ form_start(form, {attr: form.vars.attr|merge({'data-ajax-form': 'true'})}) }}
     <div class="modal-header">
         <div>
@@ -15,17 +17,50 @@
             {% for child in form %}
                 {% if child.vars.name != '_token' %}
                     {% if child.vars.attr['data-reception-smart-select']|default(false) %}
-                        <div class="col-md-6">
+                        <div class="{{ field_col }}">
                             {% include 'fish_reception/_smart_choice_field.html.twig' with {form: form, field: child} %}
                         </div>
                     {% elseif not child.vars.attr['data-reception-smart-custom-input']|default(false) %}
-                        <div class="{{ child.vars.name in ['quantity', 'reason'] ? 'col-12' : 'col-md-6' }}">
+                        <div class="{{ child.vars.name in ['quantity', 'reason'] ? 'col-12' : field_col }}">
                             {{ form_row(child) }}
                         </div>
                     {% endif %}
                 {% endif %}
             {% endfor %}
         </div>
+        {% if is_packaging_form %}
+            <div class="mt-3 fish-packaging-balance" data-fish-packaging-summary data-currency="{{ item.receptionDevise|default('MAD') }}">
+                <div class="row g-2">
+                    <div class="col-6 col-lg-3">
+                        <div class="border rounded-3 p-2 h-100 bg-white">
+                            <span class="d-block small text-secondary">Durée</span>
+                            <strong data-fish-packaging-output="duration">0,00 h</strong>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="border rounded-3 p-2 h-100 bg-white">
+                            <span class="d-block small text-secondary">Net + déchets + pertes</span>
+                            <strong data-fish-packaging-output="total">0 kg</strong>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="border rounded-3 p-2 h-100 bg-white">
+                            <span class="d-block small text-secondary">Écart</span>
+                            <strong data-fish-packaging-output="gap">0 kg</strong>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="border rounded-3 p-2 h-100 bg-white">
+                            <span class="d-block small text-secondary">Coût emballage</span>
+                            <strong data-fish-packaging-output="cost">0,00 MAD</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-secondary small mb-0 mt-2" data-fish-packaging-status>
+                    Saisissez les poids et les heures pour contrôler l'écart et le coût.
+                </div>
+            </div>
+        {% endif %}
         {% if form.vars.attr['data-freezing-capacity-form']|default(false) or form.vars.attr['data-factory-capacity-form']|default(false) %}
             <div class="mt-3" data-freezing-capacity-feedback data-factory-capacity-feedback></div>
         {% endif %}

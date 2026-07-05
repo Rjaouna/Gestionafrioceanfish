@@ -295,6 +295,22 @@ class FishReception
     #[Assert\PositiveOrZero]
     private string $poidsNet = '0.000';
 
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 3, options: ['default' => '0.000'])]
+    #[Assert\PositiveOrZero]
+    private string $poidsDechetsEmballage = '0.000';
+
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 3, options: ['default' => '0.000'])]
+    #[Assert\PositiveOrZero]
+    private string $poidsPertesEmballage = '0.000';
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => '0.00'])]
+    #[Assert\PositiveOrZero]
+    private string $coutHoraireEmballage = '0.00';
+
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 2, options: ['default' => '0.00'])]
+    #[Assert\PositiveOrZero]
+    private string $coutEmballage = '0.00';
+
     #[ORM\Column(type: 'decimal', precision: 6, scale: 2, nullable: true)]
     private ?string $temperatureStockage = null;
 
@@ -1170,6 +1186,61 @@ class FishReception
         return $this;
     }
 
+    public function getPoidsDechetsEmballage(): string
+    {
+        return $this->poidsDechetsEmballage;
+    }
+
+    public function setPoidsDechetsEmballage(int|float|string|null $poidsDechetsEmballage): static
+    {
+        $this->poidsDechetsEmballage = $this->decimal($poidsDechetsEmballage, 3);
+
+        return $this;
+    }
+
+    public function getPoidsPertesEmballage(): string
+    {
+        return $this->poidsPertesEmballage;
+    }
+
+    public function setPoidsPertesEmballage(int|float|string|null $poidsPertesEmballage): static
+    {
+        $this->poidsPertesEmballage = $this->decimal($poidsPertesEmballage, 3);
+
+        return $this;
+    }
+
+    public function getCoutHoraireEmballage(): string
+    {
+        return $this->coutHoraireEmballage;
+    }
+
+    public function setCoutHoraireEmballage(int|float|string|null $coutHoraireEmballage): static
+    {
+        $this->coutHoraireEmballage = $this->decimal($coutHoraireEmballage);
+
+        return $this;
+    }
+
+    public function getCoutEmballage(): string
+    {
+        return $this->coutEmballage;
+    }
+
+    public function setCoutEmballage(int|float|string|null $coutEmballage): static
+    {
+        $this->coutEmballage = $this->decimal($coutEmballage);
+
+        return $this;
+    }
+
+    public function refreshCoutEmballage(): static
+    {
+        $this->setCoutEmballage($this->getDureeConditionnementHeuresValue() * $this->getCoutHoraireEmballageValue());
+
+        return $this;
+    }
+
     public function getTemperatureStockage(): ?string
     {
         return $this->temperatureStockage;
@@ -1566,6 +1637,61 @@ class FishReception
     public function getQuantiteConditionneeValue(): float
     {
         return (float) $this->quantiteConditionnee;
+    }
+
+    public function getPoidsNetValue(): float
+    {
+        return (float) $this->poidsNet;
+    }
+
+    public function getPoidsDechetsEmballageValue(): float
+    {
+        return (float) $this->poidsDechetsEmballage;
+    }
+
+    public function getPoidsPertesEmballageValue(): float
+    {
+        return (float) $this->poidsPertesEmballage;
+    }
+
+    public function getCoutHoraireEmballageValue(): float
+    {
+        return (float) $this->coutHoraireEmballage;
+    }
+
+    public function getCoutEmballageValue(): float
+    {
+        return (float) $this->coutEmballage;
+    }
+
+    public function getTotalSortieEmballageValue(): float
+    {
+        return $this->getPoidsNetValue() + $this->getPoidsDechetsEmballageValue() + $this->getPoidsPertesEmballageValue();
+    }
+
+    public function getEcartEmballageValue(): float
+    {
+        return $this->getQuantiteConditionneeValue() - $this->getTotalSortieEmballageValue();
+    }
+
+    public function getDureeConditionnementHeuresValue(): float
+    {
+        if (!$this->heureDebutConditionnement instanceof \DateTimeImmutable || !$this->heureFinConditionnement instanceof \DateTimeImmutable) {
+            return 0.0;
+        }
+
+        $startMinutes = ((int) $this->heureDebutConditionnement->format('H') * 60) + (int) $this->heureDebutConditionnement->format('i');
+        $endMinutes = ((int) $this->heureFinConditionnement->format('H') * 60) + (int) $this->heureFinConditionnement->format('i');
+        if ($endMinutes < $startMinutes) {
+            $endMinutes += 1440;
+        }
+
+        return max(0, $endMinutes - $startMinutes) / 60;
+    }
+
+    public function getCoutKgEmballageValue(): float
+    {
+        return $this->getPoidsNetValue() > 0 ? $this->getCoutEmballageValue() / $this->getPoidsNetValue() : 0.0;
     }
 
     public function getQuantiteTotaleExpedieeValue(): float

@@ -923,6 +923,91 @@ function initializeFishReceptionCostForms(root = document) {
     });
 }
 
+function fishPackagingTimeToMinutes(value) {
+    const match = String(value || '').match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return null;
+
+    const hours = Number.parseInt(match[1], 10);
+    const minutes = Number.parseInt(match[2], 10);
+    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+
+    return (hours * 60) + minutes;
+}
+
+function fishPackagingDurationHours(form) {
+    const start = fishPackagingTimeToMinutes(fishReceptionField(form, 'heureDebutConditionnement')?.value);
+    let end = fishPackagingTimeToMinutes(fishReceptionField(form, 'heureFinConditionnement')?.value);
+    if (start === null || end === null) return 0;
+    if (end < start) end += 1440;
+
+    return Math.max(0, end - start) / 60;
+}
+
+function setFishPackagingOutput(form, key, value) {
+    const output = form.querySelector(`[data-fish-packaging-output="${key}"]`);
+    if (output) output.textContent = value;
+}
+
+function syncFishPackagingForm(form) {
+    const quantity = fishReceptionValue(form, 'quantity');
+    const net = fishReceptionValue(form, 'poidsNet');
+    const waste = fishReceptionValue(form, 'poidsDechetsEmballage');
+    const loss = fishReceptionValue(form, 'poidsPertesEmballage');
+    const hourlyCost = fishReceptionValue(form, 'coutHoraireEmballage');
+    const duration = fishPackagingDurationHours(form);
+    const totalOutput = net + waste + loss;
+    const gap = quantity - totalOutput;
+    const cost = duration * hourlyCost;
+    const costKg = net > 0 ? cost / net : 0;
+    const currency = form.querySelector('[data-fish-packaging-summary]')?.dataset.currency || 'MAD';
+
+    setFishPackagingOutput(form, 'duration', `${coutFormat(duration)} h`);
+    setFishPackagingOutput(form, 'total', `${coutFormatCompact(totalOutput)} kg`);
+    setFishPackagingOutput(form, 'gap', `${coutFormatCompact(gap)} kg`);
+    setFishPackagingOutput(form, 'cost', `${coutFormat(cost)} ${currency}`);
+
+    const status = form.querySelector('[data-fish-packaging-status]');
+    if (!status) return;
+
+    status.classList.remove('alert-secondary', 'alert-success', 'alert-warning', 'alert-danger');
+    const tolerance = Math.max(0.2, quantity * 0.005);
+    const warningLimit = Math.max(1, quantity * 0.02);
+
+    if (quantity <= 0 || totalOutput <= 0) {
+        status.classList.add('alert-secondary');
+        status.textContent = "Saisissez les poids et les heures pour contrôler l'écart et le coût.";
+    } else if (Math.abs(gap) <= tolerance) {
+        status.classList.add('alert-success');
+        status.textContent = `Bilan emballage cohérent : écart ${coutFormatCompact(gap)} kg. Coût estimé ${coutFormat(cost)} ${currency}, soit ${coutFormat(costKg)} ${currency}/kg net.`;
+    } else if (Math.abs(gap) <= warningLimit) {
+        status.classList.add('alert-warning');
+        status.textContent = `Bilan à surveiller : écart ${coutFormatCompact(gap)} kg. Vérifiez le net, les déchets et les pertes avant validation. Coût estimé ${coutFormat(cost)} ${currency}.`;
+    } else {
+        status.classList.add('alert-danger');
+        status.textContent = `Écart important : ${coutFormatCompact(gap)} kg entre la quantité emballée et le total net + déchets + pertes. Corrigez la saisie ou confirmez uniquement si c'est justifié.`;
+    }
+}
+
+function initializeFishPackagingForms(root = document) {
+    root.querySelectorAll('[data-fish-packaging-form]').forEach((form) => {
+        syncFishPackagingForm(form);
+        if (form.dataset.fishPackagingInitialized === 'true') return;
+
+        form.dataset.fishPackagingInitialized = 'true';
+        form.addEventListener('input', (event) => {
+            if (event.target.matches('input, textarea')) {
+                syncFishPackagingForm(form);
+            }
+        });
+        form.addEventListener('change', (event) => {
+            if (event.target.matches('select, input')) {
+                syncFishPackagingForm(form);
+            }
+        });
+        form.addEventListener('submit', () => syncFishPackagingForm(form));
+    });
+}
+
 function clearExcelImportErrors(form) {
     form.querySelectorAll('.is-invalid[data-excel-import-invalid]').forEach((field) => {
         field.classList.remove('is-invalid');
@@ -1061,6 +1146,9 @@ async function handleFishReceptionExcelImport(input) {
 
         if (form.matches('[data-treatment-box-form]')) {
             syncTreatmentBoxCounts(form);
+        }
+        if (form.matches('[data-fish-packaging-form]')) {
+            syncFishPackagingForm(form);
         }
         if (form.matches('[data-freezing-capacity-form], [data-factory-capacity-form]')) {
             checkFreezingCapacity(form).catch((error) => showAlert(error.message, 'danger'));
@@ -2489,6 +2577,7 @@ function initializePageBehaviors() {
     initializeExpenseForms();
     initializeReceptionSmartChoices();
     initializeFishReceptionCostForms();
+    initializeFishPackagingForms();
     initializeFactoryUnitForms();
     initializeTreatmentBoxForms();
     initializeFreezingCapacityChecks();
@@ -2977,6 +3066,7 @@ document.addEventListener('click', async (event) => {
             initializeExpenseForms(content);
             initializeReceptionSmartChoices(content);
             initializeFishReceptionCostForms(content);
+            initializeFishPackagingForms(content);
             initializeFactoryUnitForms(content);
             initializeTreatmentBoxForms(content);
             initializeFreezingCapacityChecks(content);

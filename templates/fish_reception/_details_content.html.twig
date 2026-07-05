@@ -146,6 +146,11 @@
                     <dt class="col-6 text-secondary">Produit</dt><dd class="col-6 text-end">{{ item.produitConditionne ?: '-' }}</dd>
                     <dt class="col-6 text-secondary">Quantité emballée</dt><dd class="col-6 text-end">{{ item.quantiteConditionnee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                     <dt class="col-6 text-secondary">Poids net</dt><dd class="col-6 text-end">{{ item.poidsNet|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Déchets emballage</dt><dd class="col-6 text-end">{{ item.poidsDechetsEmballage|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Pertes emballage</dt><dd class="col-6 text-end">{{ item.poidsPertesEmballage|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Écart emballage</dt><dd class="col-6 text-end {{ ((item.ecartEmballageValue > 1) or (item.ecartEmballageValue < -1)) ? 'text-danger' : 'text-success' }}">{{ item.ecartEmballageValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Durée emballage</dt><dd class="col-6 text-end">{{ item.dureeConditionnementHeuresValue|number_format(2, ',', ' ') }} h</dd>
+                    <dt class="col-6 text-secondary">Coût emballage</dt><dd class="col-6 text-end fw-semibold">{{ item.coutEmballageValue|number_format(2, ',', ' ') }} {{ item.receptionDevise }}</dd>
                     <dt class="col-6 text-secondary">Reste à congeler</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleEmballageValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                 </dl>
             </div>

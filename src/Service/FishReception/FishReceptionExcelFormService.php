@@ -154,6 +154,9 @@ final readonly class FishReceptionExcelFormService
                 $this->field('heureDebutConditionnement', 'Heure début conditionnement', 'time', false),
                 $this->field('heureFinConditionnement', 'Heure fin conditionnement', 'time', false),
                 $this->field('poidsNet', 'Poids net (kg)', 'number', false),
+                $this->field('poidsDechetsEmballage', 'Déchets emballage (kg)', 'number', false),
+                $this->field('poidsPertesEmballage', 'Pertes emballage (kg)', 'number', false),
+                $this->field('coutHoraireEmballage', 'Coût horaire emballage (MAD / heure)', 'number', false, 'Le système calcule le coût total avec la durée saisie.'),
                 $this->field('produitConditionne', 'Produit conditionné', 'text', true, null, 'produitConditionne'),
             ],
             'congelation' => [
