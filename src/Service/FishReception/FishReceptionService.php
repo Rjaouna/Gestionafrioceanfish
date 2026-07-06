@@ -4,6 +4,7 @@ namespace App\Service\FishReception;
 
 use App\Entity\CoutRevient;
 use App\Entity\FishReception;
+use App\Entity\FishReceptionStorageMovement;
 use App\Entity\User;
 use App\Repository\FishReceptionRepository;
 use App\Service\FactoryUnitService;
@@ -16,9 +17,10 @@ final readonly class FishReceptionService
     private const WORKFLOW_STAGES = [
         'reception' => 'Reception',
         'traitement' => 'Traitement / Production',
-        'emballage' => 'Conditionnement / Emballage',
         'congelation' => 'Congélation',
-        'stockage' => 'Stockage',
+        'stockage' => 'Cristallisation chambre positive',
+        'emballage' => 'Conditionnement / Emballage',
+        'remise_chambre' => 'Remise en chambre',
         'expedition' => 'Expédition',
     ];
 
@@ -166,18 +168,70 @@ final readonly class FishReceptionService
 
     public function startTreatment(FishReception $reception, User $actor): FishReception
     {
-        return $this->launchTreatment($reception, $reception->getQuantiteDisponibleReceptionValue(), $actor);
+        $sources = $reception->getStockInitialDisponibleParEmplacement();
+        $sourceLocation = array_key_first($sources);
+        if (!is_string($sourceLocation)) {
+            throw new \DomainException('Stockez la reception en chambre avant de lancer le traitement.');
+        }
+
+        return $this->launchTreatment($reception, $reception->getQuantiteDisponibleTraitementSourceValue(), $actor, $sourceLocation);
     }
 
-    public function launchTreatment(FishReception $reception, float $quantity, User $actor): FishReception
+    public function registerInitialStorage(FishReception $reception, FishReceptionStorageMovement $movement, User $actor): FishReception
     {
         $this->denyUnlessTransition($actor, $reception);
         $this->assertReceptionReady($reception);
-        $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleReceptionValue(), 'la reception');
+
+        $quantity = abs($movement->getQuantityKgValue());
+        $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleStockageInitialValue(), 'la reception non stockee');
+        if ($movement->getLocation() === '') {
+            throw new \DomainException('Selectionnez la chambre ou la zone de stockage initial.');
+        }
+
+        $this->factoryUnitService->assertStorageCanReceive($actor, $movement->getLocation(), $quantity);
+
+        $movement
+            ->setReception($reception)
+            ->setStorageStage(FishReceptionStorageMovement::STAGE_INITIAL)
+            ->setMovementType(FishReceptionStorageMovement::TYPE_INITIAL_ENTRY)
+            ->setQuantityKg($quantity)
+            ->setCreatedBy($actor)
+            ->setCreatedAt(new \DateTimeImmutable());
+
+        if (!$movement->getMovementDate() instanceof \DateTimeImmutable) {
+            $movement->setMovementDate(new \DateTimeImmutable('today'));
+        }
+
+        $reception->addStorageMovement($movement);
+        $this->assertQuantitiesCoherent($reception);
+        $this->entityManager->flush();
+
+        return $reception;
+    }
+
+    public function launchTreatment(FishReception $reception, float $quantity, User $actor, ?string $sourceLocation = null): FishReception
+    {
+        $this->denyUnlessTransition($actor, $reception);
+        $this->assertReceptionReady($reception);
+        $sourceLocation = trim((string) $sourceLocation);
+        if ($sourceLocation === '') {
+            $sourceLocation = $this->selectInitialStorageSource($reception, $quantity);
+        }
+
+        $availableByLocation = $reception->getStockInitialDisponibleParEmplacement();
+        $availableAtSource = $availableByLocation[$sourceLocation] ?? 0.0;
+        $this->assertStageQuantity($reception, $quantity, $availableAtSource, 'le stock initial '.$sourceLocation);
         if ($reception->getStatut() === FishReception::STATUS_DRAFT) {
             $reception
                 ->setReceivedAt($reception->getReceivedAt() ?? new \DateTimeImmutable())
                 ->setReceivedBy($actor);
+        }
+
+        if (!$reception->getDateDebutTraitement()) {
+            throw new \DomainException('Indiquez la date de debut traitement.');
+        }
+        if (!$reception->getHeureDebutTraitement()) {
+            throw new \DomainException('Indiquez l\'heure de debut traitement.');
         }
 
         $now = new \DateTimeImmutable();
@@ -187,14 +241,7 @@ final readonly class FishReceptionService
             ->setTreatmentStartedAt($now)
             ->setTreatmentStartedBy($actor);
 
-        if ($reception->getDateDebutTraitement() === null) {
-            $reception->setDateDebutTraitement($now);
-        }
-
-        if ($reception->getHeureDebutTraitement() === null) {
-            $reception->setHeureDebutTraitement($now);
-        }
-
+        $this->appendInitialStorageExit($reception, $quantity, $sourceLocation, $actor);
         $this->syncTreatmentBoxCounts($reception, $quantity);
         $this->assertQuantitiesCoherent($reception);
         $this->entityManager->flush();
@@ -209,6 +256,7 @@ final readonly class FishReceptionService
         $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleTraitementValue(), 'le traitement non emballe');
 
         $reception->setQuantiteTotalePreparee(max(0.0, $reception->getQuantiteTotalePrepareeValue() - $quantity));
+        $this->appendInitialStorageReturn($reception, $quantity, $actor, $reason);
         $this->appendTreatmentCancelTrace($reception, $quantity, $actor, $reason);
         $this->autoRefreshStatus($reception);
         $this->assertQuantitiesCoherent($reception);
@@ -226,9 +274,18 @@ final readonly class FishReceptionService
     {
         $this->denyUnlessTransition($actor, $reception);
         $this->assertReceptionReady($reception);
-        $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleTraitementValue(), 'le traitement');
+        $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleCristallisationValue(), 'la cristallisation');
         if (!$reception->getProduitConditionne()) {
             throw new \DomainException('Indiquez le produit conditionne avant de valider l\'emballage.');
+        }
+        if (!$reception->getDateConditionnement()) {
+            throw new \DomainException('Indiquez la date d\'emballage.');
+        }
+        if (!$reception->getHeureDebutConditionnement()) {
+            throw new \DomainException('Indiquez l\'heure de debut emballage.');
+        }
+        if (!$reception->getHeureFinConditionnement()) {
+            throw new \DomainException('Indiquez l\'heure de fin emballage.');
         }
         $now = new \DateTimeImmutable();
 
@@ -236,14 +293,6 @@ final readonly class FishReceptionService
             ->setQuantiteConditionnee($reception->getQuantiteConditionneeValue() + $quantity)
             ->setStatut(FishReception::STATUS_PACKAGED)
             ->refreshCoutEmballage();
-
-        if ($reception->getDateConditionnement() === null) {
-            $reception->setDateConditionnement($now);
-        }
-
-        if ($reception->getHeureDebutConditionnement() === null) {
-            $reception->setHeureDebutConditionnement($now);
-        }
 
         $this->assertQuantitiesCoherent($reception);
         $this->entityManager->flush();
@@ -255,15 +304,17 @@ final readonly class FishReceptionService
     {
         $this->denyUnlessTransition($actor, $reception);
         $this->assertReceptionReady($reception);
-        $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleEmballageValue(), "l'emballage");
+        $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleTraitementValue(), 'le traitement');
         if (!$reception->getTunnel()) {
-            throw new \DomainException('Sélectionnez le tunnel avant de valider la congélation.');
+            throw new \DomainException('Selectionnez le tunnel avant de valider la congelation.');
+        }
+        if (!$reception->getDateEntreeTunnel()) {
+            throw new \DomainException('Indiquez la date d\'entree tunnel pour tracer le mouvement.');
         }
         if (!$reception->getHeureEntreeTunnel()) {
-            throw new \DomainException('Indiquez l\'heure d\'entrée du tunnel pour calculer la durée de congélation.');
+            throw new \DomainException('Indiquez l\'heure d\'entree tunnel pour calculer la duree de congelation.');
         }
         $this->factoryUnitService->assertTunnelCanReceive($actor, $reception->getTunnel(), $quantity);
-        $now = new \DateTimeImmutable();
 
         $reception
             ->setQuantiteCongelee($reception->getQuantiteCongeleeValue() + $quantity)
@@ -281,15 +332,27 @@ final readonly class FishReceptionService
         $this->assertReceptionReady($reception);
         $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleCongelationValue(), 'la congelation');
         if (!$reception->getChambreFroide()) {
-            throw new \DomainException('Sélectionnez la chambre froide ou la zone de stockage.');
+            throw new \DomainException('Selectionnez la chambre positive de cristallisation.');
+        }
+        if (!$reception->getDateEntreeTunnel()) {
+            throw new \DomainException('Date d\'entree tunnel manquante. Renseignez-la a l\'etape congelation.');
         }
         if (!$reception->getHeureEntreeTunnel()) {
-            throw new \DomainException('Heure d\'entrée tunnel manquante. Renseignez-la à l\'étape congélation avant de stocker.');
+            throw new \DomainException('Heure d\'entree tunnel manquante. Renseignez-la a l\'etape congelation.');
+        }
+        if (!$reception->getDateSortieTunnel()) {
+            throw new \DomainException('Indiquez la date de sortie tunnel avant l\'entree en chambre positive.');
         }
         if (!$reception->getHeureSortieTunnel()) {
-            throw new \DomainException('Indiquez l\'heure de sortie du tunnel avant l\'entrée en stockage.');
+            throw new \DomainException('Indiquez l\'heure de sortie tunnel avant l\'entree en chambre positive.');
         }
-        $this->factoryUnitService->assertStorageCanReceive($actor, $reception->getChambreFroide(), $quantity);
+        if (!$reception->getDateEntreeStockage()) {
+            throw new \DomainException('Indiquez la date d\'entree en chambre positive.');
+        }
+        if (!$reception->getHeureEntreeStockage()) {
+            throw new \DomainException('Indiquez l\'heure d\'entree en chambre positive.');
+        }
+        $this->factoryUnitService->assertPositiveStorageCanReceive($actor, $reception->getChambreFroide(), $quantity);
         $now = new \DateTimeImmutable();
 
         $reception
@@ -298,15 +361,34 @@ final readonly class FishReceptionService
             ->setStoredAt($now)
             ->setStoredBy($actor);
 
-        if ($reception->getDateEntreeStockage() === null) {
-            $reception->setDateEntreeStockage($now);
-        }
+        $this->assertQuantitiesCoherent($reception);
+        $this->entityManager->flush();
 
-        $reception->setDateSortieTunnel($reception->getDateEntreeStockage() ?? $now);
+        return $reception;
+    }
 
-        if ($reception->getHeureEntreeStockage() === null) {
-            $reception->setHeureEntreeStockage($now);
+    public function registerReturnStorage(FishReception $reception, float $quantity, User $actor): FishReception
+    {
+        $this->denyUnlessTransition($actor, $reception);
+        $this->assertReceptionReady($reception);
+        $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleEmballageValue(), 'l\'emballage');
+        if (!$reception->getChambreRemiseEnChambre()) {
+            throw new \DomainException('Selectionnez la chambre positive de retour apres emballage.');
         }
+        if (!$reception->getDateRemiseEnChambre()) {
+            throw new \DomainException('Indiquez la date de remise en chambre.');
+        }
+        if (!$reception->getHeureRemiseEnChambre()) {
+            throw new \DomainException('Indiquez l\'heure de remise en chambre.');
+        }
+        $this->factoryUnitService->assertPositiveStorageCanReceive($actor, $reception->getChambreRemiseEnChambre(), $quantity);
+        $now = new \DateTimeImmutable();
+
+        $reception
+            ->setQuantiteRemiseEnChambre($reception->getQuantiteRemiseEnChambreValue() + $quantity)
+            ->setStatut(FishReception::STATUS_RETURNED_TO_ROOM)
+            ->setRemiseEnChambreAt($now)
+            ->setRemiseEnChambreBy($actor);
 
         $this->assertQuantitiesCoherent($reception);
         $this->entityManager->flush();
@@ -322,13 +404,13 @@ final readonly class FishReceptionService
         if (!$reception->getDestinationFinaleClient()) {
             throw new \DomainException('Indiquez la destination ou le client avant de valider l\'expédition.');
         }
-        $now = new \DateTimeImmutable();
         if ($reception->getExpeditionDateDepart() === null) {
-            $reception->setExpeditionDateDepart($now);
+            throw new \DomainException('Indiquez la date de depart expedition.');
         }
         if ($reception->getExpeditionHeureDepart() === null) {
-            $reception->setExpeditionHeureDepart($now);
+            throw new \DomainException('Indiquez l\'heure de depart expedition.');
         }
+        $now = new \DateTimeImmutable();
         if (!$reception->getExpeditionMatriculeVehicule()) {
             throw new \DomainException('Indiquez le matricule du camion avant de valider l\'expédition.');
         }
@@ -338,8 +420,8 @@ final readonly class FishReceptionService
         if (!$reception->getExpeditionResponsableChargement()) {
             throw new \DomainException('Indiquez le responsable du chargement avant de valider l\'expédition.');
         }
-        if ($reception->getDateEntreeStockage() instanceof \DateTimeImmutable && $reception->getExpeditionDateDepart()->format('Y-m-d') < $reception->getDateEntreeStockage()->format('Y-m-d')) {
-            throw new \DomainException('La date d\'expédition ne peut pas etre avant la date d\'entree en stockage.');
+        if ($reception->getDateRemiseEnChambre() instanceof \DateTimeImmutable && $reception->getExpeditionDateDepart()->format('Y-m-d') < $reception->getDateRemiseEnChambre()->format('Y-m-d')) {
+            throw new \DomainException('La date d\'expedition ne peut pas etre avant la remise en chambre apres emballage.');
         }
 
         $reception
@@ -400,7 +482,7 @@ final readonly class FishReceptionService
             throw new AccessDeniedException();
         }
 
-        if ($reception->getQuantiteTotalePrepareeValue() > 0.001 || $reception->getQuantiteUtiliseeProductionValue() > 0.001 || $reception->getCoutRevients()->count() > 0) {
+        if ($reception->getStorageMovements()->count() > 0 || $reception->getQuantiteTotalePrepareeValue() > 0.001 || $reception->getQuantiteCongeleeValue() > 0.001 || $reception->getQuantiteStockeeValue() > 0.001 || $reception->getQuantiteConditionneeValue() > 0.001 || $reception->getQuantiteRemiseEnChambreValue() > 0.001 || $reception->getQuantiteTotaleExpedieeValue() > 0.001 || $reception->getQuantiteUtiliseeProductionValue() > 0.001 || $reception->getCoutRevients()->count() > 0) {
             throw new \DomainException('Impossible de supprimer une réception déjà utilisée dans le workflow ou rattachée à un lot.');
         }
 
@@ -518,9 +600,10 @@ final readonly class FishReceptionService
 
         $status = match (true) {
             (float) $reception->getQuantiteTotaleExpediee() > 0 || $reception->getExpeditedAt() !== null => FishReception::STATUS_SHIPPED,
+            (float) $reception->getQuantiteRemiseEnChambre() > 0 || $reception->getRemiseEnChambreAt() !== null || $reception->getChambreRemiseEnChambre() !== null => FishReception::STATUS_RETURNED_TO_ROOM,
+            (float) $reception->getQuantiteConditionnee() > 0 || (float) $reception->getPoidsNet() > 0 || $reception->getPoidsDechetsEmballageValue() > 0 || $reception->getPoidsPertesEmballageValue() > 0 || $reception->getProduitConditionne() !== null => FishReception::STATUS_PACKAGED,
             (float) $reception->getQuantiteStockee() > 0 || $reception->getChambreFroide() !== null => FishReception::STATUS_STORED,
             (float) $reception->getQuantiteCongelee() > 0 || $reception->getTunnel() !== null => FishReception::STATUS_FROZEN,
-            (float) $reception->getQuantiteConditionnee() > 0 || (float) $reception->getPoidsNet() > 0 || $reception->getPoidsDechetsEmballageValue() > 0 || $reception->getPoidsPertesEmballageValue() > 0 || $reception->getProduitConditionne() !== null => FishReception::STATUS_PACKAGED,
             (float) $reception->getQuantiteTotalePreparee() > 0 => FishReception::STATUS_PROCESSING,
             $reception->getQuantiteReceptionneeValue() > 0 => FishReception::STATUS_RECEIVED,
             default => FishReception::STATUS_DRAFT,
@@ -531,6 +614,14 @@ final readonly class FishReceptionService
 
     private function assertQuantitiesCoherent(FishReception $reception): void
     {
+        if ($reception->getQuantiteStockInitialEntreeValue() - $reception->getQuantiteReceptionneeValue() > 0.001) {
+            throw new \DomainException('La quantite stockee initialement ne peut pas depasser la quantite receptionnee.');
+        }
+
+        if ($reception->getStorageMovements()->count() > 0 && $reception->getQuantiteTotalePrepareeValue() - $reception->getQuantiteStockInitialSortieValue() > 0.001) {
+            throw new \DomainException('La quantite preparee doit provenir du stock initial sorti vers traitement.');
+        }
+
         if ($reception->getQuantiteUtiliseeProductionValue() - $reception->getQuantiteReceptionneeValue() > 0.001) {
             throw new \DomainException('La quantité déjà utilisée dépasse la quantité réceptionnée.');
         }
@@ -539,21 +630,90 @@ final readonly class FishReceptionService
             throw new \DomainException('La quantité préparée ne peut pas dépasser la quantité réceptionnée.');
         }
 
-        if ($reception->getQuantiteConditionneeValue() - $reception->getQuantiteTotalePrepareeValue() > 0.001) {
-            throw new \DomainException('La quantité emballée ne peut pas dépasser la quantité préparée.');
-        }
-
-        if ($reception->getQuantiteCongeleeValue() - $reception->getQuantiteConditionneeValue() > 0.001) {
-            throw new \DomainException('La quantité congelée ne peut pas dépasser la quantité emballée.');
+        if ($reception->getQuantiteCongeleeValue() - $reception->getQuantiteTotalePrepareeValue() > 0.001) {
+            throw new \DomainException('La quantite congelee ne peut pas depasser la quantite preparee.');
         }
 
         if ($reception->getQuantiteStockeeValue() - $reception->getQuantiteCongeleeValue() > 0.001) {
-            throw new \DomainException('La quantité stockée ne peut pas dépasser la quantité congelée.');
+            throw new \DomainException('La quantite en cristallisation ne peut pas depasser la quantite congelee.');
         }
 
-        if ($reception->getQuantiteTotaleExpedieeValue() - $reception->getQuantiteStockeeValue() > 0.001) {
-            throw new \DomainException('La quantité expédiée ne peut pas dépasser la quantité stockée.');
+        if ($reception->getQuantiteConditionneeValue() - $reception->getQuantiteStockeeValue() > 0.001) {
+            throw new \DomainException('La quantite emballee ne peut pas depasser la quantite cristallisee.');
         }
+
+        if ($reception->getQuantiteRemiseEnChambreValue() - $reception->getQuantiteConditionneeValue() > 0.001) {
+            throw new \DomainException('La quantite remise en chambre ne peut pas depasser la quantite emballee.');
+        }
+
+        if ($reception->getQuantiteTotaleExpedieeValue() - $reception->getQuantiteRemiseEnChambreValue() > 0.001) {
+            throw new \DomainException('La quantite expediee ne peut pas depasser la quantite remise en chambre.');
+        }
+    }
+
+    private function appendInitialStorageExit(FishReception $reception, float $quantity, string $sourceLocation, User $actor): void
+    {
+        $movement = (new FishReceptionStorageMovement())
+            ->setReception($reception)
+            ->setStorageStage(FishReceptionStorageMovement::STAGE_INITIAL)
+            ->setMovementType(FishReceptionStorageMovement::TYPE_INITIAL_EXIT)
+            ->setLocation($sourceLocation)
+            ->setQuantityKg(-abs($quantity))
+            ->setMovementDate($reception->getDateDebutTraitement() ?? new \DateTimeImmutable('today'))
+            ->setMovementTime($reception->getHeureDebutTraitement() ?? new \DateTimeImmutable())
+            ->setNote('Sortie vers traitement / production')
+            ->setCreatedBy($actor)
+            ->setCreatedAt(new \DateTimeImmutable());
+
+        $reception->addStorageMovement($movement);
+    }
+
+    private function selectInitialStorageSource(FishReception $reception, float $quantity): string
+    {
+        $fallback = null;
+        foreach ($reception->getStockInitialDisponibleParEmplacement() as $location => $available) {
+            $fallback ??= $location;
+            if ($available + 0.001 >= $quantity) {
+                return $location;
+            }
+        }
+
+        if (is_string($fallback)) {
+            return $fallback;
+        }
+
+        throw new \DomainException('Stockez la reception en chambre avant de lancer le traitement.');
+    }
+
+    private function appendInitialStorageReturn(FishReception $reception, float $quantity, User $actor, ?string $reason): void
+    {
+        $lastExit = null;
+        foreach ($reception->getStorageMovements() as $movement) {
+            if ($movement->getMovementType() === FishReceptionStorageMovement::TYPE_INITIAL_EXIT) {
+                $lastExit = $movement;
+            }
+        }
+
+        $location = $lastExit instanceof FishReceptionStorageMovement ? $lastExit->getLocation() : 'Stock initial';
+        $note = 'Retour apres annulation traitement';
+        $reason = trim((string) $reason);
+        if ($reason !== '') {
+            $note .= ' : '.$reason;
+        }
+
+        $movement = (new FishReceptionStorageMovement())
+            ->setReception($reception)
+            ->setStorageStage(FishReceptionStorageMovement::STAGE_INITIAL)
+            ->setMovementType(FishReceptionStorageMovement::TYPE_INITIAL_RETURN)
+            ->setLocation($location)
+            ->setQuantityKg(abs($quantity))
+            ->setMovementDate(new \DateTimeImmutable('today'))
+            ->setMovementTime(new \DateTimeImmutable())
+            ->setNote($note)
+            ->setCreatedBy($actor)
+            ->setCreatedAt(new \DateTimeImmutable());
+
+        $reception->addStorageMovement($movement);
     }
 
     private function appendTreatmentCancelTrace(FishReception $reception, float $quantity, User $actor, ?string $reason): void

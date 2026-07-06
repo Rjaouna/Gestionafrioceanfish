@@ -63,7 +63,7 @@
             </div>
         {% endif %}
         {% if is_tunnel_exit_form %}
-            <div class="mt-3 fish-tunnel-exit-balance" data-fish-tunnel-exit-summary data-entry-time="{{ item.heureEntreeTunnel ? item.heureEntreeTunnel|date('H:i') : '' }}">
+            <div class="mt-3 fish-tunnel-exit-balance" data-fish-tunnel-exit-summary data-entry-date="{{ item.dateEntreeTunnel ? item.dateEntreeTunnel|date('Y-m-d') : '' }}" data-entry-time="{{ item.heureEntreeTunnel ? item.heureEntreeTunnel|date('H:i') : '' }}">
                 <div class="row g-2">
                     <div class="col-12 col-lg-4">
                         <div class="border rounded-3 p-2 h-100 bg-white">

@@ -3,9 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\FishReception;
+use App\Entity\FishReceptionStorageMovement;
 use App\Entity\User;
+use App\Form\FishReceptionInitialStorageType;
 use App\Form\FishReceptionFreezingType;
 use App\Form\FishReceptionPackagingType;
+use App\Form\FishReceptionReturnStorageType;
 use App\Form\FishReceptionShippingType;
 use App\Form\FishReceptionStorageType;
 use App\Form\FishReceptionTreatmentCancelType;
@@ -65,7 +68,7 @@ final class FishReceptionController extends AbstractController
         ]);
     }
 
-    #[Route('/etape/{stage}', name: 'app_fish_reception_stage', requirements: ['stage' => 'reception|traitement|emballage|congelation|stockage|expedition'], methods: ['GET'])]
+    #[Route('/etape/{stage}', name: 'app_fish_reception_stage', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|remise_chambre|expedition'], methods: ['GET'])]
     public function stage(Request $request, string $stage): Response
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
@@ -104,7 +107,7 @@ final class FishReceptionController extends AbstractController
         ]);
     }
 
-    #[Route('/ajax/etape/{stage}', name: 'app_fish_reception_stage_search', requirements: ['stage' => 'reception|traitement|emballage|congelation|stockage|expedition'], methods: ['GET'])]
+    #[Route('/ajax/etape/{stage}', name: 'app_fish_reception_stage_search', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|remise_chambre|expedition'], methods: ['GET'])]
     public function stageSearch(Request $request, string $stage): JsonResponse
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
@@ -151,7 +154,7 @@ final class FishReceptionController extends AbstractController
         ]);
     }
 
-    #[Route('/excel/{stage}/modele', name: 'app_fish_reception_excel_template', requirements: ['stage' => 'reception|traitement|emballage|congelation|stockage|expedition'], methods: ['GET'])]
+    #[Route('/excel/{stage}/modele', name: 'app_fish_reception_excel_template', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|remise_chambre|expedition'], methods: ['GET'])]
     public function excelTemplate(string $stage): BinaryFileResponse
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
@@ -159,7 +162,7 @@ final class FishReceptionController extends AbstractController
         return $this->downloadExcelTemplate($stage, null);
     }
 
-    #[Route('/excel/{stage}/import', name: 'app_fish_reception_excel_import', requirements: ['stage' => 'reception|traitement|emballage|congelation|stockage|expedition'], methods: ['POST'])]
+    #[Route('/excel/{stage}/import', name: 'app_fish_reception_excel_import', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|remise_chambre|expedition'], methods: ['POST'])]
     public function importExcel(string $stage, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
@@ -232,7 +235,7 @@ final class FishReceptionController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/excel/{stage}/modele', name: 'app_fish_reception_excel_template_item', requirements: ['id' => '\d+', 'stage' => 'reception|traitement|emballage|congelation|stockage|expedition'], methods: ['GET'])]
+    #[Route('/{id}/excel/{stage}/modele', name: 'app_fish_reception_excel_template_item', requirements: ['id' => '\d+', 'stage' => 'reception|traitement|congelation|stockage|emballage|remise_chambre|expedition'], methods: ['GET'])]
     public function excelTemplateItem(FishReception $reception, string $stage): BinaryFileResponse
     {
         $this->denyAccessUnlessGranted(FishReceptionVoter::VIEW, $reception);
@@ -240,7 +243,7 @@ final class FishReceptionController extends AbstractController
         return $this->downloadExcelTemplate($stage, $reception);
     }
 
-    #[Route('/{id}/excel/{stage}/import', name: 'app_fish_reception_excel_import_item', requirements: ['id' => '\d+', 'stage' => 'reception|traitement|emballage|congelation|stockage|expedition'], methods: ['POST'])]
+    #[Route('/{id}/excel/{stage}/import', name: 'app_fish_reception_excel_import_item', requirements: ['id' => '\d+', 'stage' => 'reception|traitement|congelation|stockage|emballage|remise_chambre|expedition'], methods: ['POST'])]
     public function importExcelItem(FishReception $reception, string $stage, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(FishReceptionVoter::VIEW, $reception);
@@ -275,6 +278,44 @@ final class FishReceptionController extends AbstractController
         return $this->transition($reception, $request, 'validate_fish_reception_', 'Réception validée.', fn () => $this->receptionService->validateReception($reception, $this->currentUser()));
     }
 
+    #[Route('/{id}/stockage-initial/formulaire', name: 'app_fish_reception_initial_storage_form', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function initialStorageForm(FishReception $reception): Response
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::TRANSITION, $reception);
+
+        return $this->render('fish_reception/_stage_action_modal.html.twig', [
+            'item' => $reception,
+            'form' => $this->buildInitialStorageForm($reception),
+            'title' => 'Stocker la reception',
+            'message' => 'Cette quantite sera stockee dans une chambre avant traitement. Repetez l action pour dispatcher la reception dans plusieurs chambres.',
+            'icon' => 'bi-inboxes',
+            'button_class' => 'btn-success',
+        ]);
+    }
+
+    #[Route('/{id}/stockage-initial/enregistrer', name: 'app_fish_reception_register_initial_storage', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function registerInitialStorage(FishReception $reception, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::TRANSITION, $reception);
+        $movement = new FishReceptionStorageMovement();
+        $form = $this->buildInitialStorageForm($reception, $movement);
+        $form->handleRequest($request);
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->jsonResponder->invalidForm($form);
+        }
+
+        try {
+            $this->receptionService->registerInitialStorage($reception, $movement, $this->currentUser());
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
+
+        return $this->jsonResponder->success('Quantite stockee avant traitement.', [
+            'closeModal' => true,
+            'refreshRegions' => ['fishReceptionGrid', 'fishReceptionFactoryOverview', 'fishReceptionShow'],
+        ]);
+    }
+
     #[Route('/{id}/traitement', name: 'app_fish_reception_start_treatment', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function startTreatment(FishReception $reception, Request $request): JsonResponse
     {
@@ -292,20 +333,27 @@ final class FishReceptionController extends AbstractController
             'Cette quantité sera déduite du disponible réception et ajoutée au traitement.',
             'bi-arrow-repeat',
             'btn-info',
-            $reception->getQuantiteDisponibleReceptionValue(),
+            $reception->getQuantiteDisponibleTraitementSourceValue(),
         );
     }
 
     #[Route('/{id}/traitement/lancer', name: 'app_fish_reception_launch_treatment', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function launchTreatment(FishReception $reception, Request $request): JsonResponse
     {
+        $submittedTreatment = $request->request->all('fish_reception_treatment');
+
         return $this->handleStageAction(
             $reception,
             $request,
             FishReceptionTreatmentType::class,
             'app_fish_reception_launch_treatment',
-            $reception->getQuantiteDisponibleReceptionValue(),
-            fn (float $quantity) => $this->receptionService->launchTreatment($reception, $quantity, $this->currentUser()),
+            $reception->getQuantiteDisponibleTraitementSourceValue(),
+            fn (float $quantity) => $this->receptionService->launchTreatment(
+                $reception,
+                $quantity,
+                $this->currentUser(),
+                (string) ($submittedTreatment['stockSourceLocation'] ?? ''),
+            ),
             'Quantité envoyée au traitement.',
         );
     }
@@ -365,10 +413,10 @@ final class FishReceptionController extends AbstractController
             FishReceptionFreezingType::class,
             'app_fish_reception_register_freezing',
             'Valider la congélation',
-            "Cette quantité sera déduite de l'emballage et ajoutée à la congélation.",
+            "Cette quantite sera deduite du traitement et ajoutee a la congelation tunnel.",
             'bi-snow',
             'btn-primary',
-            $reception->getQuantiteDisponibleEmballageValue(),
+            $reception->getQuantiteDisponibleTraitementValue(),
         );
     }
 
@@ -394,7 +442,7 @@ final class FishReceptionController extends AbstractController
             $request,
             FishReceptionFreezingType::class,
             'app_fish_reception_register_freezing',
-            $reception->getQuantiteDisponibleEmballageValue(),
+            $reception->getQuantiteDisponibleTraitementValue(),
             fn (float $quantity) => $this->receptionService->registerFreezing($reception, $quantity, $this->currentUser()),
             'Quantité congelée enregistrée.',
         );
@@ -413,8 +461,8 @@ final class FishReceptionController extends AbstractController
             $reception,
             FishReceptionStorageType::class,
             'app_fish_reception_register_storage',
-            'Entrer en stockage',
-            'Cette quantité sera déduite de la congélation et ajoutée au stock chambre froide.',
+            'Entrer en cristallisation',
+            'Renseignez la sortie tunnel puis l entree en chambre positive. Cette quantite sera deduite de la congelation.',
             'bi-box-seam',
             'btn-success',
             $reception->getQuantiteDisponibleCongelationValue(),
@@ -435,6 +483,20 @@ final class FishReceptionController extends AbstractController
         ));
     }
 
+    #[Route('/{id}/stockage/capacite-chambre-positive', name: 'app_fish_reception_positive_storage_capacity_check', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function positiveStorageCapacityCheck(FishReception $reception, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::TRANSITION, $reception);
+
+        $quantity = (float) str_replace(',', '.', (string) $request->query->get('quantity', '0'));
+
+        return $this->jsonResponder->success('Capacite chambre positive verifiee.', $this->factoryUnitService->positiveStorageCapacityDiagnostic(
+            $this->currentUser(),
+            (string) $request->query->get('location', $request->query->get('chambreFroide', '')),
+            $quantity,
+        ));
+    }
+
     #[Route('/{id}/stockage/enregistrer', name: 'app_fish_reception_register_storage', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function registerStorage(FishReception $reception, Request $request): JsonResponse
     {
@@ -445,7 +507,7 @@ final class FishReceptionController extends AbstractController
             'app_fish_reception_register_storage',
             $reception->getQuantiteDisponibleCongelationValue(),
             fn (float $quantity) => $this->receptionService->registerStorage($reception, $quantity, $this->currentUser()),
-            'Quantité entrée en stock.',
+            'Quantite entree en cristallisation.',
         );
     }
 
@@ -457,10 +519,10 @@ final class FishReceptionController extends AbstractController
             FishReceptionPackagingType::class,
             'app_fish_reception_register_packaging',
             'Enregistrer emballage',
-            'Cette quantité sera déduite du traitement et ajoutée au conditionnement.',
+            'Cette quantite sera deduite de la cristallisation et ajoutee a l emballage.',
             'bi-box',
             'btn-warning',
-            $reception->getQuantiteDisponibleTraitementValue(),
+            $reception->getQuantiteDisponibleCristallisationValue(),
         );
     }
 
@@ -472,9 +534,38 @@ final class FishReceptionController extends AbstractController
             $request,
             FishReceptionPackagingType::class,
             'app_fish_reception_register_packaging',
-            $reception->getQuantiteDisponibleTraitementValue(),
+            $reception->getQuantiteDisponibleCristallisationValue(),
             fn (float $quantity) => $this->receptionService->registerPackaging($reception, $quantity, $this->currentUser()),
             'Quantité emballée enregistrée.',
+        );
+    }
+
+    #[Route('/{id}/remise-chambre/formulaire', name: 'app_fish_reception_return_storage_form', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function returnStorageForm(FishReception $reception): Response
+    {
+        return $this->renderStageModal(
+            $reception,
+            FishReceptionReturnStorageType::class,
+            'app_fish_reception_register_return_storage',
+            'Remise en chambre',
+            'Cette quantite sera remise en chambre positive apres emballage avant expedition.',
+            'bi-box-arrow-in-down',
+            'btn-success',
+            $reception->getQuantiteDisponibleEmballageValue(),
+        );
+    }
+
+    #[Route('/{id}/remise-chambre/enregistrer', name: 'app_fish_reception_register_return_storage', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function registerReturnStorage(FishReception $reception, Request $request): JsonResponse
+    {
+        return $this->handleStageAction(
+            $reception,
+            $request,
+            FishReceptionReturnStorageType::class,
+            'app_fish_reception_register_return_storage',
+            $reception->getQuantiteDisponibleEmballageValue(),
+            fn (float $quantity) => $this->receptionService->registerReturnStorage($reception, $quantity, $this->currentUser()),
+            'Quantite remise en chambre apres emballage.',
         );
     }
 
@@ -486,7 +577,7 @@ final class FishReceptionController extends AbstractController
             FishReceptionShippingType::class,
             'app_fish_reception_register_shipping',
             'Enregistrer expédition',
-            'Cette quantité sera déduite du stock et ajoutée aux expéditions.',
+            'Cette quantite sera deduite de la chambre positive finale et ajoutee aux expeditions.',
             'bi-truck',
             'btn-dark',
             $reception->getQuantiteDisponibleStockageValue(),
@@ -649,20 +740,47 @@ final class FishReceptionController extends AbstractController
             $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_freezing_capacity_check', ['id' => $reception->getId()]);
             $options['attr'] = ['data-freezing-capacity-form' => 'true'];
         } elseif ($formType === FishReceptionTreatmentType::class) {
+            $options['source_location_choices'] = $this->initialStockSourceChoices($reception);
             $options['attr'] = ['data-treatment-box-form' => 'true'];
         } elseif ($formType === FishReceptionStorageType::class) {
-            $options['factory_unit_choices'] = $this->factoryUnitService->storageChoices($this->currentUser(), $reception->getChambreFroide());
-            $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_storage_capacity_check', ['id' => $reception->getId()]);
+            $options['factory_unit_choices'] = $this->factoryUnitService->positiveStorageChoices($this->currentUser(), $reception->getChambreFroide());
+            $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_positive_storage_capacity_check', ['id' => $reception->getId()]);
             $options['attr'] = ['data-factory-capacity-form' => 'true', 'data-fish-tunnel-exit-form' => 'true'];
         } elseif ($formType === FishReceptionPackagingType::class) {
             $options['choice_lists'] = $this->receptionService->formChoiceLists($this->currentUser());
             $options['attr'] = ['data-fish-packaging-form' => 'true'];
+        } elseif ($formType === FishReceptionReturnStorageType::class) {
+            $options['factory_unit_choices'] = $this->factoryUnitService->positiveStorageChoices($this->currentUser(), $reception->getChambreRemiseEnChambre());
+            $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_positive_storage_capacity_check', ['id' => $reception->getId()]);
+            $options['attr'] = ['data-factory-capacity-form' => 'true'];
         } elseif ($formType === FishReceptionShippingType::class) {
             $options['choice_lists'] = $this->receptionService->formChoiceLists($this->currentUser());
             $options['attr'] = ['data-fish-shipping-form' => 'true'];
         }
 
         return $this->createForm($formType, $reception, $options);
+    }
+
+    private function buildInitialStorageForm(FishReception $reception, ?FishReceptionStorageMovement $movement = null): FormInterface
+    {
+        return $this->createForm(FishReceptionInitialStorageType::class, $movement ?? new FishReceptionStorageMovement(), [
+            'action' => $this->generateUrl('app_fish_reception_register_initial_storage', ['id' => $reception->getId()]),
+            'available_quantity' => $reception->getQuantiteDisponibleStockageInitialValue(),
+            'factory_unit_choices' => $this->factoryUnitService->storageChoices($this->currentUser()),
+            'capacity_check_url' => $this->generateUrl('app_fish_reception_storage_capacity_check', ['id' => $reception->getId()]),
+            'attr' => ['data-factory-capacity-form' => 'true'],
+        ]);
+    }
+
+    /** @return array<string, string> */
+    private function initialStockSourceChoices(FishReception $reception): array
+    {
+        $choices = [];
+        foreach ($reception->getStockInitialDisponibleParEmplacement() as $location => $quantity) {
+            $choices[sprintf('%s - %s kg disponibles', $location, number_format($quantity, 3, ',', ' '))] = $location;
+        }
+
+        return $choices;
     }
 
     private function downloadExcelTemplate(string $stage, ?FishReception $reception): BinaryFileResponse
@@ -715,7 +833,11 @@ final class FishReceptionController extends AbstractController
         }
 
         if ($stage === 'stockage') {
-            $choices['chambreFroide'] = array_values($this->factoryUnitService->storageChoices($this->currentUser(), $reception?->getChambreFroide()));
+            $choices['chambreFroide'] = array_values($this->factoryUnitService->positiveStorageChoices($this->currentUser(), $reception?->getChambreFroide()));
+        }
+
+        if ($stage === 'remise_chambre') {
+            $choices['chambreRemiseEnChambre'] = array_values($this->factoryUnitService->positiveStorageChoices($this->currentUser(), $reception?->getChambreRemiseEnChambre()));
         }
 
         return $choices;
@@ -739,6 +861,7 @@ final class FishReceptionController extends AbstractController
             FishReceptionPackagingType::class => 'emballage',
             FishReceptionFreezingType::class => 'congelation',
             FishReceptionStorageType::class => 'stockage',
+            FishReceptionReturnStorageType::class => 'remise_chambre',
             FishReceptionShippingType::class => 'expedition',
             default => null,
         };
@@ -771,51 +894,59 @@ final class FishReceptionController extends AbstractController
         return match ($stage) {
             'traitement' => [
                 'title' => 'Traitement / Production',
-                'description' => 'Deduction de la reception vers la preparation avant conditionnement.',
-                'source_label' => 'Quantité reçue',
+                'description' => 'Deduction du stock initial vers la preparation avant tunnel.',
+                'source_label' => 'Stock initial',
                 'moved_label' => 'Envoyee traitement',
-                'available_label' => 'Reste réception',
+                'available_label' => 'Reste stock initial',
                 'rate_label' => 'Taux traitement',
             ],
-            'emballage' => [
-                'title' => 'Conditionnement / Emballage',
-                'description' => 'Conditionnement des quantités préparées avant congélation.',
-                'source_label' => 'Quantité préparée',
-                'moved_label' => 'Emballée',
-                'available_label' => 'Reste traitement',
-                'rate_label' => 'Taux emballage',
-            ],
             'congelation' => [
-                'title' => 'Congélation',
-                'description' => 'Passage tunnel des produits conditionnes.',
-                'source_label' => 'Quantité emballée',
-                'moved_label' => 'Congelée',
-                'available_label' => 'Reste emballage',
+                'title' => 'Congelation',
+                'description' => 'Passage tunnel des produits traites avant cristallisation.',
+                'source_label' => 'Quantite preparee',
+                'moved_label' => 'Congelee',
+                'available_label' => 'Reste traitement',
                 'rate_label' => 'Taux congelation',
             ],
             'stockage' => [
-                'title' => 'Stockage',
-                'description' => 'Entrees en chambre froide depuis les lots congeles.',
-                'source_label' => 'Quantité congelée',
-                'moved_label' => 'Stockée',
+                'title' => 'Cristallisation chambre positive',
+                'description' => 'Sortie tunnel puis entree en chambre positive pour cristallisation.',
+                'source_label' => 'Quantite congelee',
+                'moved_label' => 'Cristallisee',
                 'available_label' => 'Reste congelation',
-                'rate_label' => 'Taux stockage',
+                'rate_label' => 'Taux cristallisation',
+            ],
+            'emballage' => [
+                'title' => 'Conditionnement / Emballage',
+                'description' => 'Emballage apres cristallisation en chambre positive.',
+                'source_label' => 'Quantite cristallisee',
+                'moved_label' => 'Emballee',
+                'available_label' => 'Reste cristallisation',
+                'rate_label' => 'Taux emballage',
+            ],
+            'remise_chambre' => [
+                'title' => 'Remise en chambre',
+                'description' => 'Retour en chambre positive apres emballage avant expedition.',
+                'source_label' => 'Quantite emballee',
+                'moved_label' => 'Remise chambre',
+                'available_label' => 'Reste emballage',
+                'rate_label' => 'Taux remise chambre',
             ],
             'expedition' => [
-                'title' => 'Expédition',
-                'description' => 'Sorties client depuis le stock disponible.',
-                'source_label' => 'Quantité stockée',
-                'moved_label' => 'Expédiée',
-                'available_label' => 'Reste stock',
-                'rate_label' => 'Taux expédition',
+                'title' => 'Expedition',
+                'description' => 'Sorties client depuis la chambre positive finale.',
+                'source_label' => 'Remise chambre',
+                'moved_label' => 'Expediee',
+                'available_label' => 'Reste chambre',
+                'rate_label' => 'Taux expedition',
             ],
             default => [
-                'title' => 'Réceptions',
-                'description' => 'Creation, validation et suivi des receptions matière première.',
-                'source_label' => 'Quantité reçue',
-                'moved_label' => 'Envoyee traitement',
-                'available_label' => 'Disponible reception',
-                'rate_label' => 'Taux traitement',
+                'title' => 'Receptions',
+                'description' => 'Creation, validation et mise en stock initial des receptions matiere premiere.',
+                'source_label' => 'Quantite recue',
+                'moved_label' => 'Stockee initial',
+                'available_label' => 'Reste a stocker',
+                'rate_label' => 'Taux stockage initial',
             ],
         };
     }

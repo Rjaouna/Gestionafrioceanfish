@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\CoutRevientChargeLineRepository;
 use App\Repository\CoutRevientChargeConfigRepository;
 use App\Repository\FishReceptionRepository;
+use App\Repository\FishReceptionStorageMovementRepository;
 use App\Repository\FactoryUnitRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -55,6 +56,7 @@ final readonly class FactoryUnitService
         private CoutRevientChargeConfigRepository $chargeRepository,
         private CoutRevientChargeLineRepository $chargeLineRepository,
         private FishReceptionRepository $fishReceptionRepository,
+        private FishReceptionStorageMovementRepository $storageMovementRepository,
         private EntityManagerInterface $entityManager,
         private SecurityAccessService $access,
     ) {
@@ -174,6 +176,17 @@ final readonly class FactoryUnitService
         );
     }
 
+    /** @return array<string, string> */
+    public function positiveStorageChoices(User $actor, ?string $current = null): array
+    {
+        $this->assertUsageAccess($actor);
+
+        return $this->choicesFromUnits(
+            $this->usableChamberStorageUnits(),
+            $current,
+        );
+    }
+
     /** @return array<string, mixed> */
     public function storageOverview(User $actor): array
     {
@@ -181,6 +194,8 @@ final readonly class FactoryUnitService
 
         $units = $this->repository->search();
         $stockByLocationKey = $this->loadRowsByLocation($this->fishReceptionRepository->currentStockByStorageLocation());
+        $crystallizationStockByLocationKey = $this->loadRowsByLocation($this->fishReceptionRepository->currentCrystallizationStockByStorageLocation());
+        $initialStockByLocationKey = $this->loadRowsByLocation($this->storageMovementRepository->currentInitialStockByStorageLocation());
         $tunnelByLocationKey = $this->loadRowsByLocation($this->fishReceptionRepository->currentLoadByTunnel());
 
         $stateCounts = [
@@ -199,6 +214,8 @@ final readonly class FactoryUnitService
             $typeCounts[$typeLabel] = ($typeCounts[$typeLabel] ?? 0) + 1;
 
             $stock = $this->stockForUnit($unit, $stockByLocationKey);
+            $stock += $this->stockForUnit($unit, $crystallizationStockByLocationKey);
+            $stock += $this->stockForUnit($unit, $initialStockByLocationKey);
             if ($unit->getType() === FactoryUnit::TYPE_TUNNEL) {
                 $stock += $this->stockForUnit($unit, $tunnelByLocationKey);
             }
@@ -295,12 +312,35 @@ final readonly class FactoryUnitService
         }
     }
 
+    /** @return array<string, mixed> */
+    public function positiveStorageCapacityDiagnostic(User $actor, ?string $location, float $requestedQuantity): array
+    {
+        return $this->factoryUnitCapacityDiagnostic(
+            $actor,
+            $location,
+            $requestedQuantity,
+            [FactoryUnit::TYPE_POSITIVE_ROOM, FactoryUnit::TYPE_NEGATIVE_ROOM],
+            'Chambre',
+            'Selectionnez la chambre avant de valider.',
+            'Cette chambre n existe pas dans Composition usine ou n est pas declaree comme chambre.',
+            $this->findChamberStorageUnitByLocationValue((string) $location),
+        );
+    }
+
+    public function assertPositiveStorageCanReceive(User $actor, ?string $location, float $requestedQuantity): void
+    {
+        $diagnostic = $this->positiveStorageCapacityDiagnostic($actor, $location, $requestedQuantity);
+        if (($diagnostic['canSubmit'] ?? false) !== true) {
+            throw new \DomainException((string) ($diagnostic['message'] ?? 'Capacite chambre insuffisante.'));
+        }
+    }
+
     /**
      * @param list<string> $types
      *
      * @return array<string, mixed>
      */
-    private function factoryUnitCapacityDiagnostic(User $actor, ?string $location, float $requestedQuantity, array $types, string $spaceLabel, string $missingMessage, string $notFoundMessage): array
+    private function factoryUnitCapacityDiagnostic(User $actor, ?string $location, float $requestedQuantity, array $types, string $spaceLabel, string $missingMessage, string $notFoundMessage, ?FactoryUnit $resolvedUnit = null): array
     {
         $this->assertUsageAccess($actor);
 
@@ -318,7 +358,7 @@ final readonly class FactoryUnitService
             );
         }
 
-        $unit = $this->findUnitByLocationValue($location, $types);
+        $unit = $resolvedUnit ?? $this->findUnitByLocationValue($location, $types);
         if (!$unit instanceof FactoryUnit) {
             return $this->capacityDiagnosticPayload(
                 null,
@@ -395,6 +435,49 @@ final readonly class FactoryUnitService
         }
 
         return $this->capacityDiagnosticPayload($unit, $requestedQuantity, $currentLoad, $canSubmit, $tone, $title, $message);
+    }
+
+    /** @return list<FactoryUnit> */
+    private function usableChamberStorageUnits(): array
+    {
+        $units = [];
+        foreach ($this->repository->search() as $unit) {
+            if (
+                $this->isChamberStorageUnit($unit)
+                && $unit->isActive()
+                && $unit->getStatus() === FactoryUnit::STATUS_OPERATIONAL
+                && !$unit->isSaturated()
+            ) {
+                $units[] = $unit;
+            }
+        }
+
+        return $units;
+    }
+
+    private function isChamberStorageUnit(FactoryUnit $unit): bool
+    {
+        if (in_array($unit->getType(), [FactoryUnit::TYPE_POSITIVE_ROOM, FactoryUnit::TYPE_NEGATIVE_ROOM], true)) {
+            return true;
+        }
+
+        if ($unit->getType() === FactoryUnit::TYPE_TUNNEL) {
+            return false;
+        }
+
+        $haystack = mb_strtolower(implode(' ', [
+            $unit->getName(),
+            $unit->getCode(),
+            $unit->getDisplayName(),
+            $unit->getLocationLabel(),
+            $unit->getDescription(),
+        ]));
+
+        return str_contains($haystack, 'chambre')
+            || str_contains($haystack, 'chombre')
+            || str_contains($haystack, 'positive')
+            || str_contains($haystack, 'negative')
+            || str_contains($haystack, 'négative');
     }
 
     /** @param list<FactoryUnit> $units @return array<string, string> */
@@ -480,10 +563,34 @@ final readonly class FactoryUnitService
         return null;
     }
 
+    private function findChamberStorageUnitByLocationValue(string $value): ?FactoryUnit
+    {
+        $key = $this->normalizeLocationKey($value);
+        if ($key === '') {
+            return null;
+        }
+
+        foreach ($this->repository->search() as $unit) {
+            if (!$this->isChamberStorageUnit($unit)) {
+                continue;
+            }
+
+            if (in_array($key, $this->unitLocationKeys($unit), true)) {
+                return $unit;
+            }
+        }
+
+        return null;
+    }
+
     private function currentLoadForUnit(FactoryUnit $unit): float
     {
         $stockByLocationKey = $this->loadRowsByLocation($this->fishReceptionRepository->currentStockByStorageLocation());
+        $crystallizationStockByLocationKey = $this->loadRowsByLocation($this->fishReceptionRepository->currentCrystallizationStockByStorageLocation());
+        $initialStockByLocationKey = $this->loadRowsByLocation($this->storageMovementRepository->currentInitialStockByStorageLocation());
         $load = $this->stockForUnit($unit, $stockByLocationKey);
+        $load += $this->stockForUnit($unit, $crystallizationStockByLocationKey);
+        $load += $this->stockForUnit($unit, $initialStockByLocationKey);
 
         if ($unit->getType() === FactoryUnit::TYPE_TUNNEL) {
             $tunnelByLocationKey = $this->loadRowsByLocation($this->fishReceptionRepository->currentLoadByTunnel());

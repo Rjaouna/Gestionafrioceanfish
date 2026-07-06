@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final readonly class FishReceptionExcelFormService
 {
-    private const STAGES = ['reception', 'traitement', 'emballage', 'congelation', 'stockage', 'expedition'];
+    private const STAGES = ['reception', 'traitement', 'congelation', 'stockage', 'emballage', 'remise_chambre', 'expedition'];
 
     public function __construct(
         #[Autowire('%kernel.project_dir%/public')]
@@ -162,18 +162,28 @@ final readonly class FishReceptionExcelFormService
             'congelation' => [
                 $this->field('quantity', 'Quantité à congeler (kg)', 'number', true),
                 $this->field('tunnel', 'Tunnel', 'text', true, null, 'tunnel'),
-                $this->field('heureEntreeTunnel', 'Heure entrée tunnel', 'time', true),
+                $this->field('dateEntreeTunnel', 'Date entree tunnel', 'date', true),
+                $this->field('heureEntreeTunnel', 'Heure entree tunnel', 'time', true),
                 $this->field('temperatureTunnel', 'Température tunnel', 'number', false, 'Valeur négative autorisée.'),
                 $this->field('temperatureCoeurProduit', 'Température à coeur produit', 'number', false, 'Valeur négative autorisée.'),
             ],
             'stockage' => [
-                $this->field('quantity', 'Quantité à entrer en stock (kg)', 'number', true),
-                $this->field('heureSortieTunnel', 'Heure sortie tunnel', 'time', true, 'Permet de calculer la durée tunnel avant stockage.'),
-                $this->field('chambreFroide', 'Chambre froide / zone de stockage', 'text', true, null, 'chambreFroide'),
-                $this->field('temperatureChambre', 'Température chambre', 'number', false, 'Valeur négative autorisée.'),
-                $this->field('temperatureStockage', 'Température produit stocké', 'number', false, 'Valeur négative autorisée.'),
-                $this->field('dateEntreeStockage', 'Date entrée stockage', 'date', false),
-                $this->field('heureEntreeStockage', 'Heure entrée stockage', 'time', false),
+                $this->field('quantity', 'Quantite a entrer en cristallisation (kg)', 'number', true),
+                $this->field('dateSortieTunnel', 'Date sortie tunnel', 'date', true, 'Permet de calculer la duree tunnel.'),
+                $this->field('heureSortieTunnel', 'Heure sortie tunnel', 'time', true, 'Permet de calculer la duree tunnel avant cristallisation.'),
+                $this->field('chambreFroide', 'Chambre positive de cristallisation', 'text', true, null, 'chambreFroide'),
+                $this->field('temperatureChambre', 'Temperature chambre positive', 'number', false, 'Valeur negative autorisee.'),
+                $this->field('temperatureStockage', 'Temperature produit en cristallisation', 'number', false, 'Valeur negative autorisee.'),
+                $this->field('dateEntreeStockage', 'Date entree chambre positive', 'date', true),
+                $this->field('heureEntreeStockage', 'Heure entree chambre positive', 'time', true),
+            ],
+            'remise_chambre' => [
+                $this->field('quantity', 'Quantite a remettre en chambre apres emballage (kg)', 'number', true),
+                $this->field('chambreRemiseEnChambre', 'Chambre positive de retour', 'text', true, null, 'chambreRemiseEnChambre'),
+                $this->field('dateRemiseEnChambre', 'Date remise en chambre', 'date', true),
+                $this->field('heureRemiseEnChambre', 'Heure remise en chambre', 'time', true),
+                $this->field('temperatureChambreRemise', 'Temperature chambre positive', 'number', false, 'Valeur negative autorisee.'),
+                $this->field('temperatureProduitRemise', 'Temperature produit remis en chambre', 'number', false, 'Valeur negative autorisee.'),
             ],
             'expedition' => [
                 $this->field('quantity', 'Quantité à expédier (kg)', 'number', true),
@@ -299,10 +309,11 @@ final readonly class FishReceptionExcelFormService
     {
         if ($field === 'quantity' && $reception instanceof FishReception) {
             return match ($stage) {
-                'traitement' => $reception->getQuantiteDisponibleReceptionValue(),
-                'emballage' => $reception->getQuantiteDisponibleTraitementValue(),
-                'congelation' => $reception->getQuantiteDisponibleEmballageValue(),
+                'traitement' => $reception->getQuantiteDisponibleTraitementSourceValue(),
+                'congelation' => $reception->getQuantiteDisponibleTraitementValue(),
                 'stockage' => $reception->getQuantiteDisponibleCongelationValue(),
+                'emballage' => $reception->getQuantiteDisponibleCristallisationValue(),
+                'remise_chambre' => $reception->getQuantiteDisponibleEmballageValue(),
                 'expedition' => $reception->getQuantiteDisponibleStockageValue(),
                 default => null,
             };
@@ -422,7 +433,7 @@ final readonly class FishReceptionExcelFormService
         }
 
         $choiceKey = (string) ($field['choices'] ?? '');
-        if (in_array($field['name'], ['tunnel', 'chambreFroide'], true) && $choiceKey !== '' && !empty($choices[$choiceKey]) && !in_array($text, $choices[$choiceKey], true)) {
+        if (in_array($field['name'], ['tunnel', 'chambreFroide', 'chambreRemiseEnChambre'], true) && $choiceKey !== '' && !empty($choices[$choiceKey]) && !in_array($text, $choices[$choiceKey], true)) {
             return [null, 'Valeur absente de Composition usine. Choisissez une valeur proposée dans le modèle.'];
         }
 
@@ -509,10 +520,11 @@ final readonly class FishReceptionExcelFormService
     {
         return match ($stage) {
             'traitement' => 'Traitement / Production',
+            'congelation' => 'Congelation',
+            'stockage' => 'Cristallisation',
             'emballage' => 'Conditionnement / Emballage',
-            'congelation' => 'Congélation',
-            'stockage' => 'Stockage',
-            'expedition' => 'Expédition',
+            'remise_chambre' => 'Remise en chambre',
+            'expedition' => 'Expedition',
             default => 'Reception',
         };
     }

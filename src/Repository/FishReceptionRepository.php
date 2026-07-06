@@ -93,10 +93,11 @@ class FishReceptionRepository extends ServiceEntityRepository
             ->leftJoin('r.receivedBy', 'receiver')
             ->leftJoin('r.treatmentStartedBy', 'treatmentStarter')
             ->leftJoin('r.storedBy', 'storageUser')
+            ->leftJoin('r.remiseEnChambreBy', 'returnStorageUser')
             ->leftJoin('r.expeditedBy', 'shippingUser')
             ->leftJoin('r.closedBy', 'closingUser')
             ->leftJoin('r.blockedBy', 'blockingUser')
-            ->addSelect('creator', 'updater', 'receiver', 'treatmentStarter', 'storageUser', 'shippingUser', 'closingUser', 'blockingUser')
+            ->addSelect('creator', 'updater', 'receiver', 'treatmentStarter', 'storageUser', 'returnStorageUser', 'shippingUser', 'closingUser', 'blockingUser')
             ->andWhere('r.isDeleted = false')
             ->andWhere('(
                 r.createdAt BETWEEN :fromDateTime AND :toDateTime
@@ -105,10 +106,13 @@ class FishReceptionRepository extends ServiceEntityRepository
                 OR r.receivedAt BETWEEN :fromDateTime AND :toDateTime
                 OR r.treatmentStartedAt BETWEEN :fromDateTime AND :toDateTime
                 OR r.dateDebutTraitement BETWEEN :fromDay AND :toDay
-                OR r.dateConditionnement BETWEEN :fromDay AND :toDay
+                OR r.dateEntreeTunnel BETWEEN :fromDay AND :toDay
                 OR r.dateSortieTunnel BETWEEN :fromDay AND :toDay
                 OR r.storedAt BETWEEN :fromDateTime AND :toDateTime
                 OR r.dateEntreeStockage BETWEEN :fromDay AND :toDay
+                OR r.dateConditionnement BETWEEN :fromDay AND :toDay
+                OR r.remiseEnChambreAt BETWEEN :fromDateTime AND :toDateTime
+                OR r.dateRemiseEnChambre BETWEEN :fromDay AND :toDay
                 OR r.expeditedAt BETWEEN :fromDateTime AND :toDateTime
                 OR r.expeditionDateDepart BETWEEN :fromDay AND :toDay
                 OR r.closedAt BETWEEN :fromDateTime AND :toDateTime
@@ -166,10 +170,12 @@ class FishReceptionRepository extends ServiceEntityRepository
 
         $stage = (string) ($filters['stage'] ?? 'reception');
         $received = array_sum(array_map(static fn (FishReception $item): float => match ($stage) {
-            'emballage' => $item->getQuantiteTotalePrepareeValue(),
-            'congelation' => $item->getQuantiteConditionneeValue(),
+            'traitement' => $item->getQuantiteStockInitialEntreeValue(),
+            'congelation' => $item->getQuantiteTotalePrepareeValue(),
             'stockage' => $item->getQuantiteCongeleeValue(),
-            'expedition' => $item->getQuantiteStockeeValue(),
+            'emballage' => $item->getQuantiteStockeeValue(),
+            'remise_chambre' => $item->getQuantiteConditionneeValue(),
+            'expedition' => $item->getQuantiteRemiseEnChambreValue(),
             default => $item->getQuantiteReceptionneeValue(),
         }, $items));
         $used = array_sum(array_map(static fn (FishReception $item): float => $item->getWorkflowMovedForStage($stage), $items));
@@ -192,12 +198,28 @@ class FishReceptionRepository extends ServiceEntityRepository
     public function currentStockByStorageLocation(): array
     {
         return $this->createQueryBuilder('r')
+            ->select('r.chambreRemiseEnChambre AS location')
+            ->addSelect('SUM(r.quantiteRemiseEnChambre - r.quantiteTotaleExpediee) AS quantity')
+            ->andWhere('r.isDeleted = false')
+            ->andWhere('r.chambreRemiseEnChambre IS NOT NULL')
+            ->andWhere("r.chambreRemiseEnChambre <> ''")
+            ->andWhere('r.quantiteRemiseEnChambre > r.quantiteTotaleExpediee')
+            ->groupBy('r.chambreRemiseEnChambre')
+            ->orderBy('quantity', 'DESC')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    /** @return list<array{location: string, quantity: string}> */
+    public function currentCrystallizationStockByStorageLocation(): array
+    {
+        return $this->createQueryBuilder('r')
             ->select('r.chambreFroide AS location')
-            ->addSelect('SUM(r.quantiteStockee - r.quantiteTotaleExpediee) AS quantity')
+            ->addSelect('SUM(r.quantiteStockee - r.quantiteConditionnee) AS quantity')
             ->andWhere('r.isDeleted = false')
             ->andWhere('r.chambreFroide IS NOT NULL')
             ->andWhere("r.chambreFroide <> ''")
-            ->andWhere('r.quantiteStockee > r.quantiteTotaleExpediee')
+            ->andWhere('r.quantiteStockee > r.quantiteConditionnee')
             ->groupBy('r.chambreFroide')
             ->orderBy('quantity', 'DESC')
             ->getQuery()
@@ -272,10 +294,11 @@ class FishReceptionRepository extends ServiceEntityRepository
 
         match ((string) ($filters['stage'] ?? '')) {
             'traitement' => $builder->andWhere('(r.quantiteReceptionnee > r.quantiteTotalePreparee OR r.quantiteTotalePreparee > 0)'),
-            'emballage' => $builder->andWhere('r.quantiteTotalePreparee > 0'),
-            'congelation' => $builder->andWhere('r.quantiteConditionnee > 0'),
+            'congelation' => $builder->andWhere('r.quantiteTotalePreparee > 0'),
             'stockage' => $builder->andWhere('r.quantiteCongelee > 0'),
-            'expedition' => $builder->andWhere('r.quantiteStockee > 0'),
+            'emballage' => $builder->andWhere('r.quantiteStockee > 0'),
+            'remise_chambre' => $builder->andWhere('r.quantiteConditionnee > 0'),
+            'expedition' => $builder->andWhere('r.quantiteRemiseEnChambre > 0'),
             default => null,
         };
 
@@ -302,10 +325,11 @@ class FishReceptionRepository extends ServiceEntityRepository
     private function stageAvailableExpression(string $stage): string
     {
         return match ($stage) {
-            'emballage' => 'r.quantiteTotalePreparee - r.quantiteConditionnee',
-            'congelation' => 'r.quantiteConditionnee - r.quantiteCongelee',
+            'congelation' => 'r.quantiteTotalePreparee - r.quantiteCongelee',
             'stockage' => 'r.quantiteCongelee - r.quantiteStockee',
-            'expedition' => 'r.quantiteStockee - r.quantiteTotaleExpediee',
+            'emballage' => 'r.quantiteStockee - r.quantiteConditionnee',
+            'remise_chambre' => 'r.quantiteConditionnee - r.quantiteRemiseEnChambre',
+            'expedition' => 'r.quantiteRemiseEnChambre - r.quantiteTotaleExpediee',
             default => 'r.quantiteReceptionnee - r.quantiteTotalePreparee',
         };
     }
@@ -313,9 +337,10 @@ class FishReceptionRepository extends ServiceEntityRepository
     private function stageMovedExpression(string $stage): string
     {
         return match ($stage) {
-            'emballage' => 'r.quantiteConditionnee',
             'congelation' => 'r.quantiteCongelee',
             'stockage' => 'r.quantiteStockee',
+            'emballage' => 'r.quantiteConditionnee',
+            'remise_chambre' => 'r.quantiteRemiseEnChambre',
             'expedition' => 'r.quantiteTotaleExpediee',
             default => 'r.quantiteTotalePreparee',
         };

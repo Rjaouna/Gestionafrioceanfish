@@ -151,7 +151,7 @@
                             <dd class="col-6 text-end"><span class="badge {{ item.statutBadgeClass }}">{{ item.statutLabel }}</span></dd>
                             <dt class="col-6 text-secondary">Envoye traitement</dt>
                             <dd class="col-6 text-end">{{ item.quantiteTotalePreparee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
-                            <dt class="col-6 text-secondary">Reste réception</dt>
+                            <dt class="col-6 text-secondary">Reste à stocker</dt>
                             <dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleReceptionValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                             <dt class="col-6 text-secondary">Reserve cout</dt>
                             <dd class="col-6 text-end">{{ item.quantiteUtiliseeProduction|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>

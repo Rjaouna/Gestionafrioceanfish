@@ -3,11 +3,11 @@
 {% set stage = stage|default('reception') %}
 {% set stage_config = stage_config|default({
     title: 'Réceptions',
-    description: 'Creation, validation et suivi des receptions matière première.',
+    description: 'Creation, validation et mise en stock initial des receptions matiere premiere.',
     source_label: 'Quantité reçue',
-    moved_label: 'Envoyee traitement',
-    available_label: 'Disponible reception',
-    rate_label: 'Taux traitement'
+    moved_label: 'Stockee initial',
+    available_label: 'Reste a stocker',
+    rate_label: 'Taux stockage initial'
 }) %}
 
 {% block title %}{{ stage_config.title }}{% endblock %}

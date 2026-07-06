@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\FishReception;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
@@ -18,15 +19,16 @@ final class FishReceptionTreatmentType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('quantity', NumberType::class, $this->quantityOptions('Quantité à envoyer au traitement (kg)', (float) $options['available_quantity']))
-            ->add('dateDebutTraitement', DateType::class, $this->dateOptions('Date début traitement'))
-            ->add('heureDebutTraitement', TimeType::class, $this->timeOptions('Heure début traitement'))
-            ->add('temperatureEauGlacee', NumberType::class, $this->numberOptions('Température eau glacée', 2, '0.01', false, true))
+            ->add('quantity', NumberType::class, $this->quantityOptions('Quantite a envoyer au traitement (kg)', (float) $options['available_quantity']))
+            ->add('stockSourceLocation', ChoiceType::class, $this->sourceLocationOptions($options['source_location_choices']))
+            ->add('dateDebutTraitement', DateType::class, $this->dateOptions('Date debut traitement'))
+            ->add('heureDebutTraitement', TimeType::class, $this->timeOptions('Heure debut traitement'))
+            ->add('temperatureEauGlacee', NumberType::class, $this->numberOptions('Temperature eau glacee', 2, '0.01', false, true))
             ->add('poidsMoyenParCaisse', NumberType::class, $this->numberOptions('Poids moyen par caisse (kg)', 3, '0.001', false))
             ->add('nombreCaissesApresTraitement', IntegerType::class, $this->integerOptions('Nombre de caisses apres traitement', false, [
                 'readonly' => 'readonly',
                 'data-treatment-box-count' => 'true',
-            ], 'Calcule automatiquement : quantité / poids moyen par caisse.'))
+            ], 'Calcule automatiquement : quantite / poids moyen par caisse.'))
             ->add('nombreMoules', IntegerType::class, $this->integerOptions('Nombre de moules', false))
             ->add('nombreCaissesParEtage', IntegerType::class, $this->integerOptions('Nombre de caisses par etage', false, [
                 'data-treatment-boxes-per-layer' => 'true',
@@ -71,8 +73,10 @@ final class FishReceptionTreatmentType extends AbstractType
         $resolver->setDefaults([
             'data_class' => FishReception::class,
             'available_quantity' => 0.0,
+            'source_location_choices' => [],
         ]);
         $resolver->setAllowedTypes('available_quantity', ['float', 'int']);
+        $resolver->setAllowedTypes('source_location_choices', ['array']);
     }
 
     /** @return array<string, mixed> */
@@ -91,7 +95,23 @@ final class FishReceptionTreatmentType extends AbstractType
                 'data-treatment-total-weight' => 'true',
                 'data-treatment-available' => (string) round(max(0.0, $available), 3),
             ],
-            'help' => sprintf('Disponible : %.3f kg', max(0.0, $available)),
+            'help' => sprintf('Disponible en stockage initial : %.3f kg', max(0.0, $available)),
+        ];
+    }
+
+    /** @param array<string, string> $choices @return array<string, mixed> */
+    private function sourceLocationOptions(array $choices): array
+    {
+        return [
+            'label' => 'Chambre source du traitement',
+            'mapped' => false,
+            'required' => true,
+            'placeholder' => $choices === [] ? 'Stockez la reception avant traitement' : 'Selectionner...',
+            'choices' => $choices,
+            'attr' => ['data-treatment-source-location' => 'true'],
+            'help' => $choices === []
+                ? 'Aucune quantite disponible en stockage initial. Utilisez d abord le bouton Stocker reception.'
+                : 'La quantite lancee en traitement sera deduite de cette chambre.',
         ];
     }
 
@@ -162,7 +182,7 @@ final class FishReceptionTreatmentType extends AbstractType
     {
         return [
             'label' => $label,
-            'required' => false,
+            'required' => true,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
             'attr' => ['placeholder' => 'Ex. 08:30'],

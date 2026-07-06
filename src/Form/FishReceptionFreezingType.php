@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\FishReception;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TimeType;
@@ -18,6 +19,7 @@ final class FishReceptionFreezingType extends AbstractType
         $builder
             ->add('quantity', NumberType::class, $this->quantityOptions('Quantité à congeler (kg)', (float) $options['available_quantity']))
             ->add('tunnel', empty($options['factory_unit_choices']) ? TextType::class : ChoiceType::class, $this->factoryUnitOptions('Tunnel', $options['factory_unit_choices'], 'Ex. Tunnel 3', $options['capacity_check_url']))
+            ->add('dateEntreeTunnel', DateType::class, $this->dateOptions('Date entree tunnel'))
             ->add('heureEntreeTunnel', TimeType::class, $this->timeOptions('Heure entrée tunnel'))
             ->add('temperatureTunnel', NumberType::class, $this->numberOptions('Température tunnel', 2, '0.01', false, true))
             ->add('temperatureCoeurProduit', NumberType::class, $this->numberOptions('Température à coeur produit', 2, '0.01', false, true));
@@ -53,10 +55,22 @@ final class FishReceptionFreezingType extends AbstractType
                 'data-stage-quantity-limit' => 'true',
                 'data-stage-available' => (string) round(max(0.0, $available), 3),
                 'data-stage-requested-label' => 'a congeler',
-                'data-stage-available-label' => 'apres emballage',
-                'data-stage-submit-message' => 'Quantite a congeler superieure au reste emballage.',
+                'data-stage-available-label' => 'apres traitement',
+                'data-stage-submit-message' => 'Quantite a congeler superieure au reste traitement.',
             ],
-            'help' => sprintf('Disponible apres emballage : %.3f kg', max(0.0, $available)),
+            'help' => sprintf('Disponible apres traitement : %.3f kg', max(0.0, $available)),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function dateOptions(string $label): array
+    {
+        return [
+            'label' => $label,
+            'required' => true,
+            'widget' => 'single_text',
+            'input' => 'datetime_immutable',
+            'attr' => ['placeholder' => 'Date entree tunnel'],
         ];
     }
 

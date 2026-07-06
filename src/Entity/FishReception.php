@@ -26,6 +26,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_fish_reception_received_by', columns: ['received_by_id'])]
 #[ORM\Index(name: 'idx_fish_reception_treatment_by', columns: ['treatment_started_by_id'])]
 #[ORM\Index(name: 'idx_fish_reception_stored_by', columns: ['stored_by_id'])]
+#[ORM\Index(name: 'idx_fish_reception_return_storage_by', columns: ['remise_en_chambre_by_id'])]
 #[ORM\Index(name: 'idx_fish_reception_expedited_by', columns: ['expedited_by_id'])]
 #[ORM\Index(name: 'idx_fish_reception_closed_by', columns: ['closed_by_id'])]
 #[ORM\Index(name: 'idx_fish_reception_blocked_by', columns: ['blocked_by_id'])]
@@ -42,6 +43,7 @@ class FishReception
     public const STATUS_FROZEN = 'congelee';
     public const STATUS_STORED = 'stockee';
     public const STATUS_PACKAGED = 'emballee';
+    public const STATUS_RETURNED_TO_ROOM = 'remise_chambre';
     public const STATUS_SHIPPED = 'expediee';
     public const STATUS_CLOSED = 'cloturee';
     public const STATUS_BLOCKED = 'bloquee';
@@ -59,8 +61,9 @@ class FishReception
         self::STATUS_RECEIVED => 'Receptionnee',
         self::STATUS_PROCESSING => 'En traitement',
         self::STATUS_FROZEN => 'Congelée',
-        self::STATUS_STORED => 'En stock',
+        self::STATUS_STORED => 'En cristallisation',
         self::STATUS_PACKAGED => 'Emballée',
+        self::STATUS_RETURNED_TO_ROOM => 'Remise en chambre',
         self::STATUS_SHIPPED => 'Expédiée',
         self::STATUS_CLOSED => 'Clôturée',
         self::STATUS_BLOCKED => 'Bloquee',
@@ -72,6 +75,7 @@ class FishReception
         self::STATUS_PROCESSING => 'text-bg-info',
         self::STATUS_FROZEN => 'text-bg-info',
         self::STATUS_STORED => 'text-bg-success',
+        self::STATUS_RETURNED_TO_ROOM => 'text-bg-success',
         self::STATUS_PACKAGED => 'text-bg-success',
         self::STATUS_SHIPPED => 'text-bg-dark',
         self::STATUS_CLOSED => 'text-bg-dark',
@@ -241,6 +245,9 @@ class FishReception
     #[Assert\Length(max: 80)]
     private ?string $tunnel = null;
 
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $dateEntreeTunnel = null;
+
     #[ORM\Column(type: 'time_immutable', nullable: true)]
     private ?\DateTimeImmutable $heureEntreeTunnel = null;
 
@@ -317,6 +324,26 @@ class FishReception
     #[ORM\Column(type: 'decimal', precision: 6, scale: 2, nullable: true)]
     private ?string $temperatureStockage = null;
 
+    #[ORM\Column(length: 120, nullable: true)]
+    #[Assert\Length(max: 120)]
+    private ?string $chambreRemiseEnChambre = null;
+
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $dateRemiseEnChambre = null;
+
+    #[ORM\Column(type: 'time_immutable', nullable: true)]
+    private ?\DateTimeImmutable $heureRemiseEnChambre = null;
+
+    #[ORM\Column(type: 'decimal', precision: 6, scale: 2, nullable: true)]
+    private ?string $temperatureChambreRemise = null;
+
+    #[ORM\Column(type: 'decimal', precision: 6, scale: 2, nullable: true)]
+    private ?string $temperatureProduitRemise = null;
+
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 3, options: ['default' => '0.000'])]
+    #[Assert\PositiveOrZero]
+    private string $quantiteRemiseEnChambre = '0.000';
+
     #[ORM\Column(type: 'decimal', precision: 12, scale: 3, options: ['default' => '0.000'])]
     #[Assert\PositiveOrZero]
     private string $quantiteTotaleExpediee = '0.000';
@@ -374,6 +401,7 @@ class FishReception
         self::STATUS_FROZEN,
         self::STATUS_STORED,
         self::STATUS_PACKAGED,
+        self::STATUS_RETURNED_TO_ROOM,
         self::STATUS_SHIPPED,
         self::STATUS_CLOSED,
         self::STATUS_BLOCKED,
@@ -392,6 +420,9 @@ class FishReception
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $storedAt = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $remiseEnChambreAt = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $expeditedAt = null;
@@ -420,6 +451,10 @@ class FishReception
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $remiseEnChambreBy = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $expeditedBy = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -430,6 +465,11 @@ class FishReception
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $blockedBy = null;
 
+    /** @var Collection<int, FishReceptionStorageMovement> */
+    #[ORM\OneToMany(targetEntity: FishReceptionStorageMovement::class, mappedBy: 'reception', cascade: ['persist'], orphanRemoval: true)]
+    #[ORM\OrderBy(['movementDate' => 'ASC', 'movementTime' => 'ASC', 'id' => 'ASC'])]
+    private Collection $storageMovements;
+
     /** @var Collection<int, CoutRevient> */
     #[ORM\OneToMany(targetEntity: CoutRevient::class, mappedBy: 'reception')]
     #[ORM\OrderBy(['dateProduction' => 'DESC', 'id' => 'DESC'])]
@@ -438,6 +478,7 @@ class FishReception
     public function __construct()
     {
         $this->dateReception = new \DateTimeImmutable('today');
+        $this->storageMovements = new ArrayCollection();
         $this->coutRevients = new ArrayCollection();
     }
 
@@ -997,6 +1038,18 @@ class FishReception
         return $this;
     }
 
+    public function getDateEntreeTunnel(): ?\DateTimeImmutable
+    {
+        return $this->dateEntreeTunnel;
+    }
+
+    public function setDateEntreeTunnel(?\DateTimeImmutable $dateEntreeTunnel): static
+    {
+        $this->dateEntreeTunnel = $dateEntreeTunnel;
+
+        return $this;
+    }
+
     public function getHeureEntreeTunnel(): ?\DateTimeImmutable
     {
         return $this->heureEntreeTunnel;
@@ -1268,6 +1321,78 @@ class FishReception
         return $this;
     }
 
+    public function getChambreRemiseEnChambre(): ?string
+    {
+        return $this->chambreRemiseEnChambre;
+    }
+
+    public function setChambreRemiseEnChambre(?string $chambreRemiseEnChambre): static
+    {
+        $this->chambreRemiseEnChambre = $this->nullableString($chambreRemiseEnChambre);
+
+        return $this;
+    }
+
+    public function getDateRemiseEnChambre(): ?\DateTimeImmutable
+    {
+        return $this->dateRemiseEnChambre;
+    }
+
+    public function setDateRemiseEnChambre(?\DateTimeImmutable $dateRemiseEnChambre): static
+    {
+        $this->dateRemiseEnChambre = $dateRemiseEnChambre;
+
+        return $this;
+    }
+
+    public function getHeureRemiseEnChambre(): ?\DateTimeImmutable
+    {
+        return $this->heureRemiseEnChambre;
+    }
+
+    public function setHeureRemiseEnChambre(?\DateTimeImmutable $heureRemiseEnChambre): static
+    {
+        $this->heureRemiseEnChambre = $heureRemiseEnChambre;
+
+        return $this;
+    }
+
+    public function getTemperatureChambreRemise(): ?string
+    {
+        return $this->temperatureChambreRemise;
+    }
+
+    public function setTemperatureChambreRemise(int|float|string|null $temperatureChambreRemise): static
+    {
+        $this->temperatureChambreRemise = $this->nullableDecimal($temperatureChambreRemise);
+
+        return $this;
+    }
+
+    public function getTemperatureProduitRemise(): ?string
+    {
+        return $this->temperatureProduitRemise;
+    }
+
+    public function setTemperatureProduitRemise(int|float|string|null $temperatureProduitRemise): static
+    {
+        $this->temperatureProduitRemise = $this->nullableDecimal($temperatureProduitRemise);
+
+        return $this;
+    }
+
+    public function getQuantiteRemiseEnChambre(): string
+    {
+        return $this->quantiteRemiseEnChambre;
+    }
+
+    public function setQuantiteRemiseEnChambre(int|float|string|null $quantiteRemiseEnChambre): static
+    {
+        $this->quantiteRemiseEnChambre = $this->decimal($quantiteRemiseEnChambre, 3);
+
+        return $this;
+    }
+
     public function getQuantiteTotaleExpediee(): string
     {
         return $this->quantiteTotaleExpediee;
@@ -1498,6 +1623,18 @@ class FishReception
         return $this;
     }
 
+    public function getRemiseEnChambreAt(): ?\DateTimeImmutable
+    {
+        return $this->remiseEnChambreAt;
+    }
+
+    public function setRemiseEnChambreAt(?\DateTimeImmutable $remiseEnChambreAt): static
+    {
+        $this->remiseEnChambreAt = $remiseEnChambreAt;
+
+        return $this;
+    }
+
     public function getExpeditedAt(): ?\DateTimeImmutable
     {
         return $this->expeditedAt;
@@ -1582,6 +1719,18 @@ class FishReception
         return $this;
     }
 
+    public function getRemiseEnChambreBy(): ?User
+    {
+        return $this->remiseEnChambreBy;
+    }
+
+    public function setRemiseEnChambreBy(?User $remiseEnChambreBy): static
+    {
+        $this->remiseEnChambreBy = $remiseEnChambreBy;
+
+        return $this;
+    }
+
     public function getExpeditedBy(): ?User
     {
         return $this->expeditedBy;
@@ -1618,6 +1767,31 @@ class FishReception
         return $this;
     }
 
+    /** @return Collection<int, FishReceptionStorageMovement> */
+    public function getStorageMovements(): Collection
+    {
+        return $this->storageMovements;
+    }
+
+    public function addStorageMovement(FishReceptionStorageMovement $storageMovement): static
+    {
+        if (!$this->storageMovements->contains($storageMovement)) {
+            $this->storageMovements->add($storageMovement);
+            $storageMovement->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStorageMovement(FishReceptionStorageMovement $storageMovement): static
+    {
+        if ($this->storageMovements->removeElement($storageMovement) && $storageMovement->getReception() === $this) {
+            $storageMovement->setReception(null);
+        }
+
+        return $this;
+    }
+
     /** @return Collection<int, CoutRevient> */
     public function getCoutRevients(): Collection
     {
@@ -1627,6 +1801,63 @@ class FishReception
     public function getQuantiteReceptionneeValue(): float
     {
         return (float) $this->quantiteReceptionnee;
+    }
+
+    public function getQuantiteStockInitialEntreeValue(): float
+    {
+        return $this->sumStorageMovements([
+            FishReceptionStorageMovement::TYPE_INITIAL_ENTRY,
+        ]);
+    }
+
+    public function getQuantiteStockInitialRetourValue(): float
+    {
+        return $this->sumStorageMovements([
+            FishReceptionStorageMovement::TYPE_INITIAL_RETURN,
+        ]);
+    }
+
+    public function getQuantiteStockInitialSortieValue(): float
+    {
+        return abs($this->sumStorageMovements([
+            FishReceptionStorageMovement::TYPE_INITIAL_EXIT,
+        ]));
+    }
+
+    public function getQuantiteDisponibleStockageInitialValue(): float
+    {
+        return max(0.0, $this->getQuantiteReceptionneeValue() - $this->getQuantiteStockInitialEntreeValue());
+    }
+
+    public function getQuantiteDisponibleStockInitialValue(): float
+    {
+        return max(0.0, $this->getQuantiteStockInitialEntreeValue() + $this->getQuantiteStockInitialRetourValue() - $this->getQuantiteStockInitialSortieValue());
+    }
+
+    /** @return array<string, float> */
+    public function getStockInitialDisponibleParEmplacement(): array
+    {
+        $stocks = [];
+        foreach ($this->storageMovements as $movement) {
+            if ($movement->getStorageStage() !== FishReceptionStorageMovement::STAGE_INITIAL) {
+                continue;
+            }
+
+            $location = trim($movement->getLocation());
+            if ($location === '') {
+                continue;
+            }
+
+            $stocks[$location] = ($stocks[$location] ?? 0.0) + $movement->getQuantityKgValue();
+        }
+
+        return array_filter($stocks, static fn (float $quantity): bool => $quantity > 0.001);
+    }
+
+    /** @return list<string> */
+    public function getStockInitialEmplacementsDisponibles(): array
+    {
+        return array_keys($this->getStockInitialDisponibleParEmplacement());
     }
 
     public function getQuantiteUtiliseeProductionValue(): float
@@ -1646,17 +1877,18 @@ class FishReception
 
     public function getDureeTunnelHeuresValue(): float
     {
-        if (!$this->heureEntreeTunnel instanceof \DateTimeImmutable || !$this->heureSortieTunnel instanceof \DateTimeImmutable) {
+        $start = $this->combineDateAndTime($this->dateEntreeTunnel ?? $this->dateSortieTunnel, $this->heureEntreeTunnel);
+        $end = $this->combineDateAndTime($this->dateSortieTunnel ?? $this->dateEntreeTunnel, $this->heureSortieTunnel);
+
+        if (!$start instanceof \DateTimeImmutable || !$end instanceof \DateTimeImmutable) {
             return 0.0;
         }
 
-        $startMinutes = ((int) $this->heureEntreeTunnel->format('H') * 60) + (int) $this->heureEntreeTunnel->format('i');
-        $endMinutes = ((int) $this->heureSortieTunnel->format('H') * 60) + (int) $this->heureSortieTunnel->format('i');
-        if ($endMinutes < $startMinutes) {
-            $endMinutes += 1440;
+        if ($end < $start) {
+            $end = $end->modify('+1 day');
         }
 
-        return max(0, $endMinutes - $startMinutes) / 60;
+        return max(0, $end->getTimestamp() - $start->getTimestamp()) / 3600;
     }
 
     public function getQuantiteStockeeValue(): float
@@ -1667,6 +1899,11 @@ class FishReception
     public function getQuantiteConditionneeValue(): float
     {
         return (float) $this->quantiteConditionnee;
+    }
+
+    public function getQuantiteRemiseEnChambreValue(): float
+    {
+        return (float) $this->quantiteRemiseEnChambre;
     }
 
     public function getPoidsNetValue(): float
@@ -1706,17 +1943,34 @@ class FishReception
 
     public function getDureeConditionnementHeuresValue(): float
     {
-        if (!$this->heureDebutConditionnement instanceof \DateTimeImmutable || !$this->heureFinConditionnement instanceof \DateTimeImmutable) {
+        $start = $this->combineDateAndTime($this->dateConditionnement, $this->heureDebutConditionnement);
+        $end = $this->combineDateAndTime($this->dateConditionnement, $this->heureFinConditionnement);
+
+        if (!$start instanceof \DateTimeImmutable || !$end instanceof \DateTimeImmutable) {
             return 0.0;
         }
 
-        $startMinutes = ((int) $this->heureDebutConditionnement->format('H') * 60) + (int) $this->heureDebutConditionnement->format('i');
-        $endMinutes = ((int) $this->heureFinConditionnement->format('H') * 60) + (int) $this->heureFinConditionnement->format('i');
-        if ($endMinutes < $startMinutes) {
-            $endMinutes += 1440;
+        if ($end < $start) {
+            $end = $end->modify('+1 day');
         }
 
-        return max(0, $endMinutes - $startMinutes) / 60;
+        return max(0, $end->getTimestamp() - $start->getTimestamp()) / 3600;
+    }
+
+    public function getDureeCristallisationHeuresValue(): float
+    {
+        return $this->hoursBetween(
+            $this->combineDateAndTime($this->dateEntreeStockage, $this->heureEntreeStockage),
+            $this->combineDateAndTime($this->dateConditionnement, $this->heureDebutConditionnement),
+        );
+    }
+
+    public function getDureeRemiseChambreAvantExpeditionHeuresValue(): float
+    {
+        return $this->hoursBetween(
+            $this->combineDateAndTime($this->dateRemiseEnChambre, $this->heureRemiseEnChambre),
+            $this->combineDateAndTime($this->expeditionDateDepart, $this->expeditionHeureDepart),
+        );
     }
 
     public function getCoutKgEmballageValue(): float
@@ -1736,17 +1990,27 @@ class FishReception
 
     public function getQuantiteDisponibleReceptionValue(): float
     {
-        return max(0.0, $this->getQuantiteReceptionneeValue() - $this->getQuantiteTotalePrepareeValue());
+        return $this->getQuantiteDisponibleStockageInitialValue();
+    }
+
+    public function getQuantiteDisponibleTraitementSourceValue(): float
+    {
+        return $this->getQuantiteDisponibleStockInitialValue();
     }
 
     public function getQuantiteDisponibleTraitementValue(): float
     {
-        return max(0.0, $this->getQuantiteTotalePrepareeValue() - $this->getQuantiteConditionneeValue());
+        return max(0.0, $this->getQuantiteTotalePrepareeValue() - $this->getQuantiteCongeleeValue());
+    }
+
+    public function getQuantiteDisponibleCristallisationValue(): float
+    {
+        return max(0.0, $this->getQuantiteStockeeValue() - $this->getQuantiteConditionneeValue());
     }
 
     public function getQuantiteDisponibleEmballageValue(): float
     {
-        return max(0.0, $this->getQuantiteConditionneeValue() - $this->getQuantiteCongeleeValue());
+        return max(0.0, $this->getQuantiteConditionneeValue() - $this->getQuantiteRemiseEnChambreValue());
     }
 
     public function getQuantiteDisponibleCongelationValue(): float
@@ -1756,7 +2020,7 @@ class FishReception
 
     public function getQuantiteDisponibleStockageValue(): float
     {
-        return max(0.0, $this->getQuantiteStockeeValue() - $this->getQuantiteTotaleExpedieeValue());
+        return max(0.0, $this->getQuantiteRemiseEnChambreValue() - $this->getQuantiteTotaleExpedieeValue());
     }
 
     public function getQuantiteDisponibleProductionValue(): float
@@ -1767,10 +2031,11 @@ class FishReception
     public function getWorkflowAvailableForStage(string $stage): float
     {
         return match ($stage) {
-            'traitement' => $this->getQuantiteDisponibleReceptionValue(),
-            'emballage' => $this->getQuantiteDisponibleTraitementValue(),
-            'congelation' => $this->getQuantiteDisponibleEmballageValue(),
+            'traitement' => $this->getQuantiteDisponibleTraitementSourceValue(),
+            'congelation' => $this->getQuantiteDisponibleTraitementValue(),
             'stockage' => $this->getQuantiteDisponibleCongelationValue(),
+            'emballage' => $this->getQuantiteDisponibleCristallisationValue(),
+            'remise_chambre' => $this->getQuantiteDisponibleEmballageValue(),
             'expedition' => $this->getQuantiteDisponibleStockageValue(),
             default => $this->getQuantiteDisponibleReceptionValue(),
         };
@@ -1779,9 +2044,11 @@ class FishReception
     public function getWorkflowMovedForStage(string $stage): float
     {
         return match ($stage) {
-            'emballage' => $this->getQuantiteConditionneeValue(),
+            'reception' => $this->getQuantiteStockInitialEntreeValue(),
             'congelation' => $this->getQuantiteCongeleeValue(),
             'stockage' => $this->getQuantiteStockeeValue(),
+            'emballage' => $this->getQuantiteConditionneeValue(),
+            'remise_chambre' => $this->getQuantiteRemiseEnChambreValue(),
             'expedition' => $this->getQuantiteTotaleExpedieeValue(),
             default => $this->getQuantiteTotalePrepareeValue(),
         };
@@ -1855,6 +2122,37 @@ class FishReception
         }
 
         return (float) $this->{$property};
+    }
+
+    /** @param list<string> $types */
+    private function sumStorageMovements(array $types): float
+    {
+        $total = 0.0;
+        foreach ($this->storageMovements as $movement) {
+            if (in_array($movement->getMovementType(), $types, true)) {
+                $total += $movement->getQuantityKgValue();
+            }
+        }
+
+        return $total;
+    }
+
+    private function combineDateAndTime(?\DateTimeImmutable $date, ?\DateTimeImmutable $time): ?\DateTimeImmutable
+    {
+        if (!$date instanceof \DateTimeImmutable || !$time instanceof \DateTimeImmutable) {
+            return null;
+        }
+
+        return $date->setTime((int) $time->format('H'), (int) $time->format('i'));
+    }
+
+    private function hoursBetween(?\DateTimeImmutable $start, ?\DateTimeImmutable $end): float
+    {
+        if (!$start instanceof \DateTimeImmutable || !$end instanceof \DateTimeImmutable || $end < $start) {
+            return 0.0;
+        }
+
+        return ($end->getTimestamp() - $start->getTimestamp()) / 3600;
     }
 
     private function nullableString(?string $value): ?string

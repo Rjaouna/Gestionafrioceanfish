@@ -36,18 +36,22 @@
 {% block reception_show_content %}
 {% import _self as ui %}
 {% set receivedWeight = item.quantiteReceptionneeValue %}
+{% set initialStorageRate = receivedWeight > 0 ? (item.quantiteStockInitialEntreeValue / receivedWeight * 100) : 0 %}
 {% set treatmentRate = receivedWeight > 0 ? (item.quantiteTotalePrepareeValue / receivedWeight * 100) : 0 %}
-{% set packagedRate = item.quantiteTotalePrepareeValue > 0 ? (item.quantiteConditionneeValue / item.quantiteTotalePrepareeValue * 100) : 0 %}
-{% set frozenRate = item.quantiteConditionneeValue > 0 ? (item.quantiteCongeleeValue / item.quantiteConditionneeValue * 100) : 0 %}
+{% set frozenRate = item.quantiteTotalePrepareeValue > 0 ? (item.quantiteCongeleeValue / item.quantiteTotalePrepareeValue * 100) : 0 %}
 {% set storedRate = item.quantiteCongeleeValue > 0 ? (item.quantiteStockeeValue / item.quantiteCongeleeValue * 100) : 0 %}
-{% set shippedRate = item.quantiteStockeeValue > 0 ? (item.quantiteTotaleExpedieeValue / item.quantiteStockeeValue * 100) : 0 %}
+{% set packagedRate = item.quantiteStockeeValue > 0 ? (item.quantiteConditionneeValue / item.quantiteStockeeValue * 100) : 0 %}
+{% set returnStorageRate = item.quantiteConditionneeValue > 0 ? (item.quantiteRemiseEnChambreValue / item.quantiteConditionneeValue * 100) : 0 %}
+{% set shippedRate = item.quantiteRemiseEnChambreValue > 0 ? (item.quantiteTotaleExpedieeValue / item.quantiteRemiseEnChambreValue * 100) : 0 %}
 {% set workflow = [
     {label: 'Reception', icon: 'bi-clipboard2-check', done: item.receivedAt or item.statut != 'brouillon', detail: item.receivedAt ? item.receivedAt|date('d/m H:i') : item.statutLabel},
+    {label: 'Stock initial', icon: 'bi-inboxes', done: item.quantiteStockInitialEntreeValue > 0.001, detail: ui.kg(item.quantiteStockInitialEntreeValue)},
     {label: 'Traitement', icon: 'bi-arrow-repeat', done: item.quantiteTotalePrepareeValue > 0.001, detail: ui.kg(item.quantiteTotalePreparee)},
+    {label: 'Congelation', icon: 'bi-snow', done: item.quantiteCongeleeValue > 0.001, detail: ui.kg(item.quantiteCongelee)},
+    {label: 'Cristallisation', icon: 'bi-box-seam', done: item.quantiteStockeeValue > 0.001, detail: ui.kg(item.quantiteStockee)},
     {label: 'Emballage', icon: 'bi-box', done: item.quantiteConditionneeValue > 0.001, detail: ui.kg(item.quantiteConditionnee)},
-    {label: 'Congélation', icon: 'bi-snow', done: item.quantiteCongeleeValue > 0.001, detail: ui.kg(item.quantiteCongelee)},
-    {label: 'Stockage', icon: 'bi-box-seam', done: item.quantiteStockeeValue > 0.001, detail: ui.kg(item.quantiteStockee)},
-    {label: 'Expédition', icon: 'bi-truck', done: item.quantiteTotaleExpedieeValue > 0.001 or item.expeditedAt, detail: ui.kg(item.quantiteTotaleExpediee)}
+    {label: 'Remise chambre', icon: 'bi-box-arrow-in-down', done: item.quantiteRemiseEnChambreValue > 0.001, detail: ui.kg(item.quantiteRemiseEnChambre)},
+    {label: 'Expedition', icon: 'bi-truck', done: item.quantiteTotaleExpedieeValue > 0.001 or item.expeditedAt, detail: ui.kg(item.quantiteTotaleExpediee)}
 ] %}
 
 <div class="reception-show">
@@ -91,11 +95,14 @@
     {% endif %}
 
     <section class="reception-metric-grid">
+        {{ ui.metric('Stock initial', ui.kg(item.quantiteStockInitialEntreeValue), 'bi-inboxes', 'success', initialStorageRate|number_format(1, ',', ' ') ~ ' % stocke') }}
         {{ ui.metric('Quantité reçue', ui.kg(item.quantiteReceptionnee), 'bi-basket2', 'primary', item.nombreCaissesReception ~ ' caisses') }}
         {{ ui.metric('Préparée', ui.kg(item.quantiteTotalePreparee), 'bi-arrow-repeat', 'info', treatmentRate|number_format(1, ',', ' ') ~ ' % traitement') }}
-        {{ ui.metric('Emballée', ui.kg(item.quantiteConditionnee), 'bi-box', 'warning', packagedRate|number_format(1, ',', ' ') ~ ' % emballage') }}
-        {{ ui.metric('Stockée', ui.kg(item.quantiteStockee), 'bi-box-seam', 'success', storedRate|number_format(1, ',', ' ') ~ ' % stockage') }}
-        {{ ui.metric('Expédiée', ui.kg(item.quantiteTotaleExpediee), 'bi-truck', 'dark', shippedRate|number_format(1, ',', ' ') ~ ' % expedition') }}
+        {{ ui.metric('Congelee', ui.kg(item.quantiteCongelee), 'bi-snow', 'primary', frozenRate|number_format(1, ',', ' ') ~ ' % tunnel') }}
+        {{ ui.metric('Cristallisee', ui.kg(item.quantiteStockee), 'bi-box-seam', 'success', storedRate|number_format(1, ',', ' ') ~ ' % cristallisation') }}
+        {{ ui.metric('Emballee', ui.kg(item.quantiteConditionnee), 'bi-box', 'warning', packagedRate|number_format(1, ',', ' ') ~ ' % emballage') }}
+        {{ ui.metric('Remise chambre', ui.kg(item.quantiteRemiseEnChambre), 'bi-box-arrow-in-down', 'success', returnStorageRate|number_format(1, ',', ' ') ~ ' % retour') }}
+        {{ ui.metric('Expediee', ui.kg(item.quantiteTotaleExpediee), 'bi-truck', 'dark', shippedRate|number_format(1, ',', ' ') ~ ' % expedition') }}
         {{ ui.metric('Coût réception/kg', item.coutKgReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'bi-cash-coin', 'primary', item.operationTypeLabel) }}
     </section>
 
@@ -139,6 +146,79 @@
                     {{ ui.row('Température poisson', ui.temp(item.temperaturePoissonReception)) }}
                     {{ ui.row('Heure réception', ui.time(item.heureDebutReception) ~ ' - ' ~ ui.time(item.heureFinReception)) }}
                 </div>
+            </section>
+
+            <section class="reception-panel">
+                <div class="reception-panel-heading">
+                    <span><i class="bi bi-inboxes"></i></span>
+                    <div>
+                        <h2>Stockage initial avant traitement</h2>
+                        <p>Dispatch de la reception dans les chambres avant lancement en production.</p>
+                    </div>
+                </div>
+                <div class="reception-info-grid mb-3">
+                    {{ ui.row('Stocke initial', ui.kg(item.quantiteStockInitialEntreeValue), 'text-success') }}
+                    {{ ui.row('Sorti vers traitement', ui.kg(item.quantiteStockInitialSortieValue), 'text-primary') }}
+                    {{ ui.row('Retour annulation', ui.kg(item.quantiteStockInitialRetourValue), 'text-warning') }}
+                    {{ ui.row('Reste stock initial', ui.kg(item.quantiteDisponibleTraitementSourceValue), 'text-warning') }}
+                    {{ ui.row('Reste a stocker', ui.kg(item.quantiteDisponibleReceptionValue), 'text-warning') }}
+                </div>
+                {% if item.stockInitialDisponibleParEmplacement|length > 0 %}
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Chambre / zone</th>
+                                    <th class="text-end">Disponible</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for location, quantity in item.stockInitialDisponibleParEmplacement %}
+                                <tr>
+                                    <td>{{ location }}</td>
+                                    <td class="text-end fw-semibold">{{ ui.kg(quantity) }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+                {% if item.storageMovements|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                    <th>Chambre / zone</th>
+                                    <th class="text-end">Quantite</th>
+                                    <th>Temperature</th>
+                                    <th>Par</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for movement in item.storageMovements %}
+                                <tr>
+                                    <td class="text-nowrap">{{ ui.date(movement.movementDate) }} {{ ui.time(movement.movementTime) }}</td>
+                                    <td><span class="badge {{ movement.entryMovement ? 'text-bg-success' : 'text-bg-primary' }}">{{ movement.movementTypeLabel }}</span></td>
+                                    <td>{{ movement.location }}</td>
+                                    <td class="text-end fw-semibold {{ movement.entryMovement ? 'text-success' : 'text-primary' }}">{{ movement.entryMovement ? '+' : '-' }}{{ ui.kg(movement.absoluteQuantityKgValue) }}</td>
+                                    <td>{{ ui.temp(movement.temperatureChamber) }} / {{ ui.temp(movement.temperatureProduct) }}</td>
+                                    <td>{{ movement.createdBy ? movement.createdBy.displayName : '-' }}</td>
+                                </tr>
+                                {% if movement.note %}
+                                    <tr>
+                                        <td></td>
+                                        <td colspan="5" class="small text-secondary">{{ movement.note }}</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-secondary mb-0">Aucun stockage initial n'a encore ete enregistre.</p>
+                {% endif %}
             </section>
 
             <section class="reception-panel">
@@ -189,8 +269,38 @@
                     {{ ui.row('Caisses / palette', item.nombreCaissesParPalette) }}
                     {{ ui.row('Palettes', item.nombreTotalPalettes) }}
                     {{ ui.row('Quantité préparée', ui.kg(item.quantiteTotalePreparee), 'text-primary') }}
-                    {{ ui.row('Reste réception', ui.kg(item.quantiteDisponibleReceptionValue), 'text-warning') }}
-                    {{ ui.row('Reste à emballer', ui.kg(item.quantiteDisponibleTraitementValue), 'text-warning') }}
+                    {{ ui.row('Reste a stocker initial', ui.kg(item.quantiteDisponibleReceptionValue), 'text-warning') }}
+                    {{ ui.row('Reste a congeler', ui.kg(item.quantiteDisponibleTraitementValue), 'text-warning') }}
+                </div>
+            </section>
+
+            <section class="reception-panel">
+                <div class="reception-panel-heading">
+                    <span><i class="bi bi-snow"></i></span>
+                    <div>
+                        <h2>Congelation et cristallisation</h2>
+                        <p>Entree tunnel, sortie tunnel puis entree en chambre positive.</p>
+                    </div>
+                </div>
+                <div class="reception-info-grid">
+                    {{ ui.row('Tunnel', ui.text(item.tunnel)) }}
+                    {{ ui.row('Date entree tunnel', ui.date(item.dateEntreeTunnel)) }}
+                    {{ ui.row('Heure entree tunnel', ui.time(item.heureEntreeTunnel)) }}
+                    {{ ui.row('Date sortie tunnel', ui.date(item.dateSortieTunnel)) }}
+                    {{ ui.row('Heure sortie tunnel', ui.time(item.heureSortieTunnel)) }}
+                    {{ ui.row('Duree tunnel', item.dureeTunnelHeuresValue|number_format(2, ',', ' ') ~ ' h') }}
+                    {{ ui.row('Temperature tunnel', ui.temp(item.temperatureTunnel)) }}
+                    {{ ui.row('Temperature coeur produit', ui.temp(item.temperatureCoeurProduit)) }}
+                    {{ ui.row('Quantite congelee', ui.kg(item.quantiteCongelee), 'text-primary') }}
+                    {{ ui.row('Reste a cristalliser', ui.kg(item.quantiteDisponibleCongelationValue), 'text-warning') }}
+                    {{ ui.row('Chambre positive cristallisation', ui.text(item.chambreFroide)) }}
+                    {{ ui.row('Date entree chambre', ui.date(item.dateEntreeStockage)) }}
+                    {{ ui.row('Heure entree chambre', ui.time(item.heureEntreeStockage)) }}
+                    {{ ui.row('Temperature chambre', ui.temp(item.temperatureChambre)) }}
+                    {{ ui.row('Temperature produit cristallise', ui.temp(item.temperatureStockage)) }}
+                    {{ ui.row('Quantite en cristallisation', ui.kg(item.quantiteStockee), 'text-success') }}
+                    {{ ui.row('Duree cristallisation', item.dureeCristallisationHeuresValue|number_format(2, ',', ' ') ~ ' h') }}
+                    {{ ui.row('Reste a emballer', ui.kg(item.quantiteDisponibleCristallisationValue), 'text-warning') }}
                 </div>
             </section>
 
@@ -198,59 +308,40 @@
                 <div class="reception-panel-heading">
                     <span><i class="bi bi-box"></i></span>
                     <div>
-                        <h2>Conditionnement et congélation</h2>
-                        <p>Emballage, tunnel, température et sortie tunnel.</p>
+                        <h2>Emballage, remise chambre et expedition</h2>
+                        <p>Emballage apres cristallisation, retour en chambre positive puis sortie client.</p>
                     </div>
                 </div>
                 <div class="reception-info-grid">
-                    {{ ui.row('Date conditionnement', ui.date(item.dateConditionnement)) }}
-                    {{ ui.row('Heure conditionnement', ui.time(item.heureDebutConditionnement) ~ ' - ' ~ ui.time(item.heureFinConditionnement)) }}
-                    {{ ui.row('Produit conditionné', ui.text(item.produitConditionne)) }}
-                    {{ ui.row('Quantité emballée', ui.kg(item.quantiteConditionnee), 'text-primary') }}
+                    {{ ui.row('Date emballage', ui.date(item.dateConditionnement)) }}
+                    {{ ui.row('Heure emballage', ui.time(item.heureDebutConditionnement) ~ ' - ' ~ ui.time(item.heureFinConditionnement)) }}
+                    {{ ui.row('Produit conditionne', ui.text(item.produitConditionne)) }}
+                    {{ ui.row('Quantite emballee', ui.kg(item.quantiteConditionnee), 'text-primary') }}
                     {{ ui.row('Poids net', ui.kg(item.poidsNet)) }}
-                    {{ ui.row('Déchets emballage', ui.kg(item.poidsDechetsEmballage)) }}
+                    {{ ui.row('Dechets emballage', ui.kg(item.poidsDechetsEmballage)) }}
                     {{ ui.row('Pertes emballage', ui.kg(item.poidsPertesEmballage)) }}
-                    {{ ui.row('Écart emballage', ui.kg(item.ecartEmballageValue), ((item.ecartEmballageValue > 1) or (item.ecartEmballageValue < -1)) ? 'text-danger' : 'text-success') }}
-                    {{ ui.row('Durée emballage', item.dureeConditionnementHeuresValue|number_format(2, ',', ' ') ~ ' h') }}
-                    {{ ui.row('Coût emballage', item.coutEmballageValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'text-primary') }}
-                    {{ ui.row('Coût emballage / kg net', item.coutKgEmballageValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
-                    {{ ui.row('Reste à congeler', ui.kg(item.quantiteDisponibleEmballageValue), 'text-warning') }}
-                    {{ ui.row('Tunnel', ui.text(item.tunnel)) }}
-                    {{ ui.row('Heure entrée tunnel', ui.time(item.heureEntreeTunnel)) }}
-                    {{ ui.row('Heure sortie tunnel', ui.time(item.heureSortieTunnel)) }}
-                    {{ ui.row('Durée tunnel', item.dureeTunnelHeuresValue|number_format(2, ',', ' ') ~ ' h') }}
-                    {{ ui.row('Température tunnel', ui.temp(item.temperatureTunnel)) }}
-                    {{ ui.row('Jour congélation', ui.date(item.dateSortieTunnel)) }}
-                    {{ ui.row('Température cœur produit', ui.temp(item.temperatureCoeurProduit)) }}
-                    {{ ui.row('Quantité congelée', ui.kg(item.quantiteCongelee), 'text-primary') }}
-                </div>
-            </section>
-
-            <section class="reception-panel">
-                <div class="reception-panel-heading">
-                    <span><i class="bi bi-box-seam"></i></span>
-                    <div>
-                        <h2>Stockage et expédition</h2>
-                        <p>Chambre froide, stock restant, camion et responsable de chargement.</p>
-                    </div>
-                </div>
-                <div class="reception-info-grid">
-                    {{ ui.row('Chambre froide', ui.text(item.chambreFroide)) }}
-                    {{ ui.row('Date entrée stockage', ui.date(item.dateEntreeStockage)) }}
-                    {{ ui.row('Heure entrée stockage', ui.time(item.heureEntreeStockage)) }}
-                    {{ ui.row('Température chambre', ui.temp(item.temperatureChambre)) }}
-                    {{ ui.row('Température produit stocké', ui.temp(item.temperatureStockage)) }}
-                    {{ ui.row('Quantité stockée', ui.kg(item.quantiteStockee), 'text-success') }}
-                    {{ ui.row('Reste à expédier', ui.kg(item.quantiteDisponibleStockageValue), 'text-warning') }}
+                    {{ ui.row('Ecart emballage', ui.kg(item.ecartEmballageValue), ((item.ecartEmballageValue > 1) or (item.ecartEmballageValue < -1)) ? 'text-danger' : 'text-success') }}
+                    {{ ui.row('Duree emballage', item.dureeConditionnementHeuresValue|number_format(2, ',', ' ') ~ ' h') }}
+                    {{ ui.row('Cout emballage', item.coutEmballageValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'text-primary') }}
+                    {{ ui.row('Cout emballage / kg net', item.coutKgEmballageValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise) }}
+                    {{ ui.row('Reste a remettre en chambre', ui.kg(item.quantiteDisponibleEmballageValue), 'text-warning') }}
+                    {{ ui.row('Chambre positive retour', ui.text(item.chambreRemiseEnChambre)) }}
+                    {{ ui.row('Date remise chambre', ui.date(item.dateRemiseEnChambre)) }}
+                    {{ ui.row('Heure remise chambre', ui.time(item.heureRemiseEnChambre)) }}
+                    {{ ui.row('Temperature chambre retour', ui.temp(item.temperatureChambreRemise)) }}
+                    {{ ui.row('Temperature produit retour', ui.temp(item.temperatureProduitRemise)) }}
+                    {{ ui.row('Quantite remise chambre', ui.kg(item.quantiteRemiseEnChambre), 'text-success') }}
+                    {{ ui.row('Duree chambre avant expedition', item.dureeRemiseChambreAvantExpeditionHeuresValue|number_format(2, ',', ' ') ~ ' h') }}
+                    {{ ui.row('Reste a expedier', ui.kg(item.quantiteDisponibleStockageValue), 'text-warning') }}
                     {{ ui.row('Destination', ui.text(item.destinationFinaleClient)) }}
-                    {{ ui.row('Date départ', ui.date(item.expeditionDateDepart)) }}
-                    {{ ui.row('Heure départ', ui.time(item.expeditionHeureDepart)) }}
-                    {{ ui.row('Camion expédition', ui.text(item.expeditionMatriculeVehicule)) }}
-                    {{ ui.row('Chauffeur expédition', ui.text(item.expeditionChauffeur)) }}
+                    {{ ui.row('Date depart', ui.date(item.expeditionDateDepart)) }}
+                    {{ ui.row('Heure depart', ui.time(item.expeditionHeureDepart)) }}
+                    {{ ui.row('Camion expedition', ui.text(item.expeditionMatriculeVehicule)) }}
+                    {{ ui.row('Chauffeur expedition', ui.text(item.expeditionChauffeur)) }}
                     {{ ui.row('Responsable chargement', ui.text(item.expeditionResponsableChargement)) }}
-                    {{ ui.row('Température chargement', ui.temp(item.expeditionTemperatureProduit)) }}
-                    {{ ui.row('Plomb / scellé', ui.text(item.expeditionNumeroPlomb)) }}
-                    {{ ui.row('Quantité expédiée', ui.kg(item.quantiteTotaleExpediee), 'text-primary') }}
+                    {{ ui.row('Temperature chargement', ui.temp(item.expeditionTemperatureProduit)) }}
+                    {{ ui.row('Plomb / scelle', ui.text(item.expeditionNumeroPlomb)) }}
+                    {{ ui.row('Quantite expediee', ui.kg(item.quantiteTotaleExpediee), 'text-primary') }}
                 </div>
                 {% if item.expeditionObservations %}
                     <div class="reception-note mt-3">
@@ -297,10 +388,12 @@
                     <h2>Traçabilité actions</h2>
                 </div>
                 <div class="reception-timeline">
+                    <div class="{{ item.quantiteStockInitialEntreeValue > 0.001 ? 'done' : '' }}"><span></span><strong>Stockage initial</strong><small>{{ ui.kg(item.quantiteStockInitialEntreeValue) }} stockes avant traitement</small></div>
                     <div class="{{ item.receivedAt ? 'done' : '' }}"><span></span><strong>Reception validée</strong><small>{{ ui.datetime(item.receivedAt) }}{% if item.receivedBy %} par {{ item.receivedBy.displayName }}{% endif %}</small></div>
                     <div class="{{ item.treatmentStartedAt ? 'done' : '' }}"><span></span><strong>Traitement lancé</strong><small>{{ ui.datetime(item.treatmentStartedAt) }}{% if item.treatmentStartedBy %} par {{ item.treatmentStartedBy.displayName }}{% endif %}</small></div>
-                    <div class="{{ item.storedAt ? 'done' : '' }}"><span></span><strong>Stockage validé</strong><small>{{ ui.datetime(item.storedAt) }}{% if item.storedBy %} par {{ item.storedBy.displayName }}{% endif %}</small></div>
-                    <div class="{{ item.expeditedAt ? 'done' : '' }}"><span></span><strong>Expédition validée</strong><small>{{ ui.datetime(item.expeditedAt) }}{% if item.expeditedBy %} par {{ item.expeditedBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.storedAt ? 'done' : '' }}"><span></span><strong>Cristallisation validee</strong><small>{{ ui.datetime(item.storedAt) }}{% if item.storedBy %} par {{ item.storedBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.remiseEnChambreAt ? 'done' : '' }}"><span></span><strong>Remise chambre validee</strong><small>{{ ui.datetime(item.remiseEnChambreAt) }}{% if item.remiseEnChambreBy %} par {{ item.remiseEnChambreBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.expeditedAt ? 'done' : '' }}"><span></span><strong>Expedition validee</strong><small>{{ ui.datetime(item.expeditedAt) }}{% if item.expeditedBy %} par {{ item.expeditedBy.displayName }}{% endif %}</small></div>
                     <div class="{{ item.closedAt ? 'done' : '' }}"><span></span><strong>Clôture</strong><small>{{ ui.datetime(item.closedAt) }}{% if item.closedBy %} par {{ item.closedBy.displayName }}{% endif %}</small></div>
                 </div>
             </section>
