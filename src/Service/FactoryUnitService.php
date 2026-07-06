@@ -180,9 +180,13 @@ final readonly class FactoryUnitService
     public function positiveStorageChoices(User $actor, ?string $current = null): array
     {
         $this->assertUsageAccess($actor);
+        $units = $this->usableChamberStorageUnits();
+        if ($units === []) {
+            $units = $this->usableNonTunnelStorageUnits();
+        }
 
         return $this->choicesFromUnits(
-            $this->usableChamberStorageUnits(),
+            $units,
             $current,
         );
     }
@@ -323,7 +327,7 @@ final readonly class FactoryUnitService
             'Chambre',
             'Selectionnez la chambre avant de valider.',
             'Cette chambre n existe pas dans Composition usine ou n est pas declaree comme chambre.',
-            $this->findChamberStorageUnitByLocationValue((string) $location),
+            $this->findPositiveStorageUnitByLocationValue((string) $location),
         );
     }
 
@@ -455,6 +459,19 @@ final readonly class FactoryUnitService
         return $units;
     }
 
+    /** @return list<FactoryUnit> */
+    private function usableNonTunnelStorageUnits(): array
+    {
+        $units = [];
+        foreach ($this->repository->usableByTypes(self::STORAGE_LOCATION_TYPES) as $unit) {
+            if ($unit->getType() !== FactoryUnit::TYPE_TUNNEL) {
+                $units[] = $unit;
+            }
+        }
+
+        return $units;
+    }
+
     private function isChamberStorageUnit(FactoryUnit $unit): bool
     {
         if (in_array($unit->getType(), [FactoryUnit::TYPE_POSITIVE_ROOM, FactoryUnit::TYPE_NEGATIVE_ROOM], true)) {
@@ -563,7 +580,7 @@ final readonly class FactoryUnitService
         return null;
     }
 
-    private function findChamberStorageUnitByLocationValue(string $value): ?FactoryUnit
+    private function findPositiveStorageUnitByLocationValue(string $value): ?FactoryUnit
     {
         $key = $this->normalizeLocationKey($value);
         if ($key === '') {
@@ -580,7 +597,7 @@ final readonly class FactoryUnitService
             }
         }
 
-        return null;
+        return $this->findUnitByLocationValue($value, self::STORAGE_LOCATION_TYPES);
     }
 
     private function currentLoadForUnit(FactoryUnit $unit): float

@@ -169,7 +169,7 @@ final readonly class CoutRevientEstimationService
                 'quantity_key' => 'packaged',
                 'quantity' => $reception->getQuantiteConditionneeValue(),
                 'unit' => 'kg',
-                'title' => 'Conditionnement / emballage',
+                'title' => 'Conditionnement / emballage + retour chambre',
                 'badge' => 'text-bg-warning',
                 'icon' => 'bi-box',
                 'reference' => (string) $reception->getNumeroReception(),
@@ -205,21 +205,6 @@ final readonly class CoutRevientEstimationService
                 'reference' => (string) $reception->getNumeroReception(),
                 'details' => $reception->getChambreFroide() ?: 'Zone non renseignee',
                 'actor' => $this->userName($reception->getStoredBy()),
-                'reception' => $reception,
-            ]);
-
-            $this->addEvent($events, $this->stageDate($reception->getDateRemiseEnChambre(), $reception->getHeureRemiseEnChambre(), $reception->getRemiseEnChambreAt()), $from, $to, [
-                'stage' => 'remise_chambre',
-                'stage_label' => 'Remise en chambre',
-                'quantity_key' => 'returned',
-                'quantity' => $reception->getQuantiteRemiseEnChambreValue(),
-                'unit' => 'kg',
-                'title' => 'Retour chambre positive',
-                'badge' => 'text-bg-success',
-                'icon' => 'bi-box-arrow-in-down',
-                'reference' => (string) $reception->getNumeroReception(),
-                'details' => $reception->getChambreRemiseEnChambre() ?: 'Chambre positive non renseignee',
-                'actor' => $this->userName($reception->getRemiseEnChambreBy()),
                 'reception' => $reception,
             ]);
 
@@ -301,8 +286,7 @@ final readonly class CoutRevientEstimationService
             'traitement' => ['label' => 'Traitement', 'icon' => 'bi-arrow-repeat', 'quantity_key' => 'prepared', 'tone' => 'info'],
             'congelation' => ['label' => 'Congelation', 'icon' => 'bi-snow', 'quantity_key' => 'frozen', 'tone' => 'primary'],
             'stockage' => ['label' => 'Cristallisation', 'icon' => 'bi-box-seam', 'quantity_key' => 'stored', 'tone' => 'success'],
-            'emballage' => ['label' => 'Emballage', 'icon' => 'bi-box', 'quantity_key' => 'packaged', 'tone' => 'warning'],
-            'remise_chambre' => ['label' => 'Remise chambre', 'icon' => 'bi-box-arrow-in-down', 'quantity_key' => 'returned', 'tone' => 'success'],
+            'emballage' => ['label' => 'Emballage + chambre', 'icon' => 'bi-box-arrow-in-down', 'quantity_key' => 'packaged', 'tone' => 'warning'],
             'expedition' => ['label' => 'Expedition', 'icon' => 'bi-truck', 'quantity_key' => 'shipped', 'tone' => 'dark'],
         ];
 
@@ -340,7 +324,7 @@ final readonly class CoutRevientEstimationService
         $activeReceptionIds = [];
 
         foreach ($events as $event) {
-            if (($event['reception'] ?? null) instanceof FishReception && in_array((string) ($event['stage'] ?? ''), ['reception', 'traitement', 'congelation', 'stockage', 'emballage', 'remise_chambre', 'expedition'], true)) {
+            if (($event['reception'] ?? null) instanceof FishReception && in_array((string) ($event['stage'] ?? ''), ['reception', 'traitement', 'congelation', 'stockage', 'emballage', 'expedition'], true)) {
                 $activeReceptionIds[(int) $event['reception']->getId()] = true;
             }
         }
@@ -487,7 +471,7 @@ final readonly class CoutRevientEstimationService
             return;
         }
 
-        if (($payload['quantity'] ?? 0) === 0.0 && in_array((string) ($payload['stage'] ?? ''), ['traitement', 'congelation', 'stockage', 'emballage', 'remise_chambre', 'expedition'], true)) {
+        if (($payload['quantity'] ?? 0) === 0.0 && in_array((string) ($payload['stage'] ?? ''), ['traitement', 'congelation', 'stockage', 'emballage', 'expedition'], true)) {
             return;
         }
 

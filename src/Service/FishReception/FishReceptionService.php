@@ -19,8 +19,7 @@ final readonly class FishReceptionService
         'traitement' => 'Traitement / Production',
         'congelation' => 'Congélation',
         'stockage' => 'Cristallisation chambre positive',
-        'emballage' => 'Conditionnement / Emballage',
-        'remise_chambre' => 'Remise en chambre',
+        'emballage' => 'Conditionnement / Emballage + remise en chambre',
         'expedition' => 'Expédition',
     ];
 
@@ -287,11 +286,24 @@ final readonly class FishReceptionService
         if (!$reception->getHeureFinConditionnement()) {
             throw new \DomainException('Indiquez l\'heure de fin emballage.');
         }
+        if (!$reception->getChambreRemiseEnChambre()) {
+            throw new \DomainException('Selectionnez la chambre ou le lot retourne apres emballage.');
+        }
+        if (!$reception->getDateRemiseEnChambre()) {
+            throw new \DomainException('Indiquez la date de retour en chambre apres emballage.');
+        }
+        if (!$reception->getHeureRemiseEnChambre()) {
+            throw new \DomainException('Indiquez l\'heure de retour en chambre apres emballage.');
+        }
+        $this->factoryUnitService->assertPositiveStorageCanReceive($actor, $reception->getChambreRemiseEnChambre(), $quantity);
         $now = new \DateTimeImmutable();
 
         $reception
             ->setQuantiteConditionnee($reception->getQuantiteConditionneeValue() + $quantity)
-            ->setStatut(FishReception::STATUS_PACKAGED)
+            ->setQuantiteRemiseEnChambre($reception->getQuantiteRemiseEnChambreValue() + $quantity)
+            ->setStatut(FishReception::STATUS_RETURNED_TO_ROOM)
+            ->setRemiseEnChambreAt($now)
+            ->setRemiseEnChambreBy($actor)
             ->refreshCoutEmballage();
 
         $this->assertQuantitiesCoherent($reception);

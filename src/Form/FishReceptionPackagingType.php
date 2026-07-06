@@ -29,6 +29,9 @@ final class FishReceptionPackagingType extends AbstractType
 
         $builder
             ->add('quantity', NumberType::class, $this->withAttr($this->quantityOptions('Quantité à conditionner / emballer (kg)', (float) $options['available_quantity']), ['data-fish-packaging-quantity' => 'true']))
+            ->add('chambreRemiseEnChambre', ChoiceType::class, $this->factoryUnitOptions($options['factory_unit_choices'], $options['capacity_check_url']))
+            ->add('dateRemiseEnChambre', DateType::class, $this->dateOptions('Date retour chambre', true))
+            ->add('heureRemiseEnChambre', TimeType::class, $this->timeOptions('Heure retour chambre'))
             ->add('dateConditionnement', DateType::class, $this->dateOptions('Date conditionnement', true))
             ->add('heureDebutConditionnement', TimeType::class, $this->withAttr($this->timeOptions('Heure début conditionnement'), ['data-fish-packaging-start' => 'true']))
             ->add('heureFinConditionnement', TimeType::class, $this->withAttr($this->timeOptions('Heure fin conditionnement'), ['data-fish-packaging-end' => 'true']))
@@ -36,9 +39,6 @@ final class FishReceptionPackagingType extends AbstractType
             ->add('poidsDechetsEmballage', NumberType::class, $this->withAttr($this->numberOptions('Déchets emballage (kg)', 3, '0.001', false), ['data-fish-packaging-waste' => 'true']))
             ->add('poidsPertesEmballage', NumberType::class, $this->withAttr($this->numberOptions('Pertes emballage (kg)', 3, '0.001', false), ['data-fish-packaging-loss' => 'true']))
             ->add('coutHoraireEmballage', NumberType::class, $this->withAttr($this->numberOptions('Coût horaire emballage (MAD / heure)', 2, '0.01', false), ['data-fish-packaging-hourly-cost' => 'true']))
-            ->add('chambreRemiseEnChambre', ChoiceType::class, $this->factoryUnitOptions($options['factory_unit_choices'], $options['capacity_check_url']))
-            ->add('dateRemiseEnChambre', DateType::class, $this->dateOptions('Date retour chambre', true))
-            ->add('heureRemiseEnChambre', TimeType::class, $this->timeOptions('Heure retour chambre'))
             ->add('temperatureChambreRemise', NumberType::class, $this->numberOptions('Temperature chambre retour', 2, '0.01', false, true))
             ->add('temperatureProduitRemise', NumberType::class, $this->numberOptions('Temperature produit retour', 2, '0.01', false, true));
 
@@ -136,7 +136,7 @@ final class FishReceptionPackagingType extends AbstractType
             'choices' => $choices,
             'attr' => $attr,
             'help' => $choices === []
-                ? 'Aucune chambre active disponible. Ajoutez ou activez une chambre dans Composition usine.'
+                ? 'Aucun espace de stockage actif disponible. Ajoutez ou activez une chambre dans Composition usine.'
                 : 'Le lot sera remis dans cette chambre directement apres emballage.',
         ];
     }

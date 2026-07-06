@@ -68,7 +68,7 @@ final class FishReceptionController extends AbstractController
         ]);
     }
 
-    #[Route('/etape/{stage}', name: 'app_fish_reception_stage', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|remise_chambre|expedition'], methods: ['GET'])]
+    #[Route('/etape/{stage}', name: 'app_fish_reception_stage', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|expedition'], methods: ['GET'])]
     public function stage(Request $request, string $stage): Response
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
@@ -107,7 +107,7 @@ final class FishReceptionController extends AbstractController
         ]);
     }
 
-    #[Route('/ajax/etape/{stage}', name: 'app_fish_reception_stage_search', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|remise_chambre|expedition'], methods: ['GET'])]
+    #[Route('/ajax/etape/{stage}', name: 'app_fish_reception_stage_search', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|expedition'], methods: ['GET'])]
     public function stageSearch(Request $request, string $stage): JsonResponse
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
@@ -154,7 +154,7 @@ final class FishReceptionController extends AbstractController
         ]);
     }
 
-    #[Route('/excel/{stage}/modele', name: 'app_fish_reception_excel_template', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|remise_chambre|expedition'], methods: ['GET'])]
+    #[Route('/excel/{stage}/modele', name: 'app_fish_reception_excel_template', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|expedition'], methods: ['GET'])]
     public function excelTemplate(string $stage): BinaryFileResponse
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
@@ -162,7 +162,7 @@ final class FishReceptionController extends AbstractController
         return $this->downloadExcelTemplate($stage, null);
     }
 
-    #[Route('/excel/{stage}/import', name: 'app_fish_reception_excel_import', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|remise_chambre|expedition'], methods: ['POST'])]
+    #[Route('/excel/{stage}/import', name: 'app_fish_reception_excel_import', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|expedition'], methods: ['POST'])]
     public function importExcel(string $stage, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
@@ -235,7 +235,7 @@ final class FishReceptionController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/excel/{stage}/modele', name: 'app_fish_reception_excel_template_item', requirements: ['id' => '\d+', 'stage' => 'reception|traitement|congelation|stockage|emballage|remise_chambre|expedition'], methods: ['GET'])]
+    #[Route('/{id}/excel/{stage}/modele', name: 'app_fish_reception_excel_template_item', requirements: ['id' => '\d+', 'stage' => 'reception|traitement|congelation|stockage|emballage|expedition'], methods: ['GET'])]
     public function excelTemplateItem(FishReception $reception, string $stage): BinaryFileResponse
     {
         $this->denyAccessUnlessGranted(FishReceptionVoter::VIEW, $reception);
@@ -243,7 +243,7 @@ final class FishReceptionController extends AbstractController
         return $this->downloadExcelTemplate($stage, $reception);
     }
 
-    #[Route('/{id}/excel/{stage}/import', name: 'app_fish_reception_excel_import_item', requirements: ['id' => '\d+', 'stage' => 'reception|traitement|congelation|stockage|emballage|remise_chambre|expedition'], methods: ['POST'])]
+    #[Route('/{id}/excel/{stage}/import', name: 'app_fish_reception_excel_import_item', requirements: ['id' => '\d+', 'stage' => 'reception|traitement|congelation|stockage|emballage|expedition'], methods: ['POST'])]
     public function importExcelItem(FishReception $reception, string $stage, Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted(FishReceptionVoter::VIEW, $reception);
@@ -518,9 +518,9 @@ final class FishReceptionController extends AbstractController
             $reception,
             FishReceptionPackagingType::class,
             'app_fish_reception_register_packaging',
-            'Enregistrer emballage',
-            'Cette quantite sera deduite de la cristallisation et ajoutee a l emballage.',
-            'bi-box',
+            'Emballer et remettre en chambre',
+            'Cette quantite sera deduite de la cristallisation, emballee puis remise directement dans la chambre choisie.',
+            'bi-box-arrow-in-down',
             'btn-warning',
             $reception->getQuantiteDisponibleCristallisationValue(),
         );
@@ -536,7 +536,7 @@ final class FishReceptionController extends AbstractController
             'app_fish_reception_register_packaging',
             $reception->getQuantiteDisponibleCristallisationValue(),
             fn (float $quantity) => $this->receptionService->registerPackaging($reception, $quantity, $this->currentUser()),
-            'Quantité emballée enregistrée.',
+            'Quantite emballee et remise en chambre.',
         );
     }
 
@@ -748,7 +748,9 @@ final class FishReceptionController extends AbstractController
             $options['attr'] = ['data-factory-capacity-form' => 'true', 'data-fish-tunnel-exit-form' => 'true'];
         } elseif ($formType === FishReceptionPackagingType::class) {
             $options['choice_lists'] = $this->receptionService->formChoiceLists($this->currentUser());
-            $options['attr'] = ['data-fish-packaging-form' => 'true'];
+            $options['factory_unit_choices'] = $this->factoryUnitService->positiveStorageChoices($this->currentUser(), $reception->getChambreRemiseEnChambre());
+            $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_positive_storage_capacity_check', ['id' => $reception->getId()]);
+            $options['attr'] = ['data-fish-packaging-form' => 'true', 'data-factory-capacity-form' => 'true'];
         } elseif ($formType === FishReceptionReturnStorageType::class) {
             $options['factory_unit_choices'] = $this->factoryUnitService->positiveStorageChoices($this->currentUser(), $reception->getChambreRemiseEnChambre());
             $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_positive_storage_capacity_check', ['id' => $reception->getId()]);
@@ -836,7 +838,7 @@ final class FishReceptionController extends AbstractController
             $choices['chambreFroide'] = array_values($this->factoryUnitService->positiveStorageChoices($this->currentUser(), $reception?->getChambreFroide()));
         }
 
-        if ($stage === 'remise_chambre') {
+        if ($stage === 'emballage') {
             $choices['chambreRemiseEnChambre'] = array_values($this->factoryUnitService->positiveStorageChoices($this->currentUser(), $reception?->getChambreRemiseEnChambre()));
         }
 
@@ -861,7 +863,6 @@ final class FishReceptionController extends AbstractController
             FishReceptionPackagingType::class => 'emballage',
             FishReceptionFreezingType::class => 'congelation',
             FishReceptionStorageType::class => 'stockage',
-            FishReceptionReturnStorageType::class => 'remise_chambre',
             FishReceptionShippingType::class => 'expedition',
             default => null,
         };
@@ -918,26 +919,18 @@ final class FishReceptionController extends AbstractController
             ],
             'emballage' => [
                 'title' => 'Conditionnement / Emballage',
-                'description' => 'Emballage apres cristallisation en chambre positive.',
+                'description' => 'Emballage apres cristallisation puis retour immediat en chambre.',
                 'source_label' => 'Quantite cristallisee',
-                'moved_label' => 'Emballee',
+                'moved_label' => 'Emballee en chambre',
                 'available_label' => 'Reste cristallisation',
                 'rate_label' => 'Taux emballage',
-            ],
-            'remise_chambre' => [
-                'title' => 'Remise en chambre',
-                'description' => 'Retour en chambre positive apres emballage avant expedition.',
-                'source_label' => 'Quantite emballee',
-                'moved_label' => 'Remise chambre',
-                'available_label' => 'Reste emballage',
-                'rate_label' => 'Taux remise chambre',
             ],
             'expedition' => [
                 'title' => 'Expedition',
                 'description' => 'Sorties client depuis la chambre positive finale.',
-                'source_label' => 'Remise chambre',
+                'source_label' => 'En chambre',
                 'moved_label' => 'Expediee',
-                'available_label' => 'Reste chambre',
+                'available_label' => 'Reste a expedier',
                 'rate_label' => 'Taux expedition',
             ],
             default => [

@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 final readonly class FishReceptionExcelFormService
 {
-    private const STAGES = ['reception', 'traitement', 'congelation', 'stockage', 'emballage', 'remise_chambre', 'expedition'];
+    private const STAGES = ['reception', 'traitement', 'congelation', 'stockage', 'emballage', 'expedition'];
 
     public function __construct(
         #[Autowire('%kernel.project_dir%/public')]
@@ -158,6 +158,11 @@ final readonly class FishReceptionExcelFormService
                 $this->field('poidsPertesEmballage', 'Pertes emballage (kg)', 'number', false),
                 $this->field('coutHoraireEmballage', 'Coût horaire emballage (MAD / heure)', 'number', false, 'Le système calcule le coût total avec la durée saisie.'),
                 $this->field('produitConditionne', 'Produit conditionné', 'text', true, null, 'produitConditionne'),
+                $this->field('chambreRemiseEnChambre', 'Chambre de retour apres emballage', 'text', true, null, 'chambreRemiseEnChambre'),
+                $this->field('dateRemiseEnChambre', 'Date retour chambre', 'date', true),
+                $this->field('heureRemiseEnChambre', 'Heure retour chambre', 'time', true),
+                $this->field('temperatureChambreRemise', 'Temperature chambre retour', 'number', false, 'Valeur negative autorisee.'),
+                $this->field('temperatureProduitRemise', 'Temperature produit retour', 'number', false, 'Valeur negative autorisee.'),
             ],
             'congelation' => [
                 $this->field('quantity', 'Quantité à congeler (kg)', 'number', true),
@@ -176,14 +181,6 @@ final readonly class FishReceptionExcelFormService
                 $this->field('temperatureStockage', 'Temperature produit en cristallisation', 'number', false, 'Valeur negative autorisee.'),
                 $this->field('dateEntreeStockage', 'Date entree chambre positive', 'date', true),
                 $this->field('heureEntreeStockage', 'Heure entree chambre positive', 'time', true),
-            ],
-            'remise_chambre' => [
-                $this->field('quantity', 'Quantite a remettre en chambre apres emballage (kg)', 'number', true),
-                $this->field('chambreRemiseEnChambre', 'Chambre positive de retour', 'text', true, null, 'chambreRemiseEnChambre'),
-                $this->field('dateRemiseEnChambre', 'Date remise en chambre', 'date', true),
-                $this->field('heureRemiseEnChambre', 'Heure remise en chambre', 'time', true),
-                $this->field('temperatureChambreRemise', 'Temperature chambre positive', 'number', false, 'Valeur negative autorisee.'),
-                $this->field('temperatureProduitRemise', 'Temperature produit remis en chambre', 'number', false, 'Valeur negative autorisee.'),
             ],
             'expedition' => [
                 $this->field('quantity', 'Quantité à expédier (kg)', 'number', true),
@@ -313,7 +310,6 @@ final readonly class FishReceptionExcelFormService
                 'congelation' => $reception->getQuantiteDisponibleTraitementValue(),
                 'stockage' => $reception->getQuantiteDisponibleCongelationValue(),
                 'emballage' => $reception->getQuantiteDisponibleCristallisationValue(),
-                'remise_chambre' => $reception->getQuantiteDisponibleEmballageValue(),
                 'expedition' => $reception->getQuantiteDisponibleStockageValue(),
                 default => null,
             };
@@ -523,7 +519,6 @@ final readonly class FishReceptionExcelFormService
             'congelation' => 'Congelation',
             'stockage' => 'Cristallisation',
             'emballage' => 'Conditionnement / Emballage',
-            'remise_chambre' => 'Remise en chambre',
             'expedition' => 'Expedition',
             default => 'Reception',
         };

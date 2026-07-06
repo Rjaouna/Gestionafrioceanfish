@@ -174,7 +174,6 @@ class FishReceptionRepository extends ServiceEntityRepository
             'congelation' => $item->getQuantiteTotalePrepareeValue(),
             'stockage' => $item->getQuantiteCongeleeValue(),
             'emballage' => $item->getQuantiteStockeeValue(),
-            'remise_chambre' => $item->getQuantiteConditionneeValue(),
             'expedition' => $item->getQuantiteRemiseEnChambreValue(),
             default => $item->getQuantiteReceptionneeValue(),
         }, $items));
@@ -297,7 +296,6 @@ class FishReceptionRepository extends ServiceEntityRepository
             'congelation' => $builder->andWhere('r.quantiteTotalePreparee > 0'),
             'stockage' => $builder->andWhere('r.quantiteCongelee > 0'),
             'emballage' => $builder->andWhere('r.quantiteStockee > 0'),
-            'remise_chambre' => $builder->andWhere('r.quantiteConditionnee > 0'),
             'expedition' => $builder->andWhere('r.quantiteRemiseEnChambre > 0'),
             default => null,
         };
@@ -328,7 +326,6 @@ class FishReceptionRepository extends ServiceEntityRepository
             'congelation' => 'r.quantiteTotalePreparee - r.quantiteCongelee',
             'stockage' => 'r.quantiteCongelee - r.quantiteStockee',
             'emballage' => 'r.quantiteStockee - r.quantiteConditionnee',
-            'remise_chambre' => 'r.quantiteConditionnee - r.quantiteRemiseEnChambre',
             'expedition' => 'r.quantiteRemiseEnChambre - r.quantiteTotaleExpediee',
             default => 'r.quantiteReceptionnee - r.quantiteTotalePreparee',
         };
@@ -340,7 +337,6 @@ class FishReceptionRepository extends ServiceEntityRepository
             'congelation' => 'r.quantiteCongelee',
             'stockage' => 'r.quantiteStockee',
             'emballage' => 'r.quantiteConditionnee',
-            'remise_chambre' => 'r.quantiteRemiseEnChambre',
             'expedition' => 'r.quantiteTotaleExpediee',
             default => 'r.quantiteTotalePreparee',
         };

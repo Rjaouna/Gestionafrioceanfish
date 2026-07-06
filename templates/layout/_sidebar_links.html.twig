@@ -97,10 +97,6 @@
                     <i class="bi bi-box"></i>
                     <span>Emballage</span>
                 </a>
-                <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'remise_chambre' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'remise_chambre'}) }}">
-                    <i class="bi bi-box-arrow-in-down"></i>
-                    <span>Remise chambre</span>
-                </a>
                 <a class="sidebar-sub-link ps-4 {{ current_route == 'app_fish_reception_stage' and app.request.attributes.get('stage') == 'expedition' ? 'active' : '' }}" href="{{ path('app_fish_reception_stage', {stage: 'expedition'}) }}">
                     <i class="bi bi-truck"></i>
                     <span>Expédition</span>

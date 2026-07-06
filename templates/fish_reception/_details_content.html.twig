@@ -179,7 +179,7 @@
 
     <div class="col-12 col-xl-6">
         <section class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Cristallisation / remise chambre</h2></div>
+            <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-0">Cristallisation / emballage + chambre</h2></div>
             <div class="card-body">
                 <dl class="row mb-0">
                     <dt class="col-6 text-secondary">Chambre froide</dt><dd class="col-6 text-end">{{ item.chambreFroide ?: '-' }}</dd>
@@ -192,7 +192,7 @@
                     <dt class="col-6 text-secondary">Chambre retour</dt><dd class="col-6 text-end">{{ item.chambreRemiseEnChambre ?: '-' }}</dd>
                     <dt class="col-6 text-secondary">Date retour</dt><dd class="col-6 text-end">{{ item.dateRemiseEnChambre ? item.dateRemiseEnChambre|date('d/m/Y') : '-' }}</dd>
                     <dt class="col-6 text-secondary">Heure retour</dt><dd class="col-6 text-end">{{ item.heureRemiseEnChambre ? item.heureRemiseEnChambre|date('H:i') : '-' }}</dd>
-                    <dt class="col-6 text-secondary">Quantite retour</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteRemiseEnChambre|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Quantite en chambre apres emballage</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteRemiseEnChambre|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                     <dt class="col-6 text-secondary">Reste à expédier</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleStockageValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                 </dl>
             </div>
@@ -233,7 +233,7 @@
                     <dt class="col-6 text-secondary">Par</dt><dd class="col-6 text-end">{{ item.receivedBy ? item.receivedBy.displayName : '-' }}</dd>
                     <dt class="col-6 text-secondary">Traitement lancé</dt><dd class="col-6 text-end">{{ item.treatmentStartedAt ? item.treatmentStartedAt|date('d/m/Y H:i') : '-' }}</dd>
                     <dt class="col-6 text-secondary">Cristallisation validée</dt><dd class="col-6 text-end">{{ item.storedAt ? item.storedAt|date('d/m/Y H:i') : '-' }}</dd>
-                    <dt class="col-6 text-secondary">Remise chambre validée</dt><dd class="col-6 text-end">{{ item.remiseEnChambreAt ? item.remiseEnChambreAt|date('d/m/Y H:i') : '-' }}</dd>
+                    <dt class="col-6 text-secondary">Retour chambre apres emballage</dt><dd class="col-6 text-end">{{ item.remiseEnChambreAt ? item.remiseEnChambreAt|date('d/m/Y H:i') : '-' }}</dd>
                     <dt class="col-6 text-secondary">Expédition validée</dt><dd class="col-6 text-end">{{ item.expeditedAt ? item.expeditedAt|date('d/m/Y H:i') : '-' }}</dd>
                     <dt class="col-6 text-secondary">Clôturée</dt><dd class="col-6 text-end">{{ item.closedAt ? item.closedAt|date('d/m/Y H:i') : '-' }}</dd>
                     <dt class="col-6 text-secondary">Responsable</dt><dd class="col-6 text-end">{{ item.responsableProduction ?: '-' }}</dd>

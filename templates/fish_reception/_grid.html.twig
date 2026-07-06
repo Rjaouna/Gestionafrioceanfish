@@ -5,16 +5,14 @@
     congelation: 'Preparee',
     stockage: 'Congelee',
     emballage: 'Cristallisee',
-    remise_chambre: 'Emballee',
-    expedition: 'Remise chambre'
+    expedition: 'En chambre'
 } %}
 {% set moved_labels = {
     reception: 'Stockee initial',
     traitement: 'Traitement',
     congelation: 'Congelee',
     stockage: 'Cristallisee',
-    emballage: 'Emballee',
-    remise_chambre: 'Remise chambre',
+    emballage: 'Emballee en chambre',
     expedition: 'Expediee'
 } %}
 {% set available_labels = {
@@ -23,8 +21,7 @@
     congelation: 'Reste traitement',
     stockage: 'Reste congelation',
     emballage: 'Reste cristallisation',
-    remise_chambre: 'Reste emballage',
-    expedition: 'Reste chambre'
+    expedition: 'Reste a expedier'
 } %}
 {% set source_label = source_labels[stage]|default('Recue') %}
 {% set moved_label = moved_labels[stage]|default('Traitement') %}
@@ -50,9 +47,9 @@
                 </thead>
                 <tbody>
                 {% for item in items %}
-                    {% set source = stage == 'traitement' ? item.quantiteStockInitialEntreeValue : (stage == 'congelation' ? item.quantiteTotalePrepareeValue : (stage == 'stockage' ? item.quantiteCongeleeValue : (stage == 'emballage' ? item.quantiteStockeeValue : (stage == 'remise_chambre' ? item.quantiteConditionneeValue : (stage == 'expedition' ? item.quantiteRemiseEnChambreValue : item.quantiteReceptionneeValue))))) %}
-                    {% set moved = stage == 'reception' ? item.quantiteStockInitialEntreeValue : (stage == 'traitement' ? item.quantiteTotalePrepareeValue : (stage == 'congelation' ? item.quantiteCongeleeValue : (stage == 'stockage' ? item.quantiteStockeeValue : (stage == 'emballage' ? item.quantiteConditionneeValue : (stage == 'remise_chambre' ? item.quantiteRemiseEnChambreValue : item.quantiteTotaleExpedieeValue))))) %}
-                    {% set available = stage == 'traitement' ? item.quantiteDisponibleTraitementSourceValue : (stage == 'congelation' ? item.quantiteDisponibleTraitementValue : (stage == 'stockage' ? item.quantiteDisponibleCongelationValue : (stage == 'emballage' ? item.quantiteDisponibleCristallisationValue : (stage == 'remise_chambre' ? item.quantiteDisponibleEmballageValue : (stage == 'expedition' ? item.quantiteDisponibleStockageValue : item.quantiteDisponibleReceptionValue))))) %}
+                    {% set source = stage == 'traitement' ? item.quantiteStockInitialEntreeValue : (stage == 'congelation' ? item.quantiteTotalePrepareeValue : (stage == 'stockage' ? item.quantiteCongeleeValue : (stage == 'emballage' ? item.quantiteStockeeValue : (stage == 'expedition' ? item.quantiteRemiseEnChambreValue : item.quantiteReceptionneeValue)))) %}
+                    {% set moved = stage == 'reception' ? item.quantiteStockInitialEntreeValue : (stage == 'traitement' ? item.quantiteTotalePrepareeValue : (stage == 'congelation' ? item.quantiteCongeleeValue : (stage == 'stockage' ? item.quantiteStockeeValue : (stage == 'emballage' ? item.quantiteConditionneeValue : item.quantiteTotaleExpedieeValue)))) %}
+                    {% set available = stage == 'traitement' ? item.quantiteDisponibleTraitementSourceValue : (stage == 'congelation' ? item.quantiteDisponibleTraitementValue : (stage == 'stockage' ? item.quantiteDisponibleCongelationValue : (stage == 'emballage' ? item.quantiteDisponibleCristallisationValue : (stage == 'expedition' ? item.quantiteDisponibleStockageValue : item.quantiteDisponibleReceptionValue)))) %}
                     {% set row_class = item.statut == 'bloquee' ? 'table-danger' : (available <= 0.001 and moved > 0 ? 'table-light' : '') %}
                     <tr class="{{ row_class }}">
                         <td class="text-nowrap">{{ item.dateReception ? item.dateReception|date('d/m/Y') : '-' }}</td>
@@ -111,12 +108,9 @@
                                 <div class="small text-secondary">Sortie tunnel {{ item.dateSortieTunnel ? item.dateSortieTunnel|date('d/m') : '-' }} {{ item.heureSortieTunnel ? item.heureSortieTunnel|date('H:i') : '' }}</div>
                             {% elseif stage == 'emballage' %}
                                 <div>{{ item.produitConditionne ?: 'Produit non renseigne' }}</div>
-                                <div class="small text-secondary">{{ item.quantiteConditionnee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg emballes</div>
+                                <div class="small text-secondary">{{ item.quantiteRemiseEnChambre|number_format(3, ',', ' ')|replace({',000': ''}) }} kg en chambre</div>
+                                <div class="small text-secondary">{{ item.chambreRemiseEnChambre ?: 'Chambre retour non renseignee' }}</div>
                                 <div class="small text-secondary">Duree {{ item.dureeConditionnementHeuresValue|number_format(2, ',', ' ') }} h</div>
-                            {% elseif stage == 'remise_chambre' %}
-                                <div>{{ item.chambreRemiseEnChambre ?: 'Chambre positive non renseignee' }}</div>
-                                <div class="small text-secondary">{{ item.quantiteRemiseEnChambre|number_format(3, ',', ' ')|replace({',000': ''}) }} kg remis en chambre</div>
-                                <div class="small text-secondary">{{ item.dateRemiseEnChambre ? item.dateRemiseEnChambre|date('d/m') : '-' }} {{ item.heureRemiseEnChambre ? item.heureRemiseEnChambre|date('H:i') : '' }}</div>
                             {% elseif stage == 'expedition' %}
                                 <div>{{ item.destinationFinaleClient ?: 'Destination non renseignee' }}</div>
                                 <div class="small text-secondary">
@@ -139,79 +133,7 @@
                             {% endif %}
                         </td>
                         <td class="text-end">
-                            <div class="btn-group btn-group-sm">
-                                {% if is_granted('FISH_RECEPTION_VIEW', item) %}
-                                    <a class="btn btn-outline-primary" title="Voir" aria-label="Voir" href="{{ path('app_fish_reception_view', {id: item.id}) }}">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                {% endif %}
-                                {% if is_granted('FISH_RECEPTION_EDIT', item) %}
-                                    <a class="btn btn-outline-primary" title="Modifier" aria-label="Modifier" href="{{ path('app_fish_reception_edit', {id: item.id}) }}">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                {% endif %}
-                                {% if is_granted('FISH_RECEPTION_VIEW', item) %}
-                                    <a class="btn btn-outline-success" title="Telecharger fichier terrain Excel" aria-label="Telecharger fichier terrain Excel" href="{{ path('app_fish_reception_excel_template_item', {id: item.id, stage: stage|default('reception')}) }}">
-                                        <i class="bi bi-file-earmark-excel"></i>
-                                    </a>
-                                {% endif %}
-                                {% if is_granted('FISH_RECEPTION_TRANSITION', item) and not item.locked %}
-                                    {% if item.statut == 'brouillon' %}
-                                        <button class="btn btn-outline-success" title="Valider reception" aria-label="Valider reception" data-confirm-url="{{ path('app_fish_reception_validate', {id: item.id}) }}" data-token="{{ csrf_token('validate_fish_reception_' ~ item.id) }}" data-confirm-message="Valider cette reception ? Elle deviendra disponible dans le workflow.">
-                                            <i class="bi bi-check2-circle"></i>
-                                        </button>
-                                    {% endif %}
-                                    {% if item.quantiteDisponibleReceptionValue > 0.001 %}
-                                        <button class="btn btn-outline-success" title="Stocker reception" aria-label="Stocker reception" data-remote-modal="{{ path('app_fish_reception_initial_storage_form', {id: item.id}) }}">
-                                            <i class="bi bi-inboxes"></i>
-                                        </button>
-                                    {% endif %}
-                                    {% if item.quantiteDisponibleTraitementSourceValue > 0.001 %}
-                                        <button class="btn btn-outline-info" title="Traiter" aria-label="Traiter" data-remote-modal="{{ path('app_fish_reception_treatment_form', {id: item.id}) }}">
-                                            <i class="bi bi-arrow-repeat"></i>
-                                        </button>
-                                    {% endif %}
-                                    {% if item.quantiteDisponibleTraitementValue > 0.001 %}
-                                        <button class="btn btn-outline-primary" title="Congeler" aria-label="Congeler" data-remote-modal="{{ path('app_fish_reception_freezing_form', {id: item.id}) }}">
-                                            <i class="bi bi-snow"></i>
-                                        </button>
-                                        <button class="btn btn-outline-danger" title="Annuler traitement" aria-label="Annuler traitement" data-remote-modal="{{ path('app_fish_reception_cancel_treatment_form', {id: item.id}) }}">
-                                            <i class="bi bi-arrow-counterclockwise"></i>
-                                        </button>
-                                    {% endif %}
-                                    {% if item.quantiteDisponibleCongelationValue > 0.001 %}
-                                        <button class="btn btn-outline-success" title="Cristalliser" aria-label="Cristalliser" data-remote-modal="{{ path('app_fish_reception_storage_form', {id: item.id}) }}">
-                                            <i class="bi bi-box-seam"></i>
-                                        </button>
-                                    {% endif %}
-                                    {% if item.quantiteDisponibleCristallisationValue > 0.001 %}
-                                        <button class="btn btn-outline-warning" title="Emballer" aria-label="Emballer" data-remote-modal="{{ path('app_fish_reception_packaging_form', {id: item.id}) }}">
-                                            <i class="bi bi-box"></i>
-                                        </button>
-                                    {% endif %}
-                                    {% if item.quantiteDisponibleEmballageValue > 0.001 %}
-                                        <button class="btn btn-outline-success" title="Remise chambre" aria-label="Remise chambre" data-remote-modal="{{ path('app_fish_reception_return_storage_form', {id: item.id}) }}">
-                                            <i class="bi bi-box-arrow-in-down"></i>
-                                        </button>
-                                    {% endif %}
-                                    {% if item.quantiteDisponibleStockageValue > 0.001 %}
-                                        <button class="btn btn-outline-dark" title="Expedier" aria-label="Expedier" data-remote-modal="{{ path('app_fish_reception_shipping_form', {id: item.id}) }}">
-                                            <i class="bi bi-truck"></i>
-                                        </button>
-                                    {% endif %}
-                                    <button class="btn btn-outline-dark" title="Cloturer" aria-label="Cloturer" data-confirm-url="{{ path('app_fish_reception_close', {id: item.id}) }}" data-token="{{ csrf_token('close_fish_reception_' ~ item.id) }}" data-confirm-message="Cloturer cette reception ? Elle sera verrouillee.">
-                                        <i class="bi bi-lock"></i>
-                                    </button>
-                                    <button class="btn btn-outline-danger" title="Bloquer" aria-label="Bloquer" data-remote-modal="{{ path('app_fish_reception_block_form', {id: item.id}) }}">
-                                        <i class="bi bi-slash-circle"></i>
-                                    </button>
-                                {% endif %}
-                                {% if is_granted('FISH_RECEPTION_DELETE', item) %}
-                                    <button class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_fish_reception_delete', {id: item.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_fish_reception_' ~ item.id) }}" data-confirm-message="Supprimer cette reception ? Impossible si elle est deja utilisee dans le workflow.">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                {% endif %}
-                            </div>
+                            {% include 'fish_reception/_actions.html.twig' with {item: item, size: 'btn-sm', compact: true} %}
                         </td>
                     </tr>
                 {% endfor %}

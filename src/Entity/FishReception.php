@@ -2035,7 +2035,6 @@ class FishReception
             'congelation' => $this->getQuantiteDisponibleTraitementValue(),
             'stockage' => $this->getQuantiteDisponibleCongelationValue(),
             'emballage' => $this->getQuantiteDisponibleCristallisationValue(),
-            'remise_chambre' => $this->getQuantiteDisponibleEmballageValue(),
             'expedition' => $this->getQuantiteDisponibleStockageValue(),
             default => $this->getQuantiteDisponibleReceptionValue(),
         };
@@ -2048,7 +2047,6 @@ class FishReception
             'congelation' => $this->getQuantiteCongeleeValue(),
             'stockage' => $this->getQuantiteStockeeValue(),
             'emballage' => $this->getQuantiteConditionneeValue(),
-            'remise_chambre' => $this->getQuantiteRemiseEnChambreValue(),
             'expedition' => $this->getQuantiteTotaleExpedieeValue(),
             default => $this->getQuantiteTotalePrepareeValue(),
         };

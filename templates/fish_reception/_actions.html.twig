@@ -1,86 +1,174 @@
 {% set size = size|default('btn-sm') %}
-{% if is_granted('FISH_RECEPTION_VIEW', item) %}
-    <div class="btn-group">
-        <button class="btn {{ size }} btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-file-earmark-excel me-1"></i>Excel terrain
-        </button>
-        <ul class="dropdown-menu">
-            {% for excel_stage, excel_label in {
-                reception: 'Reception',
-                traitement: 'Traitement / Production',
-                congelation: 'Congelation',
-                stockage: 'Cristallisation',
-                emballage: 'Conditionnement / Emballage',
-                remise_chambre: 'Remise en chambre',
-                expedition: 'Expedition'
-            } %}
-                <li>
-                    <a class="dropdown-item" href="{{ path('app_fish_reception_excel_template_item', {id: item.id, stage: excel_stage}) }}">
-                        <i class="bi bi-download me-2"></i>{{ excel_label }}
-                    </a>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-{% endif %}
-{% if is_granted('FISH_RECEPTION_EDIT', item) %}
-    <a class="btn {{ size }} btn-outline-primary" href="{{ path('app_fish_reception_edit', {id: item.id}) }}">
-        <i class="bi bi-pencil me-1"></i>Modifier
-    </a>
-{% endif %}
-{% if is_granted('FISH_RECEPTION_TRANSITION', item) and not item.locked %}
+{% set compact = compact|default(false) %}
+{% set can_view = is_granted('FISH_RECEPTION_VIEW', item) %}
+{% set can_edit = is_granted('FISH_RECEPTION_EDIT', item) %}
+{% set can_transition = is_granted('FISH_RECEPTION_TRANSITION', item) and not item.locked %}
+{% set can_delete = is_granted('FISH_RECEPTION_DELETE', item) %}
+{% set workflow_actions = [] %}
+
+{% if can_transition %}
     {% if item.statut == 'brouillon' %}
-        <button class="btn {{ size }} btn-outline-success" data-confirm-url="{{ path('app_fish_reception_validate', {id: item.id}) }}" data-token="{{ csrf_token('validate_fish_reception_' ~ item.id) }}" data-confirm-message="Valider cette reception ?">
-            <i class="bi bi-check2-circle me-1"></i>Valider
-        </button>
+        {% set workflow_actions = workflow_actions|merge([{
+            type: 'confirm',
+            label: 'Valider',
+            icon: 'bi-check2-circle',
+            tone: 'success',
+            url: path('app_fish_reception_validate', {id: item.id}),
+            token: csrf_token('validate_fish_reception_' ~ item.id),
+            message: 'Valider cette reception ?'
+        }]) %}
+    {% else %}
+        {% if item.quantiteDisponibleReceptionValue > 0.001 %}
+            {% set workflow_actions = workflow_actions|merge([{
+                type: 'modal',
+                label: 'Stocker reception',
+                icon: 'bi-inboxes',
+                tone: 'success',
+                url: path('app_fish_reception_initial_storage_form', {id: item.id})
+            }]) %}
+        {% endif %}
+        {% if item.quantiteDisponibleTraitementSourceValue > 0.001 %}
+            {% set workflow_actions = workflow_actions|merge([{
+                type: 'modal',
+                label: 'Traiter',
+                icon: 'bi-arrow-repeat',
+                tone: 'info',
+                url: path('app_fish_reception_treatment_form', {id: item.id})
+            }]) %}
+        {% endif %}
+        {% if item.quantiteDisponibleTraitementValue > 0.001 %}
+            {% set workflow_actions = workflow_actions|merge([{
+                type: 'modal',
+                label: 'Congeler',
+                icon: 'bi-snow',
+                tone: 'primary',
+                url: path('app_fish_reception_freezing_form', {id: item.id})
+            }]) %}
+        {% endif %}
+        {% if item.quantiteDisponibleCongelationValue > 0.001 %}
+            {% set workflow_actions = workflow_actions|merge([{
+                type: 'modal',
+                label: 'Cristalliser',
+                icon: 'bi-box-seam',
+                tone: 'success',
+                url: path('app_fish_reception_storage_form', {id: item.id})
+            }]) %}
+        {% endif %}
+        {% if item.quantiteDisponibleCristallisationValue > 0.001 %}
+            {% set workflow_actions = workflow_actions|merge([{
+                type: 'modal',
+                label: compact ? 'Emballer' : 'Emballer + chambre',
+                icon: 'bi-box-arrow-in-down',
+                tone: 'warning',
+                url: path('app_fish_reception_packaging_form', {id: item.id})
+            }]) %}
+        {% endif %}
+        {% if item.quantiteDisponibleStockageValue > 0.001 %}
+            {% set workflow_actions = workflow_actions|merge([{
+                type: 'modal',
+                label: 'Expedier',
+                icon: 'bi-truck',
+                tone: 'dark',
+                url: path('app_fish_reception_shipping_form', {id: item.id})
+            }]) %}
+        {% endif %}
+        {% if item.quantiteDisponibleEmballageValue > 0.001 %}
+            {% set workflow_actions = workflow_actions|merge([{
+                type: 'modal',
+                label: compact ? 'Retour chambre' : 'Retour chambre manquant',
+                icon: 'bi-box-arrow-in-down',
+                tone: 'success',
+                url: path('app_fish_reception_return_storage_form', {id: item.id})
+            }]) %}
+        {% endif %}
     {% endif %}
-    {% if item.quantiteDisponibleReceptionValue > 0.001 %}
-        <button class="btn {{ size }} btn-outline-success" data-remote-modal="{{ path('app_fish_reception_initial_storage_form', {id: item.id}) }}">
-            <i class="bi bi-inboxes me-1"></i>Stocker reception
-        </button>
-    {% endif %}
-    {% if item.quantiteDisponibleTraitementSourceValue > 0.001 %}
-        <button class="btn {{ size }} btn-outline-info" data-remote-modal="{{ path('app_fish_reception_treatment_form', {id: item.id}) }}">
-            <i class="bi bi-arrow-repeat me-1"></i>Traiter
-        </button>
-    {% endif %}
-    {% if item.quantiteDisponibleTraitementValue > 0.001 %}
-        <button class="btn {{ size }} btn-outline-primary" data-remote-modal="{{ path('app_fish_reception_freezing_form', {id: item.id}) }}">
-            <i class="bi bi-snow me-1"></i>Congeler
-        </button>
-        <button class="btn {{ size }} btn-outline-danger" data-remote-modal="{{ path('app_fish_reception_cancel_treatment_form', {id: item.id}) }}">
-            <i class="bi bi-arrow-counterclockwise me-1"></i>Annuler traitement
-        </button>
-    {% endif %}
-    {% if item.quantiteDisponibleCongelationValue > 0.001 %}
-        <button class="btn {{ size }} btn-outline-success" data-remote-modal="{{ path('app_fish_reception_storage_form', {id: item.id}) }}">
-            <i class="bi bi-box-seam me-1"></i>Cristalliser
-        </button>
-    {% endif %}
-    {% if item.quantiteDisponibleCristallisationValue > 0.001 %}
-        <button class="btn {{ size }} btn-outline-warning" data-remote-modal="{{ path('app_fish_reception_packaging_form', {id: item.id}) }}">
-            <i class="bi bi-box me-1"></i>Emballer
-        </button>
-    {% endif %}
-    {% if item.quantiteDisponibleEmballageValue > 0.001 %}
-        <button class="btn {{ size }} btn-outline-success" data-remote-modal="{{ path('app_fish_reception_return_storage_form', {id: item.id}) }}">
-            <i class="bi bi-box-arrow-in-down me-1"></i>Remise chambre
-        </button>
-    {% endif %}
-    {% if item.quantiteDisponibleStockageValue > 0.001 %}
-        <button class="btn {{ size }} btn-outline-dark" data-remote-modal="{{ path('app_fish_reception_shipping_form', {id: item.id}) }}">
-            <i class="bi bi-truck me-1"></i>Expedier
-        </button>
-    {% endif %}
-    <button class="btn {{ size }} btn-outline-dark" data-confirm-url="{{ path('app_fish_reception_close', {id: item.id}) }}" data-token="{{ csrf_token('close_fish_reception_' ~ item.id) }}" data-confirm-message="Cloturer cette reception ? Elle sera verrouillee.">
-        <i class="bi bi-lock me-1"></i>Cloturer
-    </button>
-    <button class="btn {{ size }} btn-outline-danger" data-remote-modal="{{ path('app_fish_reception_block_form', {id: item.id}) }}">
-        <i class="bi bi-slash-circle me-1"></i>Bloquer
-    </button>
 {% endif %}
-{% if is_granted('FISH_RECEPTION_DELETE', item) %}
-    <button class="btn {{ size }} btn-outline-danger" data-confirm-url="{{ path('app_fish_reception_delete', {id: item.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_fish_reception_' ~ item.id) }}" data-confirm-message="Supprimer cette reception ?">
-        <i class="bi bi-trash me-1"></i>Supprimer
-    </button>
-{% endif %}
+
+<div class="d-inline-flex flex-wrap align-items-center justify-content-end gap-2 fish-reception-actions">
+    <div class="btn-group {{ compact ? 'btn-group-sm' : '' }}" role="group" aria-label="Fiche reception">
+        {% if can_view %}
+            <a class="btn {{ size }} btn-outline-primary" title="Voir" aria-label="Voir" href="{{ path('app_fish_reception_view', {id: item.id}) }}">
+                <i class="bi bi-eye{{ compact ? '' : ' me-1' }}"></i>{% if not compact %}Voir{% endif %}
+            </a>
+        {% endif %}
+        {% if can_edit %}
+            <a class="btn {{ size }} btn-outline-primary" title="Modifier" aria-label="Modifier" href="{{ path('app_fish_reception_edit', {id: item.id}) }}">
+                <i class="bi bi-pencil{{ compact ? '' : ' me-1' }}"></i>{% if not compact %}Modifier{% endif %}
+            </a>
+        {% endif %}
+    </div>
+
+    {% if workflow_actions|length > 0 %}
+        <div class="d-inline-flex flex-wrap gap-1" role="group" aria-label="Actions workflow">
+            {% for workflow_action in workflow_actions %}
+                {% if workflow_action.type == 'confirm' %}
+                    <button class="btn {{ size }} btn-{{ compact ? 'outline-' : '' }}{{ workflow_action.tone }}" data-confirm-url="{{ workflow_action.url }}" data-token="{{ workflow_action.token }}" data-confirm-message="{{ workflow_action.message }}">
+                        <i class="bi {{ workflow_action.icon }} me-1"></i>{{ workflow_action.label }}
+                    </button>
+                {% else %}
+                    <button class="btn {{ size }} btn-{{ compact ? 'outline-' : '' }}{{ workflow_action.tone }}" data-remote-modal="{{ workflow_action.url }}">
+                        <i class="bi {{ workflow_action.icon }} me-1"></i>{{ workflow_action.label }}
+                    </button>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if can_view or can_transition or can_delete %}
+        <div class="btn-group">
+            <button class="btn {{ size }} btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Plus d'actions">
+                <i class="bi bi-three-dots{{ compact ? '' : ' me-1' }}"></i>{% if not compact %}Plus{% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                {% if can_view %}
+                    <li><h6 class="dropdown-header">Fichiers terrain</h6></li>
+                    {% for excel_stage, excel_label in {
+                        reception: 'Reception',
+                        traitement: 'Traitement / Production',
+                        congelation: 'Congelation',
+                        stockage: 'Cristallisation',
+                        emballage: 'Emballage + retour chambre',
+                        expedition: 'Expedition'
+                    } %}
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_fish_reception_excel_template_item', {id: item.id, stage: excel_stage}) }}">
+                                <i class="bi bi-file-earmark-excel me-2"></i>{{ excel_label }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                {% endif %}
+
+                {% if can_transition %}
+                    {% if can_view %}<li><hr class="dropdown-divider"></li>{% endif %}
+                    <li><h6 class="dropdown-header">Workflow</h6></li>
+                    {% if item.quantiteDisponibleTraitementValue > 0.001 %}
+                        <li>
+                            <button class="dropdown-item text-danger" type="button" data-remote-modal="{{ path('app_fish_reception_cancel_treatment_form', {id: item.id}) }}">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i>Annuler traitement
+                            </button>
+                        </li>
+                    {% endif %}
+                    <li>
+                        <button class="dropdown-item" type="button" data-confirm-url="{{ path('app_fish_reception_close', {id: item.id}) }}" data-token="{{ csrf_token('close_fish_reception_' ~ item.id) }}" data-confirm-message="Cloturer cette reception ? Elle sera verrouillee.">
+                            <i class="bi bi-lock me-2"></i>Cloturer
+                        </button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item text-danger" type="button" data-remote-modal="{{ path('app_fish_reception_block_form', {id: item.id}) }}">
+                            <i class="bi bi-slash-circle me-2"></i>Bloquer
+                        </button>
+                    </li>
+                {% endif %}
+
+                {% if can_delete %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <button class="dropdown-item text-danger" type="button" data-confirm-url="{{ path('app_fish_reception_delete', {id: item.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_fish_reception_' ~ item.id) }}" data-confirm-message="Supprimer cette reception ?">
+                            <i class="bi bi-trash me-2"></i>Supprimer
+                        </button>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    {% endif %}
+</div>
