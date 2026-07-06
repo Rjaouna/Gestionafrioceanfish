@@ -253,8 +253,8 @@ final readonly class FactoryUnitService
                 'free' => $capacity > 0.001 ? max(0.0, $capacity - $stock) : 0.0,
                 'free_display' => $capacity > 0.001 ? $this->formatKg(max(0.0, $capacity - $stock)) : '-',
                 'percent' => $percent,
-                'percent_display' => $capacity > 0.001 ? number_format(min(999.0, $percent), 0, ',', ' ').' %' : ($stock > 0.001 ? 'Cap. ?' : 'Vide'),
-                'progress' => $capacity > 0.001 ? min(100, max(0, (int) round($percent))) : ($stock > 0.001 ? 100 : 0),
+                'percent_display' => $capacity > 0.001 ? $this->formatPercent($percent) : ($stock > 0.001 ? 'Cap. ?' : 'Vide'),
+                'progress' => $capacity > 0.001 ? $this->spaceProgress($percent, $stock) : ($stock > 0.001 ? 100 : 0),
                 'tone' => $this->spaceTone($unit, $stock, $percent, $capacity),
                 'state_label' => $this->spaceStateLabel($unit, $stock, $percent, $capacity),
             ];
@@ -701,7 +701,34 @@ final readonly class FactoryUnitService
             return 'A surveiller';
         }
 
-        return $load > 0.001 ? 'Disponible' : 'Vide';
+        return $load > 0.001 ? 'Occupee' : 'Vide';
+    }
+
+    private function spaceProgress(float $percent, float $load): int
+    {
+        if ($load <= 0.001 || $percent <= 0.0) {
+            return 0;
+        }
+
+        return min(100, max(1, (int) ceil($percent)));
+    }
+
+    private function formatPercent(float $percent): string
+    {
+        $percent = min(999.0, max(0.0, $percent));
+        if ($percent <= 0.0) {
+            return '0 %';
+        }
+
+        if ($percent < 0.1) {
+            return '< 0,1 %';
+        }
+
+        if ($percent < 10.0) {
+            return rtrim(rtrim(number_format($percent, 1, ',', ' '), '0'), ',').' %';
+        }
+
+        return number_format($percent, 0, ',', ' ').' %';
     }
 
     /**
