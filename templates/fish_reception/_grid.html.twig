@@ -2,7 +2,7 @@
 {% set source_labels = {
     reception: 'Recue',
     traitement: 'Stock initial',
-    congelation: 'Preparee',
+    congelation: 'En traitement',
     stockage: 'Congelee',
     emballage: 'Cristallisee',
     expedition: 'En chambre'
@@ -47,7 +47,7 @@
                 </thead>
                 <tbody>
                 {% for item in items %}
-                    {% set source = stage == 'traitement' ? item.quantiteStockInitialEntreeValue : (stage == 'congelation' ? item.quantiteTotalePrepareeValue : (stage == 'stockage' ? item.quantiteCongeleeValue : (stage == 'emballage' ? item.quantiteStockeeValue : (stage == 'expedition' ? item.quantiteRemiseEnChambreValue : item.quantiteReceptionneeValue)))) %}
+                    {% set source = stage == 'traitement' ? item.quantiteStockInitialEntreeValue : (stage == 'congelation' ? item.quantiteEnTraitementValue : (stage == 'stockage' ? item.quantiteCongeleeValue : (stage == 'emballage' ? item.quantiteStockeeValue : (stage == 'expedition' ? item.quantiteRemiseEnChambreValue : item.quantiteReceptionneeValue)))) %}
                     {% set moved = stage == 'reception' ? item.quantiteStockInitialEntreeValue : (stage == 'traitement' ? item.quantiteTotalePrepareeValue : (stage == 'congelation' ? item.quantiteCongeleeValue : (stage == 'stockage' ? item.quantiteStockeeValue : (stage == 'emballage' ? item.quantiteConditionneeValue : item.quantiteTotaleExpedieeValue)))) %}
                     {% set available = stage == 'traitement' ? item.quantiteDisponibleTraitementSourceValue : (stage == 'congelation' ? item.quantiteDisponibleTraitementValue : (stage == 'stockage' ? item.quantiteDisponibleCongelationValue : (stage == 'emballage' ? item.quantiteDisponibleCristallisationValue : (stage == 'expedition' ? item.quantiteDisponibleStockageValue : item.quantiteDisponibleReceptionValue)))) %}
                     {% set row_class = item.statut == 'bloquee' ? 'table-danger' : (available <= 0.001 and moved > 0 ? 'table-light' : '') %}
@@ -90,7 +90,7 @@
                         </td>
                         <td>
                             {% if stage == 'traitement' %}
-                                <div>Prepare {{ item.quantiteTotalePreparee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>
+                                <div>En traitement {{ item.quantiteEnTraitementValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>
                                 <div class="small text-secondary">
                                     {% if item.dateDebutTraitement or item.heureDebutTraitement %}
                                         Debut {{ item.dateDebutTraitement ? item.dateDebutTraitement|date('d/m') : '' }} {{ item.heureDebutTraitement ? item.heureDebutTraitement|date('H:i') : '' }}

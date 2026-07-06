@@ -38,7 +38,7 @@
 {% set receivedWeight = item.quantiteReceptionneeValue %}
 {% set initialStorageRate = receivedWeight > 0 ? (item.quantiteStockInitialEntreeValue / receivedWeight * 100) : 0 %}
 {% set treatmentRate = receivedWeight > 0 ? (item.quantiteTotalePrepareeValue / receivedWeight * 100) : 0 %}
-{% set frozenRate = item.quantiteTotalePrepareeValue > 0 ? (item.quantiteCongeleeValue / item.quantiteTotalePrepareeValue * 100) : 0 %}
+{% set frozenRate = item.quantiteEnTraitementValue > 0 ? (item.quantiteCongeleeValue / item.quantiteEnTraitementValue * 100) : 0 %}
 {% set storedRate = item.quantiteCongeleeValue > 0 ? (item.quantiteStockeeValue / item.quantiteCongeleeValue * 100) : 0 %}
 {% set packagedRate = item.quantiteStockeeValue > 0 ? (item.quantiteConditionneeValue / item.quantiteStockeeValue * 100) : 0 %}
 {% set shippedRate = item.quantiteRemiseEnChambreValue > 0 ? (item.quantiteTotaleExpedieeValue / item.quantiteRemiseEnChambreValue * 100) : 0 %}
@@ -265,7 +265,7 @@
                     {{ ui.row('Moules', item.nombreMoules) }}
                     {{ ui.row('Caisses / palette', item.nombreCaissesParPalette) }}
                     {{ ui.row('Palettes', item.nombreTotalPalettes) }}
-                    {{ ui.row('Quantité préparée', ui.kg(item.quantiteTotalePreparee), 'text-primary') }}
+                    {{ ui.row('Quantite en traitement', ui.kg(item.quantiteEnTraitementValue), 'text-primary') }}
                     {{ ui.row('Reste a stocker initial', ui.kg(item.quantiteDisponibleReceptionValue), 'text-warning') }}
                     {{ ui.row('Reste a congeler', ui.kg(item.quantiteDisponibleTraitementValue), 'text-warning') }}
                 </div>

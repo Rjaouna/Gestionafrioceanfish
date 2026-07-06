@@ -55,10 +55,10 @@ final class FishReceptionFreezingType extends AbstractType
                 'data-stage-quantity-limit' => 'true',
                 'data-stage-available' => (string) round(max(0.0, $available), 3),
                 'data-stage-requested-label' => 'a congeler',
-                'data-stage-available-label' => 'apres traitement',
-                'data-stage-submit-message' => 'Quantite a congeler superieure au reste traitement.',
+                'data-stage-available-label' => 'en traitement',
+                'data-stage-submit-message' => 'Quantite a congeler superieure a la quantite en traitement.',
             ],
-            'help' => sprintf('Disponible apres traitement : %.3f kg', max(0.0, $available)),
+            'help' => sprintf('Disponible en traitement : %.3f kg', max(0.0, $available)),
         ];
     }
 

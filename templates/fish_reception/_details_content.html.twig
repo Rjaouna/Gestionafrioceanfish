@@ -107,7 +107,7 @@
                     <dt class="col-6 text-secondary">Moules</dt><dd class="col-6 text-end">{{ item.nombreMoules }}</dd>
                     <dt class="col-6 text-secondary">Caisses / palette</dt><dd class="col-6 text-end">{{ item.nombreCaissesParPalette }}</dd>
                     <dt class="col-6 text-secondary">Palettes</dt><dd class="col-6 text-end">{{ item.nombreTotalPalettes }}</dd>
-                    <dt class="col-6 text-secondary">Quantité préparée</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteTotalePreparee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Quantite en traitement</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteEnTraitementValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                     <dt class="col-6 text-secondary">Reste a congeler</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleTraitementValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                 </dl>
             </div>

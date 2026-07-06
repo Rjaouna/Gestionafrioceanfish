@@ -171,7 +171,7 @@ class FishReceptionRepository extends ServiceEntityRepository
         $stage = (string) ($filters['stage'] ?? 'reception');
         $received = array_sum(array_map(static fn (FishReception $item): float => match ($stage) {
             'traitement' => $item->getQuantiteStockInitialEntreeValue(),
-            'congelation' => $item->getQuantiteTotalePrepareeValue(),
+            'congelation' => $item->getQuantiteEnTraitementValue(),
             'stockage' => $item->getQuantiteCongeleeValue(),
             'emballage' => $item->getQuantiteStockeeValue(),
             'expedition' => $item->getQuantiteRemiseEnChambreValue(),

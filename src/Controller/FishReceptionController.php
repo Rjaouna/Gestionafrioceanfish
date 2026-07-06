@@ -904,7 +904,7 @@ final class FishReceptionController extends AbstractController
             'congelation' => [
                 'title' => 'Congelation',
                 'description' => 'Passage tunnel des produits traites avant cristallisation.',
-                'source_label' => 'Quantite preparee',
+                'source_label' => 'En traitement',
                 'moved_label' => 'Congelee',
                 'available_label' => 'Reste traitement',
                 'rate_label' => 'Taux congelation',

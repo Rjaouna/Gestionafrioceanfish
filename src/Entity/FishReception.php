@@ -1870,6 +1870,13 @@ class FishReception
         return (float) $this->quantiteTotalePreparee;
     }
 
+    public function getQuantiteEnTraitementValue(): float
+    {
+        $sortieTraitement = max(0.0, $this->getQuantiteStockInitialSortieValue() - $this->getQuantiteStockInitialRetourValue());
+
+        return max(0.0, min($this->getQuantiteTotalePrepareeValue(), $sortieTraitement));
+    }
+
     public function getQuantiteCongeleeValue(): float
     {
         return (float) $this->quantiteCongelee;
@@ -2000,7 +2007,7 @@ class FishReception
 
     public function getQuantiteDisponibleTraitementValue(): float
     {
-        return max(0.0, $this->getQuantiteTotalePrepareeValue() - $this->getQuantiteCongeleeValue());
+        return max(0.0, $this->getQuantiteEnTraitementValue() - $this->getQuantiteCongeleeValue());
     }
 
     public function getQuantiteDisponibleCristallisationValue(): float
