@@ -19,6 +19,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_interim_worker_status', columns: ['status'])]
 #[ORM\Index(name: 'idx_interim_worker_family_situation', columns: ['family_situation'])]
 #[ORM\Index(name: 'idx_interim_worker_hire_date', columns: ['hire_date'])]
+#[ORM\Index(name: 'idx_interim_worker_passport_number', columns: ['passport_number'])]
 #[ORM\Index(name: 'idx_interim_worker_created_by', columns: ['created_by_id'])]
 #[ORM\Index(name: 'idx_interim_worker_updated_by', columns: ['updated_by_id'])]
 #[UniqueEntity(fields: ['registrationNumber'], message: 'Ce matricule est déjà utilisé.')]
@@ -152,10 +153,34 @@ class InterimWorker
     private ?string $birthPlace = null;
 
     #[ORM\Column(length: 30, nullable: true)]
-    #[Assert\NotBlank]
     #[Assert\Length(max: 30)]
     #[Assert\Regex(pattern: '/^[A-Z0-9]+$/', message: 'Le CIN doit contenir uniquement des lettres et chiffres.')]
     private ?string $cin = null;
+
+    #[ORM\Column(length: 40, nullable: true)]
+    #[Assert\Length(max: 40)]
+    private ?string $passportNumber = null;
+
+    #[ORM\Column(length: 3, nullable: true)]
+    #[Assert\Length(max: 3)]
+    private ?string $passportIssueCountry = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Assert\Length(max: 100)]
+    private ?string $nationality = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    #[Assert\Choice(choices: ['M', 'F', 'X', null])]
+    private ?string $gender = null;
+
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $passportIssuedAt = null;
+
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $passportExpiresAt = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $passportMrz = null;
 
     #[ORM\Column(length: 40)]
     #[Assert\NotBlank]
@@ -392,6 +417,105 @@ class InterimWorker
     {
         $cin = mb_strtoupper(preg_replace('/[^A-Za-z0-9]/', '', trim((string) $cin)) ?? '');
         $this->cin = $cin !== '' ? $cin : null;
+
+        return $this;
+    }
+
+    public function getPassportNumber(): ?string
+    {
+        return $this->passportNumber;
+    }
+
+    public function setPassportNumber(?string $passportNumber): static
+    {
+        $passportNumber = mb_strtoupper(preg_replace('/[^A-Za-z0-9]/', '', trim((string) $passportNumber)) ?? '');
+        $this->passportNumber = $passportNumber !== '' ? $passportNumber : null;
+
+        return $this;
+    }
+
+    public function getPassportIssueCountry(): ?string
+    {
+        return $this->passportIssueCountry;
+    }
+
+    public function setPassportIssueCountry(?string $passportIssueCountry): static
+    {
+        $passportIssueCountry = mb_strtoupper(preg_replace('/[^A-Za-z]/', '', trim((string) $passportIssueCountry)) ?? '');
+        $this->passportIssueCountry = $passportIssueCountry !== '' ? mb_substr($passportIssueCountry, 0, 3) : null;
+
+        return $this;
+    }
+
+    public function getNationality(): ?string
+    {
+        return $this->nationality;
+    }
+
+    public function setNationality(?string $nationality): static
+    {
+        $nationality = trim((string) $nationality);
+        $this->nationality = $nationality !== '' ? $nationality : null;
+
+        return $this;
+    }
+
+    public function getGender(): ?string
+    {
+        return $this->gender;
+    }
+
+    public function setGender(?string $gender): static
+    {
+        $gender = mb_strtoupper(trim((string) $gender));
+        $this->gender = in_array($gender, ['M', 'F', 'X'], true) ? $gender : null;
+
+        return $this;
+    }
+
+    public function getGenderLabel(): string
+    {
+        return match ($this->gender) {
+            'M' => 'Homme',
+            'F' => 'Femme',
+            'X' => 'Non precise',
+            default => '-',
+        };
+    }
+
+    public function getPassportIssuedAt(): ?\DateTimeImmutable
+    {
+        return $this->passportIssuedAt;
+    }
+
+    public function setPassportIssuedAt(?\DateTimeImmutable $passportIssuedAt): static
+    {
+        $this->passportIssuedAt = $passportIssuedAt;
+
+        return $this;
+    }
+
+    public function getPassportExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->passportExpiresAt;
+    }
+
+    public function setPassportExpiresAt(?\DateTimeImmutable $passportExpiresAt): static
+    {
+        $this->passportExpiresAt = $passportExpiresAt;
+
+        return $this;
+    }
+
+    public function getPassportMrz(): ?string
+    {
+        return $this->passportMrz;
+    }
+
+    public function setPassportMrz(?string $passportMrz): static
+    {
+        $passportMrz = mb_strtoupper(trim((string) $passportMrz));
+        $this->passportMrz = $passportMrz !== '' ? $passportMrz : null;
 
         return $this;
     }

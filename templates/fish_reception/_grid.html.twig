@@ -10,7 +10,7 @@
 {% set moved_labels = {
     reception: 'Stockee initial',
     traitement: 'Traitement',
-    congelation: 'Congelee',
+    congelation: 'Sortie traitement',
     stockage: 'Cristallisee',
     emballage: 'Emballee en chambre',
     expedition: 'Expediee'
@@ -18,7 +18,7 @@
 {% set available_labels = {
     reception: 'Reste a stocker',
     traitement: 'Reste stock initial',
-    congelation: 'Reste traitement',
+    congelation: 'Reste a classer',
     stockage: 'Reste congelation',
     emballage: 'Reste cristallisation',
     expedition: 'Reste a expedier'
@@ -48,7 +48,7 @@
                 <tbody>
                 {% for item in items %}
                     {% set source = stage == 'traitement' ? item.quantiteStockInitialEntreeValue : (stage == 'congelation' ? item.quantiteEnTraitementValue : (stage == 'stockage' ? item.quantiteCongeleeValue : (stage == 'emballage' ? item.quantiteStockeeValue : (stage == 'expedition' ? item.quantiteRemiseEnChambreValue : item.quantiteReceptionneeValue)))) %}
-                    {% set moved = stage == 'reception' ? item.quantiteStockInitialEntreeValue : (stage == 'traitement' ? item.quantiteTotalePrepareeValue : (stage == 'congelation' ? item.quantiteCongeleeValue : (stage == 'stockage' ? item.quantiteStockeeValue : (stage == 'emballage' ? item.quantiteConditionneeValue : item.quantiteTotaleExpedieeValue)))) %}
+                    {% set moved = stage == 'reception' ? item.quantiteStockInitialEntreeValue : (stage == 'traitement' ? item.quantiteTotalePrepareeValue : (stage == 'congelation' ? item.totalSortieTraitementValue : (stage == 'stockage' ? item.quantiteStockeeValue : (stage == 'emballage' ? item.quantiteConditionneeValue : item.quantiteTotaleExpedieeValue)))) %}
                     {% set available = stage == 'traitement' ? item.quantiteDisponibleTraitementSourceValue : (stage == 'congelation' ? item.quantiteDisponibleTraitementValue : (stage == 'stockage' ? item.quantiteDisponibleCongelationValue : (stage == 'emballage' ? item.quantiteDisponibleCristallisationValue : (stage == 'expedition' ? item.quantiteDisponibleStockageValue : item.quantiteDisponibleReceptionValue)))) %}
                     {% set row_class = item.statut == 'bloquee' ? 'table-danger' : (available <= 0.001 and moved > 0 ? 'table-light' : '') %}
                     <tr class="{{ row_class }}">
@@ -100,7 +100,8 @@
                                 </div>
                             {% elseif stage == 'congelation' %}
                                 <div>{{ item.tunnel ?: 'Tunnel non renseigne' }}</div>
-                                <div class="small text-secondary">{{ item.quantiteCongelee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg congeles</div>
+                                <div class="small text-secondary">{{ item.quantiteCongelee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg PF tunnel</div>
+                                <div class="small text-secondary">{{ item.poidsDechetsTraitement|number_format(3, ',', ' ')|replace({',000': ''}) }} kg dechets / {{ item.poidsPertesTraitement|number_format(3, ',', ' ')|replace({',000': ''}) }} kg pertes</div>
                                 <div class="small text-secondary">{{ item.dateEntreeTunnel ? item.dateEntreeTunnel|date('d/m') : '-' }} {{ item.heureEntreeTunnel ? item.heureEntreeTunnel|date('H:i') : '' }}</div>
                             {% elseif stage == 'stockage' %}
                                 <div>{{ item.chambreFroide ?: 'Chambre positive non renseignee' }}</div>

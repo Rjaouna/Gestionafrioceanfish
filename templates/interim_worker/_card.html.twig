@@ -53,6 +53,12 @@
             <span class="app-card-detail-label"><i class="bi bi-telephone"></i>Téléphone</span>
             <span class="app-card-detail-value text-nowrap">{{ worker.phone }}</span>
         </div>
+        {% if worker.passportNumber %}
+            <div class="app-card-detail-line mb-2">
+                <span class="app-card-detail-label"><i class="bi bi-passport"></i>Passeport</span>
+                <span class="app-card-detail-value text-nowrap">{{ worker.passportNumber }}</span>
+            </div>
+        {% endif %}
         <div class="app-card-detail-line mb-2">
             <span class="app-card-detail-label"><i class="bi bi-person-heart"></i>Situation</span>
             <span class="app-card-detail-value text-nowrap">{{ worker.familySituationLabel }}</span>
@@ -85,9 +91,19 @@
                             <i class="bi bi-exclamation-octagon"></i>
                         </button>
                     {% endif %}
+                    {% if is_granted('MODULE_ACCESS', 'pointage-personnel') %}
+                        <button class="btn btn-outline-success" title="Ajouter un pointage" aria-label="Ajouter un pointage" data-remote-modal="{{ path('app_interim_attendance_choice', {id: worker.id}) }}">
+                            <i class="bi bi-calendar-plus"></i>
+                        </button>
+                    {% endif %}
                 </div>
             {% endif %}
             <div class="btn-group btn-group-sm">
+                {% if is_granted('MODULE_ACCESS', 'pointage-personnel') and is_granted('INTERIM_WORKER_VIEW', worker) %}
+                    <button class="btn btn-outline-secondary" title="Historique pointage" aria-label="Historique pointage" data-remote-modal="{{ path('app_interim_attendance_worker_history', {id: worker.id}) }}">
+                        <i class="bi bi-clock-history"></i>
+                    </button>
+                {% endif %}
                 {% if is_granted('INTERIM_WORKER_PRINT', worker) %}
                     <a class="btn btn-outline-secondary" title="Generer / imprimer fiche" aria-label="Generer / imprimer fiche" href="{{ path('app_interim_worker_print', {id: worker.id}) }}" target="_blank" rel="noopener">
                         <i class="bi bi-printer"></i>

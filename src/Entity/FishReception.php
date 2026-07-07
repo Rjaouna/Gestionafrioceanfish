@@ -241,6 +241,14 @@ class FishReception
     #[Assert\PositiveOrZero]
     private string $quantiteTotalePreparee = '0.000';
 
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 3, options: ['default' => '0.000'])]
+    #[Assert\PositiveOrZero]
+    private string $poidsDechetsTraitement = '0.000';
+
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 3, options: ['default' => '0.000'])]
+    #[Assert\PositiveOrZero]
+    private string $poidsPertesTraitement = '0.000';
+
     #[ORM\Column(length: 80, nullable: true)]
     #[Assert\Length(max: 80)]
     private ?string $tunnel = null;
@@ -1022,6 +1030,30 @@ class FishReception
     public function setQuantiteTotalePreparee(int|float|string|null $quantiteTotalePreparee): static
     {
         $this->quantiteTotalePreparee = $this->decimal($quantiteTotalePreparee, 3);
+
+        return $this;
+    }
+
+    public function getPoidsDechetsTraitement(): string
+    {
+        return $this->poidsDechetsTraitement;
+    }
+
+    public function setPoidsDechetsTraitement(int|float|string|null $poidsDechetsTraitement): static
+    {
+        $this->poidsDechetsTraitement = $this->decimal($poidsDechetsTraitement, 3);
+
+        return $this;
+    }
+
+    public function getPoidsPertesTraitement(): string
+    {
+        return $this->poidsPertesTraitement;
+    }
+
+    public function setPoidsPertesTraitement(int|float|string|null $poidsPertesTraitement): static
+    {
+        $this->poidsPertesTraitement = $this->decimal($poidsPertesTraitement, 3);
 
         return $this;
     }
@@ -1882,6 +1914,26 @@ class FishReception
         return (float) $this->quantiteCongelee;
     }
 
+    public function getPoidsDechetsTraitementValue(): float
+    {
+        return (float) $this->poidsDechetsTraitement;
+    }
+
+    public function getPoidsPertesTraitementValue(): float
+    {
+        return (float) $this->poidsPertesTraitement;
+    }
+
+    public function getTotalSortieTraitementValue(): float
+    {
+        return $this->getQuantiteCongeleeValue() + $this->getPoidsDechetsTraitementValue() + $this->getPoidsPertesTraitementValue();
+    }
+
+    public function getEcartTraitementValue(): float
+    {
+        return $this->getQuantiteEnTraitementValue() - $this->getTotalSortieTraitementValue();
+    }
+
     public function getDureeTunnelHeuresValue(): float
     {
         $start = $this->combineDateAndTime($this->dateEntreeTunnel ?? $this->dateSortieTunnel, $this->heureEntreeTunnel);
@@ -2007,7 +2059,7 @@ class FishReception
 
     public function getQuantiteDisponibleTraitementValue(): float
     {
-        return max(0.0, $this->getQuantiteEnTraitementValue() - $this->getQuantiteCongeleeValue());
+        return max(0.0, $this->getQuantiteEnTraitementValue() - $this->getTotalSortieTraitementValue());
     }
 
     public function getQuantiteDisponibleCristallisationValue(): float
@@ -2051,7 +2103,7 @@ class FishReception
     {
         return match ($stage) {
             'reception' => $this->getQuantiteStockInitialEntreeValue(),
-            'congelation' => $this->getQuantiteCongeleeValue(),
+            'congelation' => $this->getTotalSortieTraitementValue(),
             'stockage' => $this->getQuantiteStockeeValue(),
             'emballage' => $this->getQuantiteConditionneeValue(),
             'expedition' => $this->getQuantiteTotaleExpedieeValue(),

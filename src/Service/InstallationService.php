@@ -35,6 +35,7 @@ final readonly class InstallationService
             ['Composition usine', 'factory', 'bi-building-gear', 'app_factory_unit_index', 'Tunnels, chambres froides, zones de stockage et selections usine.'],
             ['Réceptions', 'receptions', 'bi-clipboard2-check', 'app_fish_reception_index', 'Réception poisson, traitement, emballage, congélation, stockage et expédition.'],
             ['Intérimaires', 'interimaires', 'bi-person-vcard', 'app_interim_worker_index', 'Fiches de poste, suivi RH et documents des intérimaires.'],
+            ['Pointage personnel', 'pointage-personnel', 'bi-calendar-check', 'app_interim_attendance_index', 'Pointages horaires, taches et tarifs du personnel.'],
             ['Agenda - RDV', 'agenda', 'bi-calendar-check', 'app_appointment_calendar', 'Calendrier professionnel, rendez-vous, participants et rappels.'],
             ['Statistiques', 'statistics', 'bi-graph-up-arrow', 'app_statistics_index', 'Graphiques et indicateurs de pilotage.'],
             ['Gestion des utilisateurs', 'users', 'bi-people', 'app_user_index', 'Comptes, rôles et accès modules.'],

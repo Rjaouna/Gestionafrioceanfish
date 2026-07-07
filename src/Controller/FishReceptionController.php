@@ -431,7 +431,7 @@ final class FishReceptionController extends AbstractController
             FishReceptionFreezingType::class,
             'app_fish_reception_register_freezing',
             'Valider la congélation',
-            "Cette quantite sera deduite du traitement et ajoutee a la congelation tunnel.",
+            "Renseignez le produit fini a envoyer au tunnel, puis les dechets et pertes issus du traitement.",
             'bi-snow',
             'btn-primary',
             $reception->getQuantiteDisponibleTraitementValue(),
@@ -757,7 +757,9 @@ final class FishReceptionController extends AbstractController
         if ($formType === FishReceptionFreezingType::class) {
             $options['factory_unit_choices'] = $this->factoryUnitService->tunnelChoices($this->currentUser(), $reception->getTunnel());
             $options['capacity_check_url'] = $this->generateUrl('app_fish_reception_freezing_capacity_check', ['id' => $reception->getId()]);
-            $options['attr'] = ['data-freezing-capacity-form' => 'true'];
+            $options['source_quantity'] = $reception->getQuantiteEnTraitementValue();
+            $options['current_frozen_quantity'] = $reception->getQuantiteCongeleeValue();
+            $options['attr'] = ['data-freezing-capacity-form' => 'true', 'data-fish-freezing-form' => 'true'];
         } elseif ($formType === FishReceptionTreatmentType::class) {
             $options['source_location_choices'] = $this->initialStockSourceChoices($reception);
             $options['attr'] = ['data-treatment-box-form' => 'true'];
@@ -944,11 +946,11 @@ final class FishReceptionController extends AbstractController
             ],
             'congelation' => [
                 'title' => 'Congelation',
-                'description' => 'Passage tunnel des produits traites avant cristallisation.',
+                'description' => 'Bilan sortie traitement : produit fini tunnel, dechets et pertes.',
                 'source_label' => 'En traitement',
-                'moved_label' => 'Congelee',
-                'available_label' => 'Reste traitement',
-                'rate_label' => 'Taux congelation',
+                'moved_label' => 'Sortie traitement',
+                'available_label' => 'Reste a classer',
+                'rate_label' => 'Taux solde traitement',
             ],
             'stockage' => [
                 'title' => 'Cristallisation chambre positive',

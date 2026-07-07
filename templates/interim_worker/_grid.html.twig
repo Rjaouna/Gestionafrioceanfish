@@ -10,6 +10,7 @@
                     <th>Matricule</th>
                     <th>Téléphone</th>
                     <th>CIN</th>
+                    <th>Passeport</th>
                     <th>Situation</th>
                     <th>Embauche</th>
                     <th class="text-end">Actions</th>
@@ -37,6 +38,7 @@
                         <td class="text-nowrap">{{ worker.registrationNumber }}</td>
                         <td class="text-nowrap">{{ worker.phone }}</td>
                         <td class="text-nowrap">{{ worker.cin ?: '-' }}</td>
+                        <td class="text-nowrap">{{ worker.passportNumber ?: '-' }}</td>
                         <td>{{ worker.familySituationLabel }}</td>
                         <td class="text-nowrap">{{ worker.hireDate ? worker.hireDate|date('d/m/Y') : '-' }}</td>
                         <td class="text-end">
@@ -63,6 +65,16 @@
                                             <i class="bi bi-exclamation-octagon"></i>
                                         </button>
                                     {% endif %}
+                                    {% if is_granted('MODULE_ACCESS', 'pointage-personnel') %}
+                                        <button class="btn btn-outline-success" title="Ajouter un pointage" aria-label="Ajouter un pointage" data-remote-modal="{{ path('app_interim_attendance_choice', {id: worker.id}) }}">
+                                            <i class="bi bi-calendar-plus"></i>
+                                        </button>
+                                    {% endif %}
+                                {% endif %}
+                                {% if is_granted('MODULE_ACCESS', 'pointage-personnel') and is_granted('INTERIM_WORKER_VIEW', worker) %}
+                                    <button class="btn btn-outline-secondary" title="Historique pointage" aria-label="Historique pointage" data-remote-modal="{{ path('app_interim_attendance_worker_history', {id: worker.id}) }}">
+                                        <i class="bi bi-clock-history"></i>
+                                    </button>
                                 {% endif %}
                                 {% if is_granted('INTERIM_WORKER_PRINT', worker) %}
                                     <a class="btn btn-outline-secondary" title="Imprimer" aria-label="Imprimer" href="{{ path('app_interim_worker_print', {id: worker.id}) }}" target="_blank" rel="noopener">

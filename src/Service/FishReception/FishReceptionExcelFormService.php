@@ -162,6 +162,8 @@ final readonly class FishReceptionExcelFormService
             ],
             'congelation' => [
                 $this->field('quantity', 'Quantité à congeler (kg)', 'number', true),
+                $this->field('poidsDechetsTraitement', 'Dechets traitement (kg)', 'number', false),
+                $this->field('poidsPertesTraitement', 'Pertes traitement (kg)', 'number', false),
                 $this->field('tunnel', 'Tunnel', 'text', true, null, 'tunnel'),
                 $this->field('dateEntreeTunnel', 'Date entree tunnel', 'date', true),
                 $this->field('heureEntreeTunnel', 'Heure entree tunnel', 'time', true),

@@ -16,6 +16,29 @@
                     <span class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis">1</span>
                     <h3 class="h6 mb-0">Identite</h3>
                 </div>
+                <div class="interim-passport-scan rounded-3 border bg-light p-3 mb-3" data-interim-passport-scanner>
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-2 bg-white text-primary" style="width: 2.25rem; height: 2.25rem;">
+                                <i class="bi bi-passport"></i>
+                            </span>
+                            <div>
+                                <div class="fw-semibold">Scan passeport</div>
+                                <div class="small text-secondary" data-interim-passport-status>Importer ou prendre une photo du passeport.</div>
+                            </div>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" type="button" data-interim-passport-button>
+                                <i class="bi bi-upc-scan me-1"></i>Scanner
+                            </button>
+                        </div>
+                        <input class="d-none" type="file" accept="image/*" capture="environment" data-interim-passport-input>
+                    </div>
+                    <div class="progress mt-3 d-none" style="height: .45rem;" data-interim-passport-progress-wrap>
+                        <div class="progress-bar" style="width: 0%;" data-interim-passport-progress></div>
+                    </div>
+                    <div class="alert alert-warning small mb-0 mt-3 d-none" data-interim-passport-warning></div>
+                </div>
                 <div class="row g-3">
                     <div class="col-lg-4">
                         <div class="border rounded-3 p-2 mb-2 bg-light text-center" data-interim-photo-preview-box>
@@ -33,6 +56,12 @@
                     <div class="col-lg-4">{{ form_row(form.firstName) }}</div>
                     <div class="col-lg-4">{{ form_row(form.phone) }}</div>
                     <div class="col-lg-4">{{ form_row(form.cin) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.passportNumber) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.nationality) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.gender) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.passportIssueCountry) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.passportIssuedAt) }}</div>
+                    <div class="col-lg-4">{{ form_row(form.passportExpiresAt) }}</div>
                     {% if form.registrationNumber is defined %}
                         <div class="col-lg-4">{{ form_row(form.registrationNumber) }}</div>
                     {% endif %}

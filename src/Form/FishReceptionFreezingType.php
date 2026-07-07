@@ -17,12 +17,25 @@ final class FishReceptionFreezingType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('quantity', NumberType::class, $this->quantityOptions('Quantité à congeler (kg)', (float) $options['available_quantity']))
+            ->add('quantity', NumberType::class, $this->quantityOptions(
+                'Produit fini a congeler (kg)',
+                (float) $options['available_quantity'],
+                (float) $options['source_quantity'],
+                (float) $options['current_frozen_quantity'],
+            ))
+            ->add('poidsDechetsTraitement', NumberType::class, $this->numberOptions('Dechets traitement (kg)', 3, '0.001', false, false, [
+                'data-fish-freezing-waste' => 'true',
+                'data-fish-freezing-balance-field' => 'true',
+            ]))
+            ->add('poidsPertesTraitement', NumberType::class, $this->numberOptions('Pertes traitement (kg)', 3, '0.001', false, false, [
+                'data-fish-freezing-loss' => 'true',
+                'data-fish-freezing-balance-field' => 'true',
+            ]))
             ->add('tunnel', empty($options['factory_unit_choices']) ? TextType::class : ChoiceType::class, $this->factoryUnitOptions('Tunnel', $options['factory_unit_choices'], 'Ex. Tunnel 3', $options['capacity_check_url']))
             ->add('dateEntreeTunnel', DateType::class, $this->dateOptions('Date entree tunnel'))
-            ->add('heureEntreeTunnel', TimeType::class, $this->timeOptions('Heure entrée tunnel'))
-            ->add('temperatureTunnel', NumberType::class, $this->numberOptions('Température tunnel', 2, '0.01', false, true))
-            ->add('temperatureCoeurProduit', NumberType::class, $this->numberOptions('Température à coeur produit', 2, '0.01', false, true));
+            ->add('heureEntreeTunnel', TimeType::class, $this->timeOptions('Heure entree tunnel'))
+            ->add('temperatureTunnel', NumberType::class, $this->numberOptions('Temperature tunnel', 2, '0.01', false, true))
+            ->add('temperatureCoeurProduit', NumberType::class, $this->numberOptions('Temperature a coeur produit', 2, '0.01', false, true));
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -30,35 +43,43 @@ final class FishReceptionFreezingType extends AbstractType
         $resolver->setDefaults([
             'data_class' => FishReception::class,
             'available_quantity' => 0.0,
+            'source_quantity' => 0.0,
+            'current_frozen_quantity' => 0.0,
             'factory_unit_choices' => [],
             'capacity_check_url' => null,
         ]);
         $resolver->setAllowedTypes('available_quantity', ['float', 'int']);
+        $resolver->setAllowedTypes('source_quantity', ['float', 'int']);
+        $resolver->setAllowedTypes('current_frozen_quantity', ['float', 'int']);
         $resolver->setAllowedTypes('factory_unit_choices', ['array']);
         $resolver->setAllowedTypes('capacity_check_url', ['null', 'string']);
     }
 
     /** @return array<string, mixed> */
-    private function quantityOptions(string $label, float $available): array
+    private function quantityOptions(string $label, float $available, float $source, float $currentFrozen): array
     {
         return [
             'label' => $label,
             'mapped' => false,
             'required' => true,
-            'data' => $available > 0 ? round($available, 3) : null,
+            'data' => $available > 0 ? round($available, 3) : 0,
             'attr' => [
-                'min' => 0.001,
+                'min' => 0,
                 'max' => max(0.001, round($available, 3)),
                 'step' => '0.001',
-                'placeholder' => 'Ex. 500',
+                'placeholder' => 'Ex. 338',
+                'data-fish-freezing-finished' => 'true',
+                'data-fish-freezing-balance-field' => 'true',
+                'data-fish-freezing-source' => (string) round(max(0.0, $source), 3),
+                'data-fish-freezing-current-frozen' => (string) round(max(0.0, $currentFrozen), 3),
                 'data-freezing-capacity-quantity' => 'true',
                 'data-stage-quantity-limit' => 'true',
                 'data-stage-available' => (string) round(max(0.0, $available), 3),
                 'data-stage-requested-label' => 'a congeler',
                 'data-stage-available-label' => 'en traitement',
-                'data-stage-submit-message' => 'Quantite a congeler superieure a la quantite en traitement.',
+                'data-stage-submit-message' => 'Produit fini a congeler superieur au reste traitement disponible.',
             ],
-            'help' => sprintf('Disponible en traitement : %.3f kg', max(0.0, $available)),
+            'help' => sprintf('Reste traitement non solde : %.3f kg', max(0.0, $available)),
         ];
     }
 
@@ -67,17 +88,22 @@ final class FishReceptionFreezingType extends AbstractType
     {
         return [
             'label' => $label,
-            'required' => true,
+            'required' => false,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
-            'attr' => ['placeholder' => 'Date entree tunnel'],
+            'attr' => ['placeholder' => 'Obligatoire si PF > 0'],
+            'help' => 'Obligatoire seulement si le produit fini a congeler est superieur a 0 kg.',
         ];
     }
 
-    /** @return array<string, mixed> */
-    private function numberOptions(string $label, int $scale = 2, string $step = '0.01', bool $required = true, bool $allowNegative = false): array
+    /**
+     * @param array<string, string> $extraAttr
+     *
+     * @return array<string, mixed>
+     */
+    private function numberOptions(string $label, int $scale = 2, string $step = '0.01', bool $required = true, bool $allowNegative = false, array $extraAttr = []): array
     {
-        $attr = ['step' => $step, 'placeholder' => $allowNegative ? 'Ex. -40' : 'Ex. 0'];
+        $attr = ['step' => $step, 'placeholder' => $allowNegative ? 'Ex. -40' : 'Ex. 0'] + $extraAttr;
         if (!$allowNegative) {
             $attr['min'] = 0;
         }
@@ -95,10 +121,11 @@ final class FishReceptionFreezingType extends AbstractType
     {
         return [
             'label' => $label,
-            'required' => true,
+            'required' => false,
             'widget' => 'single_text',
             'input' => 'datetime_immutable',
-            'attr' => ['placeholder' => 'Ex. 09:15'],
+            'attr' => ['placeholder' => 'Obligatoire si PF > 0'],
+            'help' => 'Obligatoire seulement si le produit fini a congeler est superieur a 0 kg.',
         ];
     }
 
@@ -115,18 +142,19 @@ final class FishReceptionFreezingType extends AbstractType
         if ($choices === []) {
             return [
                 'label' => $label,
-                'required' => true,
+                'required' => false,
                 'attr' => $attr + ['maxlength' => 80, 'placeholder' => $placeholder],
+                'help' => 'Obligatoire seulement si le produit fini a congeler est superieur a 0 kg.',
             ];
         }
 
         return [
             'label' => $label,
-            'required' => true,
+            'required' => false,
             'placeholder' => 'Selectionner...',
             'choices' => $choices,
             'attr' => $attr,
-            'help' => 'Seuls les tunnels operationnels, actifs et non satures sont proposes.',
+            'help' => 'Obligatoire si PF > 0. Seuls les tunnels operationnels, actifs et non satures sont proposes.',
         ];
     }
 }

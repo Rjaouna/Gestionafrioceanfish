@@ -8,9 +8,16 @@
         <h1 class="h3 mb-1">Fiches intérimaires</h1>
         <p class="text-secondary mb-0" data-ajax-count-region="interimWorkerGrid">{{ pagination.total }} element{{ pagination.total > 1 ? 's' : '' }} visible{{ pagination.total > 1 ? 's' : '' }}.</p>
     </div>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createInterimWorkerModal">
-        <i class="bi bi-person-plus me-2"></i>Nouvelle fiche
-    </button>
+    <div class="d-flex flex-wrap gap-2">
+        {% if is_granted('MODULE_ACCESS', 'pointage-personnel') %}
+            <a class="btn btn-outline-secondary" href="{{ path('app_interim_attendance_index') }}">
+                <i class="bi bi-calendar-check me-2"></i>Pointage
+            </a>
+        {% endif %}
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createInterimWorkerModal">
+            <i class="bi bi-person-plus me-2"></i>Nouvelle fiche
+        </button>
+    </div>
 </div>
 
 {% include 'interim_worker/_filters.html.twig' with {

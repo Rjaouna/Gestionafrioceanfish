@@ -7,6 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -112,8 +113,48 @@ final class InterimWorkerType extends AbstractType
             ])
             ->add('cin', TextType::class, [
                 'label' => 'CIN',
-                'required' => true,
+                'required' => false,
                 'attr' => ['maxlength' => 30, 'data-interim-cin' => 'true'],
+            ])
+            ->add('passportNumber', TextType::class, [
+                'label' => 'N° passeport',
+                'required' => false,
+                'attr' => ['maxlength' => 40, 'data-interim-passport-number' => 'true'],
+            ])
+            ->add('passportIssueCountry', TextType::class, [
+                'label' => 'Pays emetteur',
+                'required' => false,
+                'attr' => ['maxlength' => 3, 'placeholder' => 'CIV, MAR, FRA...'],
+            ])
+            ->add('nationality', TextType::class, [
+                'label' => 'Nationalite',
+                'required' => false,
+                'attr' => ['maxlength' => 100],
+            ])
+            ->add('gender', ChoiceType::class, [
+                'label' => 'Sexe',
+                'required' => false,
+                'placeholder' => 'Non renseigne',
+                'choices' => [
+                    'Femme' => 'F',
+                    'Homme' => 'M',
+                    'Non precise' => 'X',
+                ],
+            ])
+            ->add('passportIssuedAt', DateType::class, [
+                'label' => 'Date delivrance passeport',
+                'required' => false,
+                'widget' => 'single_text',
+                'input' => 'datetime_immutable',
+            ])
+            ->add('passportExpiresAt', DateType::class, [
+                'label' => 'Date expiration passeport',
+                'required' => false,
+                'widget' => 'single_text',
+                'input' => 'datetime_immutable',
+            ])
+            ->add('passportMrz', HiddenType::class, [
+                'required' => false,
             ])
             ->add('familySituation', ChoiceType::class, [
                 'label' => 'Situation familiale',

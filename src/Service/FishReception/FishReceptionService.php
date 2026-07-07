@@ -316,7 +316,20 @@ final readonly class FishReceptionService
     {
         $this->denyUnlessTransition($actor, $reception);
         $this->assertReceptionReady($reception);
-        $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleTraitementValue(), 'le traitement');
+        if ($quantity > 0.001) {
+            $this->assertStageQuantity($reception, $quantity, $reception->getQuantiteDisponibleTraitementValue(), 'le traitement');
+        } elseif ($reception->getQuantiteDisponibleTraitementValue() > 0.001) {
+            throw new \DomainException('Renseignez le produit fini a congeler ou completez les dechets/pertes du traitement.');
+        }
+
+        if ($quantity <= 0.001) {
+            $this->assertQuantitiesCoherent($reception);
+            $this->autoRefreshStatus($reception);
+            $this->entityManager->flush();
+
+            return $reception;
+        }
+
         if (!$reception->getTunnel()) {
             throw new \DomainException('Selectionnez le tunnel avant de valider la congelation.');
         }
@@ -640,6 +653,10 @@ final readonly class FishReceptionService
 
         if ($reception->getQuantiteTotalePrepareeValue() - $reception->getQuantiteReceptionneeValue() > 0.001) {
             throw new \DomainException('La quantité préparée ne peut pas dépasser la quantité réceptionnée.');
+        }
+
+        if ($reception->getTotalSortieTraitementValue() - $reception->getQuantiteEnTraitementValue() > 0.001) {
+            throw new \DomainException('Le total produit fini + dechets + pertes ne peut pas depasser la quantite en traitement.');
         }
 
         if ($reception->getQuantiteCongeleeValue() - $reception->getQuantiteTotalePrepareeValue() > 0.001) {

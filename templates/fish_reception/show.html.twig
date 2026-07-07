@@ -38,7 +38,7 @@
 {% set receivedWeight = item.quantiteReceptionneeValue %}
 {% set initialStorageRate = receivedWeight > 0 ? (item.quantiteStockInitialEntreeValue / receivedWeight * 100) : 0 %}
 {% set treatmentRate = receivedWeight > 0 ? (item.quantiteTotalePrepareeValue / receivedWeight * 100) : 0 %}
-{% set frozenRate = item.quantiteEnTraitementValue > 0 ? (item.quantiteCongeleeValue / item.quantiteEnTraitementValue * 100) : 0 %}
+{% set frozenRate = item.quantiteEnTraitementValue > 0 ? (item.totalSortieTraitementValue / item.quantiteEnTraitementValue * 100) : 0 %}
 {% set storedRate = item.quantiteCongeleeValue > 0 ? (item.quantiteStockeeValue / item.quantiteCongeleeValue * 100) : 0 %}
 {% set packagedRate = item.quantiteStockeeValue > 0 ? (item.quantiteConditionneeValue / item.quantiteStockeeValue * 100) : 0 %}
 {% set shippedRate = item.quantiteRemiseEnChambreValue > 0 ? (item.quantiteTotaleExpedieeValue / item.quantiteRemiseEnChambreValue * 100) : 0 %}
@@ -46,7 +46,7 @@
     {label: 'Reception', icon: 'bi-clipboard2-check', done: item.receivedAt or item.statut != 'brouillon', detail: item.receivedAt ? item.receivedAt|date('d/m H:i') : item.statutLabel},
     {label: 'Stock initial', icon: 'bi-inboxes', done: item.quantiteStockInitialEntreeValue > 0.001, detail: ui.kg(item.quantiteStockInitialEntreeValue)},
     {label: 'Traitement', icon: 'bi-arrow-repeat', done: item.quantiteTotalePrepareeValue > 0.001, detail: ui.kg(item.quantiteTotalePreparee)},
-    {label: 'Congelation', icon: 'bi-snow', done: item.quantiteCongeleeValue > 0.001, detail: ui.kg(item.quantiteCongelee)},
+    {label: 'Bilan traitement', icon: 'bi-snow', done: item.totalSortieTraitementValue > 0.001, detail: ui.kg(item.totalSortieTraitementValue)},
     {label: 'Cristallisation', icon: 'bi-box-seam', done: item.quantiteStockeeValue > 0.001, detail: ui.kg(item.quantiteStockee)},
     {label: 'Emballage + chambre', icon: 'bi-box-arrow-in-down', done: item.quantiteRemiseEnChambreValue > 0.001, detail: ui.kg(item.quantiteRemiseEnChambre)},
     {label: 'Expedition', icon: 'bi-truck', done: item.quantiteTotaleExpedieeValue > 0.001 or item.expeditedAt, detail: ui.kg(item.quantiteTotaleExpediee)}
@@ -96,7 +96,7 @@
         {{ ui.metric('Stock initial', ui.kg(item.quantiteStockInitialEntreeValue), 'bi-inboxes', 'success', initialStorageRate|number_format(1, ',', ' ') ~ ' % stocke') }}
         {{ ui.metric('Quantité reçue', ui.kg(item.quantiteReceptionnee), 'bi-basket2', 'primary', item.nombreCaissesReception ~ ' caisses') }}
         {{ ui.metric('Préparée', ui.kg(item.quantiteTotalePreparee), 'bi-arrow-repeat', 'info', treatmentRate|number_format(1, ',', ' ') ~ ' % traitement') }}
-        {{ ui.metric('Congelee', ui.kg(item.quantiteCongelee), 'bi-snow', 'primary', frozenRate|number_format(1, ',', ' ') ~ ' % tunnel') }}
+        {{ ui.metric('Sortie traitement', ui.kg(item.totalSortieTraitementValue), 'bi-snow', 'primary', frozenRate|number_format(1, ',', ' ') ~ ' % solde') }}
         {{ ui.metric('Cristallisee', ui.kg(item.quantiteStockee), 'bi-box-seam', 'success', storedRate|number_format(1, ',', ' ') ~ ' % cristallisation') }}
         {{ ui.metric('Emballee en chambre', ui.kg(item.quantiteRemiseEnChambre), 'bi-box-arrow-in-down', 'success', packagedRate|number_format(1, ',', ' ') ~ ' % emballage') }}
         {{ ui.metric('Expediee', ui.kg(item.quantiteTotaleExpediee), 'bi-truck', 'dark', shippedRate|number_format(1, ',', ' ') ~ ' % expedition') }}
@@ -266,8 +266,12 @@
                     {{ ui.row('Caisses / palette', item.nombreCaissesParPalette) }}
                     {{ ui.row('Palettes', item.nombreTotalPalettes) }}
                     {{ ui.row('Quantite en traitement', ui.kg(item.quantiteEnTraitementValue), 'text-primary') }}
+                    {{ ui.row('PF envoye tunnel', ui.kg(item.quantiteCongeleeValue), 'text-primary') }}
+                    {{ ui.row('Dechets traitement', ui.kg(item.poidsDechetsTraitementValue), 'text-secondary') }}
+                    {{ ui.row('Pertes traitement', ui.kg(item.poidsPertesTraitementValue), 'text-secondary') }}
+                    {{ ui.row('Ecart traitement', ui.kg(item.ecartTraitementValue), item.ecartTraitementValue > 1 ? 'text-warning' : 'text-success') }}
                     {{ ui.row('Reste a stocker initial', ui.kg(item.quantiteDisponibleReceptionValue), 'text-warning') }}
-                    {{ ui.row('Reste a congeler', ui.kg(item.quantiteDisponibleTraitementValue), 'text-warning') }}
+                    {{ ui.row('Reste a classer', ui.kg(item.quantiteDisponibleTraitementValue), 'text-warning') }}
                 </div>
             </section>
 
@@ -288,7 +292,7 @@
                     {{ ui.row('Duree tunnel', item.dureeTunnelHeuresValue|number_format(2, ',', ' ') ~ ' h') }}
                     {{ ui.row('Temperature tunnel', ui.temp(item.temperatureTunnel)) }}
                     {{ ui.row('Temperature coeur produit', ui.temp(item.temperatureCoeurProduit)) }}
-                    {{ ui.row('Quantite congelee', ui.kg(item.quantiteCongelee), 'text-primary') }}
+                    {{ ui.row('Produit fini congele', ui.kg(item.quantiteCongelee), 'text-primary') }}
                     {{ ui.row('Reste a cristalliser', ui.kg(item.quantiteDisponibleCongelationValue), 'text-warning') }}
                     {{ ui.row('Chambre positive cristallisation', ui.text(item.chambreFroide)) }}
                     {{ ui.row('Date entree chambre', ui.date(item.dateEntreeStockage)) }}

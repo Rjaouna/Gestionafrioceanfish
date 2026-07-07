@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Pointage personnel{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Pointage personnel</h1>
+        <p class="text-secondary mb-0" data-ajax-count-region="interimAttendanceGrid">{{ pagination.total }} pointage{{ pagination.total > 1 ? 's' : '' }} visible{{ pagination.total > 1 ? 's' : '' }}.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_interim_attendance_rate_index') }}">
+            <i class="bi bi-cash-coin me-2"></i>Tarifs
+        </a>
+        <a class="btn btn-primary" href="{{ path('app_interim_worker_index') }}">
+            <i class="bi bi-person-vcard me-2"></i>Choisir un interimaire
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Pointages</div>
+                <div class="h5 mb-0">{{ totals.count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Heures</div>
+                <div class="h5 mb-0">{{ totals.hours|number_format(2, ',', ' ') }} h</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Montant estime</div>
+                <div class="h5 mb-0">{{ totals.amount|number_format(2, ',', ' ') }} MAD</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="interimAttendanceFilters" class="card border-0 shadow-sm mb-4" data-ajax-filter-region="interimAttendanceGrid">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-lg-4">
+                <label class="form-label" for="attendanceSearch">Recherche</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="attendanceSearch" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Nom, matricule, poste">
+                </div>
+            </div>
+            <div class="col-12 col-md-4 col-lg-2">
+                <label class="form-label" for="attendanceMode">Type</label>
+                <select id="attendanceMode" name="mode" class="form-select">
+                    <option value="">Tous</option>
+                    <option value="hourly" {{ filters.mode == 'hourly' ? 'selected' : '' }}>A l'heure</option>
+                    <option value="task" {{ filters.mode == 'task' ? 'selected' : '' }}>A la tache</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4 col-lg-2">
+                <label class="form-label" for="attendanceDateFrom">Du</label>
+                <input id="attendanceDateFrom" class="form-control" type="date" name="dateFrom" value="{{ filters.dateFrom }}">
+            </div>
+            <div class="col-12 col-md-4 col-lg-2">
+                <label class="form-label" for="attendanceDateTo">Au</label>
+                <input id="attendanceDateTo" class="form-control" type="date" name="dateTo" value="{{ filters.dateTo }}">
+            </div>
+        </div>
+    </div>
+</form>
+
+<div
+    data-ajax-region="interimAttendanceGrid"
+    data-refresh-url="{{ path('app_interim_attendance_search') }}"
+    data-refresh-form="#interimAttendanceFilters"
+>
+    {% include 'interim_attendance/_grid.html.twig' with {items: items, pagination: pagination} %}
+</div>
+{% endblock %}

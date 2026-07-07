@@ -323,7 +323,7 @@ class FishReceptionRepository extends ServiceEntityRepository
     private function stageAvailableExpression(string $stage): string
     {
         return match ($stage) {
-            'congelation' => 'r.quantiteTotalePreparee - r.quantiteCongelee',
+            'congelation' => 'r.quantiteTotalePreparee - r.quantiteCongelee - r.poidsDechetsTraitement - r.poidsPertesTraitement',
             'stockage' => 'r.quantiteCongelee - r.quantiteStockee',
             'emballage' => 'r.quantiteStockee - r.quantiteConditionnee',
             'expedition' => 'r.quantiteRemiseEnChambre - r.quantiteTotaleExpediee',
@@ -334,7 +334,7 @@ class FishReceptionRepository extends ServiceEntityRepository
     private function stageMovedExpression(string $stage): string
     {
         return match ($stage) {
-            'congelation' => 'r.quantiteCongelee',
+            'congelation' => 'r.quantiteCongelee + r.poidsDechetsTraitement + r.poidsPertesTraitement',
             'stockage' => 'r.quantiteStockee',
             'emballage' => 'r.quantiteConditionnee',
             'expedition' => 'r.quantiteTotaleExpediee',

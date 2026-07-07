@@ -963,84 +963,6 @@ function setFishPackagingOutput(form, key, value) {
     if (output) output.textContent = value;
 }
 
-function setFishFreezingOutput(form, key, value) {
-    const output = form.querySelector(`[data-fish-freezing-output="${key}"]`);
-    if (output) output.textContent = value;
-}
-
-function fishFreezingMetrics(form) {
-    const quantityField = form.querySelector('[data-fish-freezing-finished]');
-    const source = parseDecimalInput(quantityField?.dataset.fishFreezingSource);
-    const currentFrozen = parseDecimalInput(quantityField?.dataset.fishFreezingCurrentFrozen);
-    const finished = fishReceptionValue(form, 'quantity');
-    const waste = fishReceptionValue(form, 'poidsDechetsTraitement');
-    const loss = fishReceptionValue(form, 'poidsPertesTraitement');
-    const availableForFinished = Math.max(0, source - currentFrozen - waste - loss);
-    const totalOutput = currentFrozen + finished + waste + loss;
-    const gap = source - totalOutput;
-
-    return {source, currentFrozen, finished, waste, loss, availableForFinished, totalOutput, gap};
-}
-
-function syncFishFreezingForm(form) {
-    const metrics = fishFreezingMetrics(form);
-    const quantityField = form.querySelector('[data-fish-freezing-finished]');
-    if (quantityField) {
-        quantityField.dataset.stageAvailable = String(Math.max(0, metrics.availableForFinished));
-        quantityField.max = String(Math.max(0.001, metrics.availableForFinished));
-    }
-
-    setFishFreezingOutput(form, 'source', `${coutFormatCompact(metrics.source)} kg`);
-    setFishFreezingOutput(form, 'total', `${coutFormatCompact(metrics.totalOutput)} kg`);
-    setFishFreezingOutput(form, 'gap', `${coutFormatCompact(Math.max(0, metrics.gap))} kg`);
-    setFishFreezingOutput(form, 'currentFrozen', `${coutFormatCompact(metrics.currentFrozen)} kg`);
-
-    const stageAllowed = syncStageQuantityAvailability(form);
-    const status = form.querySelector('[data-fish-freezing-status]');
-    const tolerance = Math.max(0.2, metrics.source * 0.005);
-    const overOutput = metrics.gap < -tolerance;
-    const hasRemaining = metrics.gap > tolerance;
-    form.dataset.fishFreezingBalanceAllowed = !overOutput && stageAllowed ? '1' : '0';
-    form.dataset.fishFreezingHasRemaining = hasRemaining ? '1' : '0';
-
-    if (status) {
-        status.classList.remove('alert-secondary', 'alert-success', 'alert-warning', 'alert-danger');
-        if (metrics.source <= 0) {
-            status.classList.add('alert-secondary');
-            status.textContent = 'Aucune quantite en traitement a solder.';
-        } else if (overOutput) {
-            status.classList.add('alert-danger');
-            status.textContent = `Total incoherent : PF + dechets + pertes depasse le traitement de ${coutFormatCompact(Math.abs(metrics.gap))} kg. Corrigez avant validation.`;
-        } else if (!hasRemaining) {
-            status.classList.add('alert-success');
-            status.textContent = 'Bilan traitement solde : le bouton congeler ne reviendra pas pour cette quantite.';
-        } else {
-            status.classList.add('alert-warning');
-            status.textContent = `Traitement partiellement solde : il restera ${coutFormatCompact(metrics.gap)} kg a classer en PF, dechets ou pertes.`;
-        }
-    }
-
-    const submitButton = form.querySelector('[type="submit"]');
-    if (submitButton && overOutput) {
-        submitButton.disabled = true;
-    }
-
-    return !overOutput && stageAllowed;
-}
-
-function initializeFishFreezingForms(root = document) {
-    root.querySelectorAll('[data-fish-freezing-form]').forEach((form) => {
-        syncFishFreezingForm(form);
-        if (form.dataset.fishFreezingInitialized === 'true') return;
-
-        form.dataset.fishFreezingInitialized = 'true';
-        form.querySelectorAll('[data-fish-freezing-balance-field]').forEach((field) => {
-            field.addEventListener('input', () => syncFishFreezingForm(form));
-            field.addEventListener('change', () => syncFishFreezingForm(form));
-        });
-    });
-}
-
 function syncFishPackagingQuantityAvailability(form) {
     const quantityField = form.querySelector('[data-fish-packaging-quantity]');
     if (!quantityField) return true;
@@ -1826,77 +1748,6 @@ function initializeInterimWorkerForms(root = document) {
             event.currentTarget.value = cleanInterimPhone(event.currentTarget.value);
         });
         form.addEventListener('submit', () => syncInterimFamily(form));
-    });
-}
-
-function attendanceNumber(value) {
-    const number = Number.parseFloat(String(value || '0').replace(',', '.').trim());
-
-    return Number.isFinite(number) ? Math.max(0, number) : 0;
-}
-
-function attendanceMinutes(value) {
-    if (!/^\d{2}:\d{2}$/.test(String(value || ''))) return null;
-    const [hours, minutes] = value.split(':').map(Number);
-    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
-
-    return (hours * 60) + minutes;
-}
-
-function attendanceField(form, name) {
-    return form.querySelector(`[name$="[${name}]"]`);
-}
-
-function attendanceSegmentHours(form, period) {
-    const present = attendanceField(form, `${period}Present`);
-    const start = attendanceField(form, `${period}Start`);
-    const end = attendanceField(form, `${period}End`);
-    const box = form.querySelector(`[data-attendance-halfday="${period}"]`);
-    const active = present?.checked !== false;
-
-    [start, end].forEach((input) => {
-        if (!input) return;
-        input.disabled = !active;
-        input.closest('.mb-3, .form-floating, div')?.classList.toggle('opacity-50', !active);
-    });
-    box?.classList.toggle('bg-light', !active);
-
-    if (!active) return 0;
-
-    const startMinutes = attendanceMinutes(start?.value);
-    const endMinutes = attendanceMinutes(end?.value);
-    if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) {
-        return 0;
-    }
-
-    return (endMinutes - startMinutes) / 60;
-}
-
-function syncInterimAttendanceHourlyForm(form) {
-    const hours = attendanceSegmentHours(form, 'morning') + attendanceSegmentHours(form, 'afternoon');
-    const rate = attendanceNumber(attendanceField(form, 'hourlyRate')?.value);
-    const totalHours = form.querySelector('[data-attendance-total-hours]');
-    const totalAmount = form.querySelector('[data-attendance-total-amount]');
-
-    if (totalHours) {
-        totalHours.textContent = `${hours.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} h`;
-    }
-    if (totalAmount) {
-        totalAmount.textContent = `${(hours * rate).toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD`;
-    }
-}
-
-function initializeInterimAttendanceForms(root = document) {
-    root.querySelectorAll('[data-interim-attendance-hourly-form]').forEach((form) => {
-        syncInterimAttendanceHourlyForm(form);
-        if (form.dataset.interimAttendanceInitialized === 'true') return;
-        form.dataset.interimAttendanceInitialized = 'true';
-
-        form.querySelectorAll('input').forEach((input) => {
-            input.addEventListener('input', () => syncInterimAttendanceHourlyForm(form));
-            input.addEventListener('change', () => syncInterimAttendanceHourlyForm(form));
-        });
-        form.addEventListener('submit', () => syncInterimAttendanceHourlyForm(form));
     });
 }
 
@@ -2917,27 +2768,6 @@ async function checkFreezingCapacity(form) {
 
     const quantity = parseDecimalInput(quantityField.value);
     const location = String(locationField.value || '').trim();
-    if (form.matches('[data-fish-freezing-form]')) {
-        const balanceOk = syncFishFreezingForm(form);
-        if (quantity <= 0.001 && balanceOk && form.dataset.fishFreezingHasRemaining === '0') {
-            const data = {
-                canSubmit: true,
-                tone: 'success',
-                title: 'Bilan traitement solde',
-                message: 'Aucune nouvelle quantite PF a envoyer au tunnel. Les dechets/pertes soldent le traitement.',
-                loadDisplay: '-',
-                requestedDisplay: '0 kg',
-                projectedLoadDisplay: '-',
-                capacityDisplay: '-',
-                freeAfterDisplay: '-',
-                percentAfterDisplay: '-',
-            };
-            renderFreezingCapacityFeedback(form, data);
-            setFreezingCapacitySubmitState(form, true, '');
-
-            return true;
-        }
-    }
     if (!location || quantity <= 0.001) {
         const data = {
             canSubmit: false,
@@ -3361,14 +3191,12 @@ function initializePageBehaviors() {
     initializeReceptionSmartChoices();
     initializeFishReceptionCostForms();
     initializeStageQuantityAvailabilityForms();
-    initializeFishFreezingForms();
     initializeFishPackagingForms();
     initializeFishTunnelExitForms();
     initializeFactoryUnitForms();
     initializeTreatmentBoxForms();
     initializeFreezingCapacityChecks();
     initializeInterimWorkerForms();
-    initializeInterimAttendanceForms();
     initializeCoutRevientForms();
     initializeCoutRevientDashboard();
     initializeContactPhones();
@@ -3386,10 +3214,6 @@ document.addEventListener('submit', async (event) => {
     if (ajaxForm) {
         event.preventDefault();
         if (ajaxForm.matches('[data-maintenance-contract-form]') && !validateMaintenanceContractDates(ajaxForm)) {
-            return;
-        }
-        if (ajaxForm.matches('[data-fish-freezing-form]') && !syncFishFreezingForm(ajaxForm)) {
-            showAlert('Bilan traitement incoherent : corrigez le produit fini, les dechets et les pertes.', 'danger');
             return;
         }
         if (!syncStageQuantityAvailability(ajaxForm)) {
@@ -3879,7 +3703,6 @@ document.addEventListener('click', async (event) => {
             initializeTreatmentBoxForms(content);
             initializeFreezingCapacityChecks(content);
             initializeInterimWorkerForms(content);
-            initializeInterimAttendanceForms(content);
             initializeCoutRevientForms(content);
             initializeCoutRevientDashboard(content);
             initializeContactPhones(content);

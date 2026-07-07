@@ -91,6 +91,8 @@ class InterimWorkerRepository extends ServiceEntityRepository
                     OR LOWER(CONCAT(w.lastName, \' \', w.firstName)) LIKE :query
                     OR LOWER(COALESCE(w.phone, \'\')) LIKE :query
                     OR LOWER(COALESCE(w.cin, \'\')) LIKE :query
+                    OR LOWER(COALESCE(w.passportNumber, \'\')) LIKE :query
+                    OR LOWER(COALESCE(w.nationality, \'\')) LIKE :query
                     OR LOWER(COALESCE(w.registrationNumber, \'\')) LIKE :query
                     OR LOWER(COALESCE(w.position, \'\')) LIKE :query
                     OR LOWER(COALESCE(w.tempAgency, \'\')) LIKE :query')

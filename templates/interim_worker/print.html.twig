@@ -45,7 +45,13 @@
         ['Téléphone', worker.phone],
         ['Date de naissance', worker.birthDate ? worker.birthDate|date('d/m/Y') : ''],
         ['Lieu de naissance', worker.birthPlace],
-        ['CIN', worker.cin]
+        ['CIN', worker.cin],
+        ['Passeport', worker.passportNumber],
+        ['Nationalite', worker.nationality],
+        ['Sexe', worker.genderLabel],
+        ['Pays emetteur', worker.passportIssueCountry],
+        ['Date delivrance passeport', worker.passportIssuedAt ? worker.passportIssuedAt|date('d/m/Y') : ''],
+        ['Date expiration passeport', worker.passportExpiresAt ? worker.passportExpiresAt|date('d/m/Y') : '']
     ] %}
 
     <div class="d-grid gap-3 mb-3">

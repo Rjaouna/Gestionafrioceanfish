@@ -144,6 +144,13 @@
                         <span>Ajouter un intérimaire</span>
                     </a>
                 {% endif %}
+
+                {% if module.slug == 'pointage-personnel' %}
+                    <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_interim_attendance_rate' ? 'active' : '' }}" href="{{ path('app_interim_attendance_rate_index') }}">
+                        <i class="bi bi-cash-coin"></i>
+                        <span>Tarifs pointage</span>
+                    </a>
+                {% endif %}
             </div>
         </section>
     {% endif %}
@@ -169,7 +176,7 @@
 {% set configuration_active = current_route starts with 'app_module' %}
 {% set trash_active = current_route starts with 'app_trash' %}
 {% set deleted_items_count = is_granted('ROLE_SUPER_ADMIN') ? trash_deleted_count(app.user) : 0 %}
-{% set primary_business_slugs = ['receptions', 'cout-revient', 'interimaires', 'expenses', 'contacts'] %}
+{% set primary_business_slugs = ['receptions', 'cout-revient', 'interimaires', 'pointage-personnel', 'expenses', 'contacts'] %}
 {% set secondary_business_slugs = ['documents', 'maintenance'] %}
 {% set ordered_business_slugs = primary_business_slugs|merge(secondary_business_slugs) %}
 

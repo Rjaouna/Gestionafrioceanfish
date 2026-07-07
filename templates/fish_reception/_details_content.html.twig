@@ -108,7 +108,11 @@
                     <dt class="col-6 text-secondary">Caisses / palette</dt><dd class="col-6 text-end">{{ item.nombreCaissesParPalette }}</dd>
                     <dt class="col-6 text-secondary">Palettes</dt><dd class="col-6 text-end">{{ item.nombreTotalPalettes }}</dd>
                     <dt class="col-6 text-secondary">Quantite en traitement</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteEnTraitementValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
-                    <dt class="col-6 text-secondary">Reste a congeler</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleTraitementValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">PF envoye tunnel</dt><dd class="col-6 text-end">{{ item.quantiteCongelee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Dechets traitement</dt><dd class="col-6 text-end">{{ item.poidsDechetsTraitement|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Pertes traitement</dt><dd class="col-6 text-end">{{ item.poidsPertesTraitement|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Ecart traitement</dt><dd class="col-6 text-end {{ item.ecartTraitementValue > 1 ? 'text-warning' : 'text-success' }}">{{ item.ecartTraitementValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Reste a classer</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleTraitementValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                 </dl>
             </div>
         </section>
@@ -170,7 +174,7 @@
                     <dt class="col-6 text-secondary">Temp. tunnel</dt><dd class="col-6 text-end">{{ item.temperatureTunnel is not null ? item.temperatureTunnel|number_format(2, ',', ' ') ~ ' C' : '-' }}</dd>
                     <dt class="col-6 text-secondary">Jour congélation</dt><dd class="col-6 text-end">{{ item.dateSortieTunnel ? item.dateSortieTunnel|date('d/m/Y') : '-' }}</dd>
                     <dt class="col-6 text-secondary">Temp. a coeur</dt><dd class="col-6 text-end">{{ item.temperatureCoeurProduit is not null ? item.temperatureCoeurProduit|number_format(2, ',', ' ') ~ ' C' : '-' }}</dd>
-                    <dt class="col-6 text-secondary">Quantité congelée</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteCongelee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Produit fini congele</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteCongelee|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                     <dt class="col-6 text-secondary">Reste a cristalliser</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleCongelationValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                 </dl>
             </div>

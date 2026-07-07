@@ -1,0 +1,63 @@
+{{ form_start(form, {attr: form.vars.attr|merge({'data-ajax-form': 'true'})}) }}
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">Pointage a l'heure</h2>
+            <p class="text-secondary small mb-0">{{ worker.fullName }} - {{ worker.registrationNumber }}</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-info small">
+            <i class="bi bi-info-circle me-2"></i>Si une date existe deja pour cette personne, le pointage sera mis a jour.
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-4">{{ form_row(form.attendanceDate) }}</div>
+            <div class="col-md-4">{{ form_row(form.hourlyRate) }}</div>
+            <div class="col-md-4">
+                <label class="form-label">Calcul</label>
+                <div class="border rounded-3 p-2 bg-light">
+                    <div class="small text-secondary">Total</div>
+                    <strong data-attendance-total-hours>0,00 h</strong>
+                    <span class="mx-1">-</span>
+                    <strong data-attendance-total-amount>0,00 MAD</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+            <div class="col-12 col-lg-6">
+                <div class="border rounded-3 p-3 h-100" data-attendance-halfday="morning">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h6 mb-0">Matin</h3>
+                        {{ form_row(form.morningPresent) }}
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">{{ form_row(form.morningStart) }}</div>
+                        <div class="col-6">{{ form_row(form.morningEnd) }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="border rounded-3 p-3 h-100" data-attendance-halfday="afternoon">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="h6 mb-0">Apres-midi</h3>
+                        {{ form_row(form.afternoonPresent) }}
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">{{ form_row(form.afternoonStart) }}</div>
+                        <div class="col-6">{{ form_row(form.afternoonEnd) }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">{{ form_row(form.comment) }}</div>
+        </div>
+        {{ form_rest(form) }}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>Enregistrer
+        </button>
+    </div>
+{{ form_end(form) }}

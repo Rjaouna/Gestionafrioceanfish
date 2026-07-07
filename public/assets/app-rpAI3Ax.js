@@ -963,84 +963,6 @@ function setFishPackagingOutput(form, key, value) {
     if (output) output.textContent = value;
 }
 
-function setFishFreezingOutput(form, key, value) {
-    const output = form.querySelector(`[data-fish-freezing-output="${key}"]`);
-    if (output) output.textContent = value;
-}
-
-function fishFreezingMetrics(form) {
-    const quantityField = form.querySelector('[data-fish-freezing-finished]');
-    const source = parseDecimalInput(quantityField?.dataset.fishFreezingSource);
-    const currentFrozen = parseDecimalInput(quantityField?.dataset.fishFreezingCurrentFrozen);
-    const finished = fishReceptionValue(form, 'quantity');
-    const waste = fishReceptionValue(form, 'poidsDechetsTraitement');
-    const loss = fishReceptionValue(form, 'poidsPertesTraitement');
-    const availableForFinished = Math.max(0, source - currentFrozen - waste - loss);
-    const totalOutput = currentFrozen + finished + waste + loss;
-    const gap = source - totalOutput;
-
-    return {source, currentFrozen, finished, waste, loss, availableForFinished, totalOutput, gap};
-}
-
-function syncFishFreezingForm(form) {
-    const metrics = fishFreezingMetrics(form);
-    const quantityField = form.querySelector('[data-fish-freezing-finished]');
-    if (quantityField) {
-        quantityField.dataset.stageAvailable = String(Math.max(0, metrics.availableForFinished));
-        quantityField.max = String(Math.max(0.001, metrics.availableForFinished));
-    }
-
-    setFishFreezingOutput(form, 'source', `${coutFormatCompact(metrics.source)} kg`);
-    setFishFreezingOutput(form, 'total', `${coutFormatCompact(metrics.totalOutput)} kg`);
-    setFishFreezingOutput(form, 'gap', `${coutFormatCompact(Math.max(0, metrics.gap))} kg`);
-    setFishFreezingOutput(form, 'currentFrozen', `${coutFormatCompact(metrics.currentFrozen)} kg`);
-
-    const stageAllowed = syncStageQuantityAvailability(form);
-    const status = form.querySelector('[data-fish-freezing-status]');
-    const tolerance = Math.max(0.2, metrics.source * 0.005);
-    const overOutput = metrics.gap < -tolerance;
-    const hasRemaining = metrics.gap > tolerance;
-    form.dataset.fishFreezingBalanceAllowed = !overOutput && stageAllowed ? '1' : '0';
-    form.dataset.fishFreezingHasRemaining = hasRemaining ? '1' : '0';
-
-    if (status) {
-        status.classList.remove('alert-secondary', 'alert-success', 'alert-warning', 'alert-danger');
-        if (metrics.source <= 0) {
-            status.classList.add('alert-secondary');
-            status.textContent = 'Aucune quantite en traitement a solder.';
-        } else if (overOutput) {
-            status.classList.add('alert-danger');
-            status.textContent = `Total incoherent : PF + dechets + pertes depasse le traitement de ${coutFormatCompact(Math.abs(metrics.gap))} kg. Corrigez avant validation.`;
-        } else if (!hasRemaining) {
-            status.classList.add('alert-success');
-            status.textContent = 'Bilan traitement solde : le bouton congeler ne reviendra pas pour cette quantite.';
-        } else {
-            status.classList.add('alert-warning');
-            status.textContent = `Traitement partiellement solde : il restera ${coutFormatCompact(metrics.gap)} kg a classer en PF, dechets ou pertes.`;
-        }
-    }
-
-    const submitButton = form.querySelector('[type="submit"]');
-    if (submitButton && overOutput) {
-        submitButton.disabled = true;
-    }
-
-    return !overOutput && stageAllowed;
-}
-
-function initializeFishFreezingForms(root = document) {
-    root.querySelectorAll('[data-fish-freezing-form]').forEach((form) => {
-        syncFishFreezingForm(form);
-        if (form.dataset.fishFreezingInitialized === 'true') return;
-
-        form.dataset.fishFreezingInitialized = 'true';
-        form.querySelectorAll('[data-fish-freezing-balance-field]').forEach((field) => {
-            field.addEventListener('input', () => syncFishFreezingForm(form));
-            field.addEventListener('change', () => syncFishFreezingForm(form));
-        });
-    });
-}
-
 function syncFishPackagingQuantityAvailability(form) {
     const quantityField = form.querySelector('[data-fish-packaging-quantity]');
     if (!quantityField) return true;
@@ -2917,27 +2839,6 @@ async function checkFreezingCapacity(form) {
 
     const quantity = parseDecimalInput(quantityField.value);
     const location = String(locationField.value || '').trim();
-    if (form.matches('[data-fish-freezing-form]')) {
-        const balanceOk = syncFishFreezingForm(form);
-        if (quantity <= 0.001 && balanceOk && form.dataset.fishFreezingHasRemaining === '0') {
-            const data = {
-                canSubmit: true,
-                tone: 'success',
-                title: 'Bilan traitement solde',
-                message: 'Aucune nouvelle quantite PF a envoyer au tunnel. Les dechets/pertes soldent le traitement.',
-                loadDisplay: '-',
-                requestedDisplay: '0 kg',
-                projectedLoadDisplay: '-',
-                capacityDisplay: '-',
-                freeAfterDisplay: '-',
-                percentAfterDisplay: '-',
-            };
-            renderFreezingCapacityFeedback(form, data);
-            setFreezingCapacitySubmitState(form, true, '');
-
-            return true;
-        }
-    }
     if (!location || quantity <= 0.001) {
         const data = {
             canSubmit: false,
@@ -3361,7 +3262,6 @@ function initializePageBehaviors() {
     initializeReceptionSmartChoices();
     initializeFishReceptionCostForms();
     initializeStageQuantityAvailabilityForms();
-    initializeFishFreezingForms();
     initializeFishPackagingForms();
     initializeFishTunnelExitForms();
     initializeFactoryUnitForms();
@@ -3386,10 +3286,6 @@ document.addEventListener('submit', async (event) => {
     if (ajaxForm) {
         event.preventDefault();
         if (ajaxForm.matches('[data-maintenance-contract-form]') && !validateMaintenanceContractDates(ajaxForm)) {
-            return;
-        }
-        if (ajaxForm.matches('[data-fish-freezing-form]') && !syncFishFreezingForm(ajaxForm)) {
-            showAlert('Bilan traitement incoherent : corrigez le produit fini, les dechets et les pertes.', 'danger');
             return;
         }
         if (!syncStageQuantityAvailability(ajaxForm)) {

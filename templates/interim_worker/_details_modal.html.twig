@@ -38,6 +38,12 @@
             <div class="row g-3">
                 <div class="col-md-6"><div class="text-secondary small">Téléphone</div><strong>{{ worker.phone }}</strong></div>
                 <div class="col-md-6"><div class="text-secondary small">CIN</div><strong>{{ worker.cin ?: '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Passeport</div><strong>{{ worker.passportNumber ?: '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Nationalite</div><strong>{{ worker.nationality ?: '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Sexe</div><strong>{{ worker.genderLabel }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Pays emetteur</div><strong>{{ worker.passportIssueCountry ?: '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Delivrance passeport</div><strong>{{ worker.passportIssuedAt ? worker.passportIssuedAt|date('d/m/Y') : '-' }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Expiration passeport</div><strong>{{ worker.passportExpiresAt ? worker.passportExpiresAt|date('d/m/Y') : '-' }}</strong></div>
                 <div class="col-md-6"><div class="text-secondary small">Date de naissance</div><strong>{{ worker.birthDate ? worker.birthDate|date('d/m/Y') : '-' }}</strong></div>
                 <div class="col-md-6"><div class="text-secondary small">Lieu de naissance</div><strong>{{ worker.birthPlace ?: '-' }}</strong></div>
                 <div class="col-12"><div class="text-secondary small">Adresse</div><strong>{{ worker.address ?: '-' }}</strong></div>
@@ -123,6 +129,16 @@
         {% if worker.status != 'a_ne_pas_rappeler' %}
             <button class="btn btn-outline-danger" data-remote-modal="{{ path('app_interim_worker_do_not_recall_form', {id: worker.id}) }}">
                 <i class="bi bi-exclamation-octagon me-1"></i>A ne pas rappeler
+            </button>
+        {% endif %}
+        {% if is_granted('MODULE_ACCESS', 'pointage-personnel') %}
+            <button class="btn btn-outline-success" data-remote-modal="{{ path('app_interim_attendance_choice', {id: worker.id}) }}">
+                <i class="bi bi-calendar-plus me-1"></i>Pointage
+            </button>
+        {% endif %}
+        {% if is_granted('MODULE_ACCESS', 'pointage-personnel') and is_granted('INTERIM_WORKER_VIEW', worker) %}
+            <button class="btn btn-outline-secondary" data-remote-modal="{{ path('app_interim_attendance_worker_history', {id: worker.id}) }}">
+                <i class="bi bi-clock-history me-1"></i>Historique
             </button>
         {% endif %}
         <button class="btn btn-primary" data-remote-modal="{{ path('app_interim_worker_form', {id: worker.id}) }}">

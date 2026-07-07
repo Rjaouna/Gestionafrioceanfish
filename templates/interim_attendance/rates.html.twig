@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tarifs pointage{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Tarifs pointage</h1>
+        <p class="text-secondary mb-0">Taux horaire et tarifs de base pour les taches.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ path('app_interim_attendance_index') }}">
+        <i class="bi bi-arrow-left me-2"></i>Pointage
+    </a>
+</div>
+
+<div class="row g-4">
+    {% for rate in rates %}
+        <div class="col-12 col-md-6 col-xl-4">
+            {% embed 'components/_entity_card.html.twig' with {
+                title: rate.label,
+                icon: rate.mode == 'hourly' ? 'bi-clock' : 'bi-box-seam',
+                icon_container_class: rate.mode == 'hourly' ? 'rounded-3 bg-primary-subtle text-primary fs-4 module-mark' : 'rounded-3 bg-warning-subtle text-warning fs-4 module-mark',
+                status_label: rate.active ? 'Actif' : 'Inactif',
+                status_class: rate.active ? 'text-bg-success' : 'text-bg-secondary',
+                status_icon: rate.active ? 'bi-check-circle' : 'bi-slash-circle',
+                created_at: rate.createdAt,
+                updated_at: rate.updatedAt,
+                muted: not rate.active
+            } %}
+                {% block top_actions %}
+                    <button class="btn btn-outline-primary btn-sm" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_interim_attendance_rate_form', {id: rate.id}) }}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                {% endblock %}
+                {% block subtitle %}
+                    <span class="small text-secondary">{{ rate.modeLabel }}</span>
+                {% endblock %}
+                {% block body %}
+                    <div class="display-6 fw-bold mb-1">{{ rate.amountValue|number_format(2, ',', ' ') }}</div>
+                    <div class="small text-secondary">MAD / {{ rate.unitLabel }}</div>
+                {% endblock %}
+            {% endembed %}
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

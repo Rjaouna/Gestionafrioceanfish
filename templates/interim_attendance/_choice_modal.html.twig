@@ -1,0 +1,32 @@
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">Ajouter un pointage</h2>
+        <p class="text-secondary small mb-0">{{ worker.fullName }} - {{ worker.registrationNumber }}</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <button class="btn btn-outline-primary w-100 h-100 p-4 text-start" type="button" data-remote-modal="{{ path('app_interim_attendance_hourly_form', {id: worker.id}) }}">
+                <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-primary-subtle text-primary fs-4 mb-3" style="width: 3rem; height: 3rem;">
+                    <i class="bi bi-clock"></i>
+                </span>
+                <strong class="d-block">Pointage a l'heure</strong>
+                <span class="small text-secondary">Matin, apres-midi, absences partielles et calcul automatique.</span>
+            </button>
+        </div>
+        <div class="col-md-6">
+            <button class="btn btn-outline-secondary w-100 h-100 p-4 text-start" type="button" disabled>
+                <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-secondary-subtle text-secondary fs-4 mb-3" style="width: 3rem; height: 3rem;">
+                    <i class="bi bi-box-seam"></i>
+                </span>
+                <strong class="d-block">Pointage a la tache</strong>
+                <span class="small text-secondary">Nettoyage, mise en caisse et autres taches. Active dans la prochaine etape.</span>
+            </button>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+</div>
