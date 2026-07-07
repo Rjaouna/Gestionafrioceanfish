@@ -83,7 +83,7 @@ final readonly class FishReceptionStatisticsService
      */
     private function normalizeFilters(array $filters): array
     {
-        $defaultTo = (new \DateTimeImmutable('today'))->modify('-1 day');
+        $defaultTo = $this->receptionRepository->latestStatisticsDate() ?? (new \DateTimeImmutable('today'))->modify('-1 day');
         $to = $this->parseDate((string) ($filters['dateTo'] ?? ''), $defaultTo);
         $from = $to->modify('-5 days');
 

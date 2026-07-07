@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\FishReception;
+use App\Entity\FishReceptionStorageMovement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -154,6 +155,47 @@ class FishReceptionRepository extends ServiceEntityRepository
             ->addOrderBy('r.id', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function latestStatisticsDate(): ?\DateTimeImmutable
+    {
+        $movementDate = $this->getEntityManager()->createQueryBuilder()
+            ->select('MAX(storageMovement.movementDate) AS latestMovementDate')
+            ->from(FishReceptionStorageMovement::class, 'storageMovement')
+            ->innerJoin('storageMovement.reception', 'reception')
+            ->andWhere('reception.isDeleted = false')
+            ->andWhere('storageMovement.storageStage = :stage')
+            ->andWhere('storageMovement.movementType = :type')
+            ->setParameter('stage', FishReceptionStorageMovement::STAGE_INITIAL)
+            ->setParameter('type', FishReceptionStorageMovement::TYPE_INITIAL_EXIT)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $row = $this->createQueryBuilder('r')
+            ->select('MAX(r.dateDebutTraitement) AS latestTreatmentDate')
+            ->addSelect('MAX(r.dateConditionnement) AS latestPackagingDate')
+            ->addSelect('MAX(r.dateEntreeTunnel) AS latestTunnelDate')
+            ->addSelect('MAX(r.dateEntreeStockage) AS latestStorageDate')
+            ->andWhere('r.isDeleted = false')
+            ->getQuery()
+            ->getSingleResult();
+
+        $dates = [
+            $this->dateFromDatabaseValue($movementDate),
+            $this->dateFromDatabaseValue($row['latestTreatmentDate'] ?? null),
+            $this->dateFromDatabaseValue($row['latestPackagingDate'] ?? null),
+            $this->dateFromDatabaseValue($row['latestTunnelDate'] ?? null),
+            $this->dateFromDatabaseValue($row['latestStorageDate'] ?? null),
+        ];
+        $dates = array_values(array_filter($dates));
+
+        if ($dates === []) {
+            return null;
+        }
+
+        usort($dates, static fn (\DateTimeImmutable $a, \DateTimeImmutable $b): int => $b <=> $a);
+
+        return $dates[0];
     }
 
     /** @return list<string> */
@@ -373,5 +415,27 @@ class FishReceptionRepository extends ServiceEntityRepository
     private function finalStockSourceExpression(): string
     {
         return '(CASE WHEN r.poidsNet > 0 THEN r.poidsNet ELSE r.quantiteRemiseEnChambre END)';
+    }
+
+    private function dateFromDatabaseValue(mixed $value): ?\DateTimeImmutable
+    {
+        if ($value instanceof \DateTimeImmutable) {
+            return $value->setTime(0, 0);
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return new \DateTimeImmutable($value->format('Y-m-d 00:00:00'));
+        }
+
+        $value = trim((string) ($value ?? ''));
+        if ($value === '') {
+            return null;
+        }
+
+        try {
+            return (new \DateTimeImmutable($value))->setTime(0, 0);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

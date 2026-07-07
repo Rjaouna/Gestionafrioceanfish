@@ -4,6 +4,8 @@
 
 {% block body %}
 {% set totals = statistics.totals %}
+{% set average_days = statistics.period.days > 0 ? statistics.period.days : 1 %}
+{% set month_factor = 30 %}
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
@@ -143,6 +145,51 @@
                 </article>
             </div>
         {% endfor %}
+    </div>
+</section>
+
+<section class="reception-stat-projection card border-0 shadow-sm mt-4">
+    <div class="card-body">
+        <div class="row g-4 align-items-stretch">
+            <div class="col-12 col-xl-6">
+                <div class="reception-stat-projection-block h-100">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <span class="reception-stat-day-label">Moyenne sur {{ average_days }} jours</span>
+                            <h2 class="h5 mb-0">Moyenne journaliere</h2>
+                        </div>
+                        <span class="badge text-bg-info">/ jour</span>
+                    </div>
+                    <div class="reception-stat-projection-grid">
+                        <div><span>Production</span><strong>{{ (totals.prepared / average_days)|number_format(0, ',', ' ') }} kg</strong></div>
+                        <div><span>PF</span><strong>{{ (totals.finished / average_days)|number_format(0, ',', ' ') }} kg</strong></div>
+                        <div><span>Dechets</span><strong>{{ (totals.waste / average_days)|number_format(0, ',', ' ') }} kg</strong></div>
+                        <div><span>Pertes</span><strong>{{ (totals.total_loss / average_days)|number_format(0, ',', ' ') }} kg</strong></div>
+                        <div class="reception-stat-metric-cost"><span>Cout</span><strong>{{ (totals.charges / average_days)|number_format(0, ',', ' ') }} dh</strong></div>
+                        <div><span>Cout / kg PF</span><strong>{{ totals.cost_per_finished_kg|number_format(2, ',', ' ') }} dh</strong></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-6">
+                <div class="reception-stat-projection-block reception-stat-projection-month h-100">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <span class="reception-stat-day-label">Projection simple 30 jours</span>
+                            <h2 class="h5 mb-0">Estimation mensuelle</h2>
+                        </div>
+                        <span class="badge text-bg-primary">30 jours</span>
+                    </div>
+                    <div class="reception-stat-projection-grid">
+                        <div><span>Production</span><strong>{{ (totals.prepared / average_days * month_factor)|number_format(0, ',', ' ') }} kg</strong></div>
+                        <div><span>PF</span><strong>{{ (totals.finished / average_days * month_factor)|number_format(0, ',', ' ') }} kg</strong></div>
+                        <div><span>Dechets</span><strong>{{ (totals.waste / average_days * month_factor)|number_format(0, ',', ' ') }} kg</strong></div>
+                        <div><span>Pertes</span><strong>{{ (totals.total_loss / average_days * month_factor)|number_format(0, ',', ' ') }} kg</strong></div>
+                        <div class="reception-stat-metric-cost"><span>Cout</span><strong>{{ (totals.charges / average_days * month_factor)|number_format(0, ',', ' ') }} dh</strong></div>
+                        <div><span>Cout / kg PF</span><strong>{{ totals.cost_per_finished_kg|number_format(2, ',', ' ') }} dh</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
