@@ -131,9 +131,17 @@
                         expedition: 'Expedition'
                     } %}
                         <li>
-                            <a class="dropdown-item" href="{{ path('app_fish_reception_excel_template_item', {id: item.id, stage: excel_stage}) }}">
-                                <i class="bi bi-file-earmark-excel me-2"></i>{{ excel_label }}
-                            </a>
+                            <div class="dropdown-item-text d-flex align-items-center justify-content-between gap-3">
+                                <span class="small">{{ excel_label }}</span>
+                                <span class="btn-group btn-group-sm" role="group" aria-label="{{ excel_label }}">
+                                    <a class="btn btn-outline-secondary" href="{{ path('app_fish_reception_excel_print_item', {id: item.id, stage: excel_stage}) }}?auto=1" target="_blank" rel="noopener" title="Imprimer">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                    <a class="btn btn-outline-success" href="{{ path('app_fish_reception_excel_template_item', {id: item.id, stage: excel_stage}) }}" title="Telecharger Excel">
+                                        <i class="bi bi-file-earmark-excel"></i>
+                                    </a>
+                                </span>
+                            </div>
                         </li>
                     {% endfor %}
                 {% endif %}

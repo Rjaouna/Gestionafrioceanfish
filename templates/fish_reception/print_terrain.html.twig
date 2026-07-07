@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Formulaire terrain - {{ stage_title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 12mm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: #0f172a;
+            background: #f8fafc;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+        }
+
+        .print-actions {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            z-index: 10;
+            display: flex;
+            gap: 8px;
+        }
+
+        .print-actions button {
+            border: 1px solid #0f766e;
+            border-radius: 6px;
+            background: #0f766e;
+            color: #fff;
+            padding: 8px 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 12mm;
+            background: #fff;
+        }
+
+        .brand {
+            background: #142d63;
+            color: #fff;
+            padding: 14px 18px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+        }
+
+        .header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: end;
+            padding: 18px 0 14px;
+            border-bottom: 2px solid #142d63;
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            color: #142d63;
+            font-size: 22px;
+            line-height: 1.2;
+        }
+
+        .subtitle,
+        .meta {
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .meta {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 16px;
+            border-collapse: collapse;
+            page-break-inside: auto;
+        }
+
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+
+        th {
+            background: #142d63;
+            color: #fff;
+            border: 1px solid #142d63;
+            padding: 9px 10px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        td {
+            height: 36px;
+            border: 1px solid #1e293b;
+            padding: 8px 10px;
+            vertical-align: middle;
+        }
+
+        td:first-child {
+            width: 44%;
+            background: #f8fafc;
+            font-weight: 700;
+        }
+
+        td:last-child {
+            width: 56%;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #dc2626;
+            font-weight: 800;
+        }
+
+        .footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-top: 30px;
+        }
+
+        .signature-label {
+            margin-bottom: 28px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .signature-line {
+            border-bottom: 1px solid #111827;
+            height: 24px;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+            }
+
+            .print-actions {
+                display: none;
+            }
+
+            .page {
+                width: auto;
+                min-height: auto;
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-actions">
+        <button type="button" onclick="window.print()">Imprimer</button>
+    </div>
+
+    <main class="page">
+        <div class="brand">AFRIOCEAN FISH</div>
+
+        <header class="header">
+            <div>
+                <h1>Formulaire {{ stage_title }}</h1>
+                <div class="subtitle">
+                    {% if item %}
+                        {{ item.numeroReception }} - {{ item.fournisseur ?: 'Non renseigne' }} - {{ item.especePoisson ?: 'Produit non renseigne' }}
+                    {% else %}
+                        Nouvelle reception
+                    {% endif %}
+                </div>
+            </div>
+            <div class="meta">
+                <div>Genere le {{ generated_at|date('d/m/Y H:i') }}</div>
+                <div>{{ generated_by }}</div>
+            </div>
+        </header>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Information a relever</th>
+                    <th>Valeur remplie</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for field in fields %}
+                    <tr>
+                        <td>
+                            {{ field.label }}
+                            {% if field.required %}
+                                <span class="required">*</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ field.print_value|default('') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <section class="footer">
+            <div>
+                <div class="signature-label">Responsable</div>
+                <div class="signature-line"></div>
+            </div>
+            <div>
+                <div class="signature-label">Signature</div>
+                <div class="signature-line"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        window.addEventListener('load', function () {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('auto') === '1') {
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

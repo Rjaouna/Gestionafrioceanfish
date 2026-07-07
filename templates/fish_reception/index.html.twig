@@ -20,6 +20,9 @@
         <p class="text-secondary mb-0" data-ajax-count-region="fishReceptionGrid">{{ pagination.total }} reception{{ pagination.total > 1 ? 's' : '' }} visible{{ pagination.total > 1 ? 's' : '' }}.</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_fish_reception_excel_print', {stage: stage}) }}?auto=1" target="_blank" rel="noopener" title="Imprimer le fichier terrain">
+            <i class="bi bi-printer me-2"></i>Imprimer
+        </a>
         <a class="btn btn-outline-success" href="{{ path('app_fish_reception_excel_template', {stage: stage}) }}">
             <i class="bi bi-file-earmark-excel me-2"></i>Fichier terrain Excel
         </a>

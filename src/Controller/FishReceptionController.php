@@ -149,6 +149,7 @@ final class FishReceptionController extends AbstractController
             'title' => 'Nouvelle réception',
             'submit_label' => 'Enregistrer la reception',
             'excel_template_url' => $this->generateUrl('app_fish_reception_excel_template', ['stage' => 'reception']),
+            'excel_print_url' => $this->generateUrl('app_fish_reception_excel_print', ['stage' => 'reception']).'?auto=1',
             'excel_import_url' => $this->generateUrl('app_fish_reception_excel_import', ['stage' => 'reception']),
             'excel_import_token' => $this->excelImportToken('reception'),
         ]);
@@ -160,6 +161,14 @@ final class FishReceptionController extends AbstractController
         $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
 
         return $this->downloadExcelTemplate($stage, null);
+    }
+
+    #[Route('/excel/{stage}/imprimer', name: 'app_fish_reception_excel_print', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|expedition'], methods: ['GET'])]
+    public function printExcelTemplate(string $stage): Response
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
+
+        return $this->renderExcelTemplatePrint($stage, null);
     }
 
     #[Route('/excel/{stage}/import', name: 'app_fish_reception_excel_import', requirements: ['stage' => 'reception|traitement|congelation|stockage|emballage|expedition'], methods: ['POST'])]
@@ -230,6 +239,7 @@ final class FishReceptionController extends AbstractController
             'title' => sprintf('Modifier %s', $reception->getNumeroReception()),
             'submit_label' => 'Enregistrer',
             'excel_template_url' => $this->generateUrl('app_fish_reception_excel_template_item', ['id' => $reception->getId(), 'stage' => 'reception']),
+            'excel_print_url' => $this->generateUrl('app_fish_reception_excel_print_item', ['id' => $reception->getId(), 'stage' => 'reception']).'?auto=1',
             'excel_import_url' => $this->generateUrl('app_fish_reception_excel_import_item', ['id' => $reception->getId(), 'stage' => 'reception']),
             'excel_import_token' => $this->excelImportToken('reception', $reception),
         ]);
@@ -241,6 +251,14 @@ final class FishReceptionController extends AbstractController
         $this->denyAccessUnlessGranted(FishReceptionVoter::VIEW, $reception);
 
         return $this->downloadExcelTemplate($stage, $reception);
+    }
+
+    #[Route('/{id}/excel/{stage}/imprimer', name: 'app_fish_reception_excel_print_item', requirements: ['id' => '\d+', 'stage' => 'reception|traitement|congelation|stockage|emballage|expedition'], methods: ['GET'])]
+    public function printExcelTemplateItem(FishReception $reception, string $stage): Response
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::VIEW, $reception);
+
+        return $this->renderExcelTemplatePrint($stage, $reception);
     }
 
     #[Route('/{id}/excel/{stage}/import', name: 'app_fish_reception_excel_import_item', requirements: ['id' => '\d+', 'stage' => 'reception|traitement|congelation|stockage|emballage|expedition'], methods: ['POST'])]
@@ -693,6 +711,7 @@ final class FishReceptionController extends AbstractController
             $parameters += [
                 'excel_stage' => $excelStage,
                 'excel_template_url' => $this->generateUrl('app_fish_reception_excel_template_item', ['id' => $reception->getId(), 'stage' => $excelStage]),
+                'excel_print_url' => $this->generateUrl('app_fish_reception_excel_print_item', ['id' => $reception->getId(), 'stage' => $excelStage]).'?auto=1',
                 'excel_import_url' => $this->generateUrl('app_fish_reception_excel_import_item', ['id' => $reception->getId(), 'stage' => $excelStage]),
                 'excel_import_token' => $this->excelImportToken($excelStage, $reception),
             ];
@@ -794,6 +813,28 @@ final class FishReceptionController extends AbstractController
         $response->deleteFileAfterSend(true);
 
         return $response;
+    }
+
+    private function renderExcelTemplatePrint(string $stage, ?FishReception $reception): Response
+    {
+        $fields = array_map(static function (array $field): array {
+            $field['print_value'] = match ($field['name']) {
+                'nombreCaissesParEtage' => '5',
+                'nombreNiveauxPalette' => '16',
+                default => '',
+            };
+
+            return $field;
+        }, $this->excelFormService->fields($stage));
+
+        return $this->render('fish_reception/print_terrain.html.twig', [
+            'stage' => $stage,
+            'stage_title' => $this->excelFormService->stageTitle($stage),
+            'item' => $reception,
+            'fields' => $fields,
+            'generated_at' => new \DateTimeImmutable(),
+            'generated_by' => $this->currentUser()->getDisplayName(),
+        ]);
     }
 
     private function importExcelTemplate(string $stage, Request $request, ?FishReception $reception): JsonResponse

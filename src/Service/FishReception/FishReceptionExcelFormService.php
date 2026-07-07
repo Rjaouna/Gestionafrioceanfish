@@ -32,36 +32,33 @@ final readonly class FishReceptionExcelFormService
         $this->assertStage($stage);
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle($this->stageTitle($stage));
+        $sheet->setTitle($this->sheetTitle($stage));
 
         $this->addHeader($sheet, $stage, $reception, $actor);
 
         $headerRow = 6;
-        $sheet->fromArray(['Champ', 'Valeur a remplir', 'Obligatoire', 'Type', 'Aide', 'Cle technique'], null, 'A'.$headerRow);
-        $this->styleTableHeader($sheet->getStyle('A'.$headerRow.':F'.$headerRow));
+        $sheet->fromArray(['Information a relever', 'Valeur remplie', 'Cle technique'], null, 'A'.$headerRow);
+        $this->styleTableHeader($sheet->getStyle('A'.$headerRow.':B'.$headerRow));
 
         $row = $headerRow + 1;
         foreach ($this->fields($stage) as $field) {
             $value = $this->defaultValue($field['name'], $field['type'], $reception, $stage);
             $sheet->setCellValue('A'.$row, $field['label']);
             $sheet->setCellValue('B'.$row, $value);
-            $sheet->setCellValue('C'.$row, $field['required'] ? 'Oui' : 'Non');
-            $sheet->setCellValue('D'.$row, $this->typeLabel($field['type']));
-            $sheet->setCellValue('E'.$row, $this->helpText($field, $choices));
-            $sheet->setCellValueExplicit('F'.$row, $field['name'], DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('C'.$row, $field['name'], DataType::TYPE_STRING);
             $this->styleValueCell($sheet, $row, $field['type']);
+            $sheet->getRowDimension($row)->setRowHeight(27);
             ++$row;
         }
 
         $lastRow = $row - 1;
-        $sheet->getStyle('A'.$headerRow.':F'.$lastRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $sheet->getStyle('A'.($headerRow + 1).':F'.$lastRow)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
-        $sheet->getStyle('C'.($headerRow + 1).':C'.$lastRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getColumnDimension('F')->setVisible(false);
-        $sheet->freezePane('A7');
-        $sheet->setAutoFilter('A'.$headerRow.':E'.$lastRow);
+        $sheet->getStyle('A'.$headerRow.':B'.$lastRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle('A'.($headerRow + 1).':B'.$lastRow)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
+        $sheet->getColumnDimension('C')->setVisible(false);
+        $sheet->getPageSetup()->setFitToWidth(1)->setFitToHeight(0);
+        $sheet->getPageMargins()->setTop(0.45)->setRight(0.35)->setBottom(0.45)->setLeft(0.35);
+        $sheet->getPageSetup()->setPrintArea('A1:B'.$lastRow);
 
-        $this->addInstructionsSheet($spreadsheet);
         $spreadsheet->setActiveSheetIndex(0);
         $this->autosize($spreadsheet);
 
@@ -89,7 +86,7 @@ final readonly class FishReceptionExcelFormService
         $highestRow = $sheet->getHighestDataRow();
 
         for ($row = 7; $row <= $highestRow; ++$row) {
-            $key = trim((string) $sheet->getCell('F'.$row)->getValue());
+            $key = trim((string) ($sheet->getCell('C'.$row)->getValue() ?: $sheet->getCell('F'.$row)->getValue()));
             if ($key === '' || !isset($fields[$key])) {
                 continue;
             }
@@ -156,7 +153,6 @@ final readonly class FishReceptionExcelFormService
                 $this->field('poidsNet', 'Poids net (kg)', 'number', false),
                 $this->field('poidsDechetsEmballage', 'Déchets emballage (kg)', 'number', false),
                 $this->field('poidsPertesEmballage', 'Pertes emballage (kg)', 'number', false),
-                $this->field('coutHoraireEmballage', 'Coût horaire emballage (MAD / heure)', 'number', false, 'Le système calcule le coût total avec la durée saisie.'),
                 $this->field('produitConditionne', 'Produit conditionné', 'text', true, null, 'produitConditionne'),
                 $this->field('chambreRemiseEnChambre', 'Chambre de retour apres emballage', 'text', true, null, 'chambreRemiseEnChambre'),
                 $this->field('dateRemiseEnChambre', 'Date retour chambre', 'date', true),
@@ -213,16 +209,6 @@ final readonly class FishReceptionExcelFormService
                 $this->field('temperaturePoissonReception', 'Température poisson réception', 'number', false, 'Valeur négative autorisée.'),
                 $this->field('categorieFraicheur', 'Catégorie fraîcheur', 'text', true, null, 'categorieFraicheur'),
                 $this->field('presenceGlace', 'Presence de glace', 'bool', false, 'Oui ou Non.'),
-                $this->field('operationType', 'Type opération', 'text', true, 'Valeurs : achat_matiere ou prestation_service.'),
-                $this->field('receptionPrixAchatKg', 'Prix achat / kg', 'number', false),
-                $this->field('receptionMontantAchatTotal', 'Montant achat total', 'number', false),
-                $this->field('receptionFraisTransport', 'Frais transport réception', 'number', false),
-                $this->field('receptionFraisDechargement', 'Frais déchargement / manutention', 'number', false),
-                $this->field('receptionFraisGlaceConsommables', 'Glace / consommables réception', 'number', false),
-                $this->field('receptionFraisControleQualite', 'Contrôle qualité / analyse', 'number', false),
-                $this->field('receptionAutresFrais', 'Autres frais réception', 'number', false),
-                $this->field('receptionReferenceFacture', 'Référence facture', 'text', false),
-                $this->field('receptionDevise', 'Devise', 'text', false, 'Par defaut : MAD.'),
                 $this->field('responsableProduction', 'Responsable production', 'text', false),
                 $this->field('signatureResponsable', 'Signature', 'text', false),
                 $this->field('observations', 'Observations', 'text', false),
@@ -247,113 +233,42 @@ final readonly class FishReceptionExcelFormService
     private function addHeader(Worksheet $sheet, string $stage, ?FishReception $reception, User $actor): void
     {
         $this->addLogo($sheet);
-        $sheet->mergeCells('A1:F1');
+        $sheet->mergeCells('A1:B1');
         $sheet->setCellValue('A1', 'AFRIOCEAN FISH');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(22)->getColor()->setARGB('FFFFFFFF');
         $sheet->getStyle('A1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF142D63');
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $sheet->mergeCells('A2:F2');
+        $sheet->mergeCells('A2:B2');
         $sheet->setCellValue('A2', 'Formulaire '.$this->stageTitle($stage));
         $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(15)->getColor()->setARGB('FF142D63');
         $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $sheet->mergeCells('A3:F3');
+        $sheet->mergeCells('A3:B3');
         $sheet->setCellValue('A3', $reception instanceof FishReception ? sprintf('%s - %s - %s', $reception->getNumeroReception(), $reception->getFournisseur(), $reception->getEspecePoisson()) : 'Nouvelle réception');
         $sheet->getStyle('A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $sheet->mergeCells('A4:F4');
+        $sheet->mergeCells('A4:B4');
         $sheet->setCellValue('A4', sprintf('Modele genere le %s par %s', (new \DateTimeImmutable())->format('d/m/Y H:i'), $actor->getDisplayName()));
         $sheet->getStyle('A4')->getFont()->getColor()->setARGB('FF64748B');
         $sheet->getStyle('A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     }
 
-    private function addInstructionsSheet(Spreadsheet $spreadsheet): void
-    {
-        $sheet = $spreadsheet->createSheet();
-        $sheet->setTitle('Instructions');
-        $sheet->mergeCells('A1:D1');
-        $sheet->setCellValue('A1', 'Instructions de remplissage');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16)->getColor()->setARGB('FFFFFFFF');
-        $sheet->getStyle('A1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF142D63');
-        $sheet->fromArray([
-            ['1', 'Remplir uniquement la colonne "Valeur a remplir".'],
-            ['2', 'Ne pas supprimer les lignes et ne pas modifier la colonne technique masquee.'],
-            ['3', 'Les dates doivent etre au format jj/mm/aaaa ou aaaa-mm-jj.'],
-            ['4', 'Les heures doivent etre au format hh:mm.'],
-            ['5', 'Importer le fichier dans l application, corriger les champs rouges, puis valider.'],
-        ], null, 'A3');
-        $sheet->getStyle('A3:D7')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $sheet->getStyle('A3:A7')->getFont()->setBold(true);
-    }
-
-    /** @param array{name: string, label: string, type: string, required: bool, help?: string, choices?: string} $field */
-    private function helpText(array $field, array $choices): string
-    {
-        $help = (string) ($field['help'] ?? '');
-        $choiceKey = (string) ($field['choices'] ?? '');
-        if ($choiceKey !== '' && !empty($choices[$choiceKey])) {
-            $help .= ($help !== '' ? ' ' : '').'Valeurs déjà connues : '.implode(', ', array_slice($choices[$choiceKey], 0, 20));
-            if (count($choices[$choiceKey]) > 20) {
-                $help .= '...';
-            }
-        }
-
-        return $help;
-    }
-
     private function defaultValue(string $field, string $type, ?FishReception $reception, string $stage): mixed
     {
-        if ($field === 'quantity' && $reception instanceof FishReception) {
-            return match ($stage) {
-                'traitement' => $reception->getQuantiteDisponibleTraitementSourceValue(),
-                'congelation' => $reception->getQuantiteDisponibleTraitementValue(),
-                'stockage' => $reception->getQuantiteDisponibleCongelationValue(),
-                'emballage' => $reception->getQuantiteDisponibleCristallisationValue(),
-                'expedition' => $reception->getQuantiteDisponibleStockageValue(),
-                default => null,
-            };
-        }
-
         if ($field === 'nombreCaissesParEtage') {
             return 5;
         }
         if ($field === 'nombreNiveauxPalette') {
             return 16;
         }
-        if ($field === 'presenceGlace') {
-            return 'Oui';
-        }
-        if ($field === 'operationType') {
-            return FishReception::OPERATION_PURCHASE;
-        }
-        if ($field === 'receptionDevise') {
-            return 'MAD';
-        }
 
-        if (!$reception instanceof FishReception) {
-            return $type === 'date' ? (new \DateTimeImmutable())->format('d/m/Y') : null;
-        }
-
-        $getter = 'get'.ucfirst($field);
-        if (!method_exists($reception, $getter)) {
-            return null;
-        }
-
-        $value = $reception->{$getter}();
-        if ($value instanceof \DateTimeImmutable) {
-            return $type === 'time' ? $value->format('H:i') : $value->format('d/m/Y');
-        }
-        if (is_bool($value)) {
-            return $value ? 'Oui' : 'Non';
-        }
-
-        return $value;
+        return null;
     }
 
     private function styleValueCell(Worksheet $sheet, int $row, string $type): void
     {
-        $sheet->getStyle('B'.$row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF8FAFC');
+        $sheet->getStyle('B'.$row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFFFFF');
         $sheet->getStyle('B'.$row)->getFont()->getColor()->setARGB('FF0F172A');
         if (in_array($type, ['number', 'integer'], true)) {
             $sheet->getStyle('B'.$row)->getNumberFormat()->setFormatCode($type === 'integer' ? '#,##0' : '#,##0.000');
@@ -426,11 +341,6 @@ final readonly class FishReceptionExcelFormService
             }
 
             return [null, 'Valeur attendue : achat_matiere ou prestation_service.'];
-        }
-
-        $choiceKey = (string) ($field['choices'] ?? '');
-        if (in_array($field['name'], ['tunnel', 'chambreFroide', 'chambreRemiseEnChambre'], true) && $choiceKey !== '' && !empty($choices[$choiceKey]) && !in_array($text, $choices[$choiceKey], true)) {
-            return [null, 'Valeur absente de Composition usine. Choisissez une valeur proposée dans le modèle.'];
         }
 
         return [$text, null];
@@ -512,13 +422,25 @@ final readonly class FishReceptionExcelFormService
         return null;
     }
 
-    private function stageTitle(string $stage): string
+    public function stageTitle(string $stage): string
     {
         return match ($stage) {
             'traitement' => 'Traitement / Production',
             'congelation' => 'Congelation',
             'stockage' => 'Cristallisation',
             'emballage' => 'Conditionnement / Emballage',
+            'expedition' => 'Expedition',
+            default => 'Reception',
+        };
+    }
+
+    private function sheetTitle(string $stage): string
+    {
+        return match ($stage) {
+            'traitement' => 'Traitement Production',
+            'congelation' => 'Congelation',
+            'stockage' => 'Cristallisation',
+            'emballage' => 'Emballage Retour',
             'expedition' => 'Expedition',
             default => 'Reception',
         };
@@ -539,17 +461,16 @@ final readonly class FishReceptionExcelFormService
     private function styleTableHeader(\PhpOffice\PhpSpreadsheet\Style\Style $style): void
     {
         $style->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
-        $style->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF0D6EFD');
+        $style->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF142D63');
         $style->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     }
 
     private function autosize(Spreadsheet $spreadsheet): void
     {
         foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
-            foreach (range('A', $sheet->getHighestColumn()) as $column) {
-                $sheet->getColumnDimension($column)->setAutoSize(true);
-            }
-            $sheet->getColumnDimension('E')->setWidth(52);
+            $sheet->getColumnDimension('A')->setWidth(42);
+            $sheet->getColumnDimension('B')->setWidth(36);
+            $sheet->getColumnDimension('C')->setVisible(false);
         }
     }
 

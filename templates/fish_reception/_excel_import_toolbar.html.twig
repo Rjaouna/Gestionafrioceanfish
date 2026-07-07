@@ -9,6 +9,11 @@
             <i class="bi bi-file-earmark-spreadsheet me-1"></i>Fichier terrain Excel
         </div>
         <div class="btn-group btn-group-sm">
+            {% if excel_print_url|default('') %}
+                <a class="btn btn-outline-secondary" href="{{ excel_print_url }}" target="_blank" rel="noopener" title="Imprimer le formulaire">
+                    <i class="bi bi-printer me-1"></i>Imprimer
+                </a>
+            {% endif %}
             <a class="btn btn-outline-success" href="{{ excel_template_url }}" title="Télécharger le modele Excel">
                 <i class="bi bi-file-earmark-excel me-1"></i>Télécharger
             </a>
