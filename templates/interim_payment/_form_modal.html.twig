@@ -1,0 +1,29 @@
+{{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
+    <div class="modal-header border-0 pb-0">
+        <div>
+            <h2 class="modal-title h4">{{ title }}</h2>
+            <p class="text-secondary mb-0">Historique des paiements interimaires.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-12">{{ form_row(form.worker) }}</div>
+            <div class="col-12 col-md-4">{{ form_row(form.paymentDate) }}</div>
+            <div class="col-12 col-md-4">{{ form_row(form.periodFrom) }}</div>
+            <div class="col-12 col-md-4">{{ form_row(form.periodTo) }}</div>
+            <div class="col-12 col-md-4">{{ form_row(form.amount) }}</div>
+            <div class="col-12 col-md-4">{{ form_row(form.paymentMethod) }}</div>
+            <div class="col-12 col-md-4">{{ form_row(form.status) }}</div>
+            <div class="col-12">{{ form_row(form.reference) }}</div>
+            <div class="col-12">{{ form_row(form.note) }}</div>
+        </div>
+        {{ form_rest(form) }}
+    </div>
+    <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check2-circle me-2"></i>{{ submit_label }}
+        </button>
+    </div>
+{{ form_end(form) }}

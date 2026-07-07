@@ -1,0 +1,68 @@
+{% if items|length > 0 %}
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Date paiement</th>
+                    <th>Interimaire</th>
+                    <th>Periode payee</th>
+                    <th>Moyen</th>
+                    <th>Reference</th>
+                    <th>Statut</th>
+                    <th class="text-end">Montant</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td class="text-nowrap">{{ item.paymentDate ? item.paymentDate|date('d/m/Y') : '-' }}</td>
+                        <td>
+                            <div class="fw-semibold">{{ item.workerName }}</div>
+                            {% if item.worker %}
+                                <div class="small text-secondary">{{ item.worker.registrationNumber }}{% if item.worker.position %} - {{ item.worker.position }}{% endif %}</div>
+                            {% endif %}
+                        </td>
+                        <td class="text-nowrap">{{ item.periodLabel }}</td>
+                        <td><span class="badge text-bg-light border">{{ item.paymentMethodLabel }}</span></td>
+                        <td>{{ item.reference ?: '-' }}</td>
+                        <td><span class="badge {{ item.statusBadgeClass }}">{{ item.statusLabel }}</span></td>
+                        <td class="text-end fw-semibold text-nowrap">{{ item.amountValue|number_format(2, ',', ' ') }} MAD</td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-primary btn-sm" type="button" data-remote-modal="{{ path('app_interim_payment_form', {id: item.id}) }}">
+                                <i class="bi bi-pencil me-1"></i>Modifier
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary-subtle text-secondary fs-2 empty-state-mark">
+                <i class="bi bi-wallet2"></i>
+            </span>
+            <h2 class="h5 mt-3">Aucun paiement</h2>
+            <p class="text-secondary mb-0">Aucun paiement ne correspond aux filtres selectionnes.</p>
+        </div>
+    </div>
+{% endif %}
+
+{% if pagination.pages > 1 %}
+    <div class="d-flex justify-content-center gap-2 mt-4">
+        {% set query = app.request.query.all %}
+        {% set previous_query = query|merge({page: pagination.page - 1}) %}
+        {% set next_query = query|merge({page: pagination.page + 1}) %}
+        <a class="btn btn-outline-secondary btn-sm {{ pagination.page <= 1 ? 'disabled' : '' }}" href="{{ path('app_interim_payment_index', previous_query) }}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="btn btn-light btn-sm disabled">Page {{ pagination.page }} / {{ pagination.pages }}</span>
+        <a class="btn btn-outline-secondary btn-sm {{ pagination.page >= pagination.pages ? 'disabled' : '' }}" href="{{ path('app_interim_payment_index', next_query) }}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+{% endif %}

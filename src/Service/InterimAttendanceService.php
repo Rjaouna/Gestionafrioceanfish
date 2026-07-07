@@ -40,6 +40,121 @@ final readonly class InterimAttendanceService
         ];
     }
 
+    /** @return array{filters: array<string, mixed>, totals: array<string, int|float>, workerSummaries: list<array<string, mixed>>, dailySummaries: list<array<string, mixed>>, items: list<InterimAttendance>} */
+    public function details(array $filters = []): array
+    {
+        $filters = $this->normalizeFilters($filters);
+        $items = $this->attendanceRepository->search($filters, 1, 10000);
+        $totals = $this->attendanceRepository->totals($filters);
+        $workerSummaries = [];
+        $dailySummaries = [];
+
+        foreach ($items as $item) {
+            $worker = $item->getWorker();
+            if (!$worker instanceof InterimWorker) {
+                continue;
+            }
+
+            $workerKey = (string) $worker->getId();
+            if (!isset($workerSummaries[$workerKey])) {
+                $workerSummaries[$workerKey] = [
+                    'worker' => $worker,
+                    'count' => 0,
+                    'hours' => 0.0,
+                    'amount' => 0.0,
+                    'hourlyCount' => 0,
+                    'taskCount' => 0,
+                    'fullDays' => 0,
+                    'halfDays' => 0,
+                    'absentDays' => 0,
+                    'firstDate' => null,
+                    'lastDate' => null,
+                    'averageRate' => 0.0,
+                ];
+            }
+
+            $date = $item->getAttendanceDate();
+            $dateKey = $date?->format('Y-m-d') ?? 'sans-date';
+            if (!isset($dailySummaries[$dateKey])) {
+                $dailySummaries[$dateKey] = [
+                    'date' => $date,
+                    'count' => 0,
+                    'hours' => 0.0,
+                    'amount' => 0.0,
+                    'workers' => [],
+                ];
+            }
+
+            $hours = $item->getTotalHoursValue();
+            $amount = $item->getTotalAmountValue();
+            $workerSummaries[$workerKey]['count']++;
+            $workerSummaries[$workerKey]['hours'] += $hours;
+            $workerSummaries[$workerKey]['amount'] += $amount;
+            $workerSummaries[$workerKey][$item->getMode() === InterimAttendance::MODE_TASK ? 'taskCount' : 'hourlyCount']++;
+
+            if ($item->isMorningPresent() && $item->isAfternoonPresent()) {
+                $workerSummaries[$workerKey]['fullDays']++;
+            } elseif ($item->isMorningPresent() || $item->isAfternoonPresent()) {
+                $workerSummaries[$workerKey]['halfDays']++;
+            } else {
+                $workerSummaries[$workerKey]['absentDays']++;
+            }
+
+            if ($date instanceof \DateTimeImmutable) {
+                $firstDate = $workerSummaries[$workerKey]['firstDate'];
+                $lastDate = $workerSummaries[$workerKey]['lastDate'];
+                if (!$firstDate instanceof \DateTimeImmutable || $date < $firstDate) {
+                    $workerSummaries[$workerKey]['firstDate'] = $date;
+                }
+                if (!$lastDate instanceof \DateTimeImmutable || $date > $lastDate) {
+                    $workerSummaries[$workerKey]['lastDate'] = $date;
+                }
+            }
+
+            $dailySummaries[$dateKey]['count']++;
+            $dailySummaries[$dateKey]['hours'] += $hours;
+            $dailySummaries[$dateKey]['amount'] += $amount;
+            $dailySummaries[$dateKey]['workers'][$workerKey] = true;
+        }
+
+        foreach ($workerSummaries as &$summary) {
+            $summary['averageRate'] = $summary['hours'] > 0 ? $summary['amount'] / $summary['hours'] : 0.0;
+        }
+        unset($summary);
+
+        foreach ($dailySummaries as &$summary) {
+            $summary['workersCount'] = count($summary['workers']);
+            unset($summary['workers']);
+        }
+        unset($summary);
+
+        $workerSummaries = array_values($workerSummaries);
+        usort($workerSummaries, static fn (array $a, array $b): int => ($b['amount'] <=> $a['amount']) ?: strcasecmp($a['worker']->getFullName(), $b['worker']->getFullName()));
+
+        $dailySummaries = array_values($dailySummaries);
+        usort($dailySummaries, static function (array $a, array $b): int {
+            $dateA = $a['date'] instanceof \DateTimeImmutable ? $a['date']->getTimestamp() : 0;
+            $dateB = $b['date'] instanceof \DateTimeImmutable ? $b['date']->getTimestamp() : 0;
+
+            return $dateB <=> $dateA;
+        });
+
+        $totals += [
+            'workers' => count($workerSummaries),
+            'days' => count($dailySummaries),
+            'averageRate' => ($totals['hours'] ?? 0) > 0 ? ((float) $totals['amount'] / (float) $totals['hours']) : 0.0,
+            'maxWorkerAmount' => $workerSummaries !== [] ? max(array_map(static fn (array $row): float => (float) $row['amount'], $workerSummaries)) : 0.0,
+        ];
+
+        return [
+            'filters' => $filters,
+            'totals' => $totals,
+            'workerSummaries' => $workerSummaries,
+            'dailySummaries' => $dailySummaries,
+            'items' => $items,
+        ];
+    }
+
     public function hourlyDraft(InterimWorker $worker, ?\DateTimeImmutable $date = null): InterimAttendance
     {
         $date ??= new \DateTimeImmutable('today');

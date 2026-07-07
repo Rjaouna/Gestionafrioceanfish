@@ -44,6 +44,15 @@ final class InterimAttendanceController extends AbstractController
         ]);
     }
 
+    #[Route('/details', name: 'app_interim_attendance_details', methods: ['GET'])]
+    public function details(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'pointage-personnel');
+        $data = $this->attendanceService->details($this->filtersFromRequest($request));
+
+        return $this->render('interim_attendance/details.html.twig', $data);
+    }
+
     #[Route('/recherche', name: 'app_interim_attendance_search', methods: ['GET'])]
     public function search(Request $request): JsonResponse
     {

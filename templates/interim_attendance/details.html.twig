@@ -1,0 +1,227 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Details pointage{% endblock %}
+
+{% block body %}
+{% set max_amount = totals.maxWorkerAmount|default(0) %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Details pointage</h1>
+        <p class="text-secondary mb-0">Synthese des heures, absences et salaires estimes par interimaire.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_interim_attendance_index') }}">
+            <i class="bi bi-calendar-check me-2"></i>Pointage
+        </a>
+        <a class="btn btn-outline-secondary" href="{{ path('app_interim_payment_index') }}">
+            <i class="bi bi-wallet2 me-2"></i>Paiements
+        </a>
+        <a class="btn btn-outline-secondary" href="{{ path('app_interim_attendance_rate_index') }}">
+            <i class="bi bi-cash-coin me-2"></i>Tarifs
+        </a>
+        <a class="btn btn-primary" href="{{ path('app_interim_worker_index') }}">
+            <i class="bi bi-person-vcard me-2"></i>Fiches interimaires
+        </a>
+    </div>
+</div>
+
+<form class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-xl-4">
+                <label class="form-label" for="attendanceDetailsSearch">Recherche</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="attendanceDetailsSearch" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Nom, matricule, poste">
+                </div>
+            </div>
+            <div class="col-12 col-md-4 col-xl-2">
+                <label class="form-label" for="attendanceDetailsMode">Type</label>
+                <select id="attendanceDetailsMode" name="mode" class="form-select">
+                    <option value="">Tous</option>
+                    <option value="hourly" {{ filters.mode == 'hourly' ? 'selected' : '' }}>A l'heure</option>
+                    <option value="task" {{ filters.mode == 'task' ? 'selected' : '' }}>A la tache</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4 col-xl-2">
+                <label class="form-label" for="attendanceDetailsDateFrom">Du</label>
+                <input id="attendanceDetailsDateFrom" class="form-control" type="date" name="dateFrom" value="{{ filters.dateFrom }}">
+            </div>
+            <div class="col-12 col-md-4 col-xl-2">
+                <label class="form-label" for="attendanceDetailsDateTo">Au</label>
+                <input id="attendanceDetailsDateTo" class="form-control" type="date" name="dateTo" value="{{ filters.dateTo }}">
+            </div>
+            <div class="col-12 col-xl-2 d-grid">
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-funnel me-2"></i>Filtrer
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div>
+                        <div class="small text-secondary">Total salaires estimes</div>
+                        <div class="display-6 fw-bold">{{ totals.amount|number_format(2, ',', ' ') }} MAD</div>
+                    </div>
+                    <span class="rounded-3 bg-success-subtle text-success fs-4 p-3"><i class="bi bi-cash-stack"></i></span>
+                </div>
+                <div class="small text-secondary mt-2">{{ totals.workers }} interimaire{{ totals.workers > 1 ? 's' : '' }} concerne{{ totals.workers > 1 ? 's' : '' }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Heures</div>
+                <div class="h4 mb-0">{{ totals.hours|number_format(2, ',', ' ') }} h</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Pointages</div>
+                <div class="h4 mb-0">{{ totals.count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Jours</div>
+                <div class="h4 mb-0">{{ totals.days }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Moyenne / h</div>
+                <div class="h4 mb-0">{{ totals.averageRate|number_format(2, ',', ' ') }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xxl-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <h2 class="h5 mb-1">Salaires par interimaire</h2>
+                    <p class="text-secondary small mb-0">Base de controle pour preparer le paiement.</p>
+                </div>
+                <span class="badge text-bg-light border">{{ workerSummaries|length }} ligne{{ workerSummaries|length > 1 ? 's' : '' }}</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Interimaire</th>
+                        <th>Periode</th>
+                        <th class="text-end">Pointages</th>
+                        <th class="text-end">Heures</th>
+                        <th class="text-end">Taux moy.</th>
+                        <th class="text-end">Salaire</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in workerSummaries %}
+                        {% set worker = row.worker %}
+                        {% set percent = max_amount > 0 ? (row.amount / max_amount * 100) : 0 %}
+                        <tr>
+                            <td style="min-width: 240px;">
+                                <div class="fw-semibold">{{ worker.fullName }}</div>
+                                <div class="small text-secondary">{{ worker.registrationNumber }}{% if worker.position %} - {{ worker.position }}{% endif %}</div>
+                                <div class="mt-1">
+                                    <span class="badge {{ worker.statusBadgeClass }}">{{ worker.statusLabel }}</span>
+                                    {% if row.halfDays > 0 %}<span class="badge text-bg-warning">{{ row.halfDays }} demi-jour</span>{% endif %}
+                                    {% if row.absentDays > 0 %}<span class="badge text-bg-danger">{{ row.absentDays }} absent</span>{% endif %}
+                                </div>
+                            </td>
+                            <td class="text-nowrap">
+                                {{ row.firstDate ? row.firstDate|date('d/m/Y') : '-' }}
+                                <span class="text-secondary">au</span>
+                                {{ row.lastDate ? row.lastDate|date('d/m/Y') : '-' }}
+                            </td>
+                            <td class="text-end">{{ row.count }}</td>
+                            <td class="text-end text-nowrap">{{ row.hours|number_format(2, ',', ' ') }} h</td>
+                            <td class="text-end text-nowrap">{{ row.averageRate|number_format(2, ',', ' ') }}</td>
+                            <td class="text-end" style="min-width: 170px;">
+                                <div class="fw-bold text-nowrap">{{ row.amount|number_format(2, ',', ' ') }} MAD</div>
+                                <div class="progress mt-2" style="height: 6px;">
+                                    <div class="progress-bar bg-success" style="width: {{ percent > 100 ? 100 : percent }}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-secondary py-5">Aucun pointage sur cette periode.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xxl-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0">
+                <h2 class="h5 mb-1">Activite par jour</h2>
+                <p class="text-secondary small mb-0">Controle rapide des journees chargees.</p>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for day in dailySummaries|slice(0, 10) %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between gap-3">
+                            <div>
+                                <div class="fw-semibold">{{ day.date ? day.date|date('d/m/Y') : '-' }}</div>
+                                <div class="small text-secondary">{{ day.workersCount }} personne{{ day.workersCount > 1 ? 's' : '' }} - {{ day.count }} pointage{{ day.count > 1 ? 's' : '' }}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-semibold">{{ day.amount|number_format(2, ',', ' ') }} MAD</div>
+                                <div class="small text-secondary">{{ day.hours|number_format(2, ',', ' ') }} h</div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="list-group-item text-center text-secondary py-4">Aucune activite.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h2 class="h5 mb-1">Derniers pointages</h2>
+                <p class="text-secondary small mb-0">Les dernieres lignes incluses dans le calcul.</p>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for item in items|slice(0, 12) %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between gap-3">
+                            <div>
+                                <div class="fw-semibold">{{ item.worker ? item.worker.fullName : '-' }}</div>
+                                <div class="small text-secondary">{{ item.attendanceDate ? item.attendanceDate|date('d/m/Y') : '-' }} - {{ item.presenceLabel }}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-semibold">{{ item.totalAmountValue|number_format(2, ',', ' ') }} MAD</div>
+                                <div class="small text-secondary">{{ item.totalHoursValue|number_format(2, ',', ' ') }} h</div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="list-group-item text-center text-secondary py-4">Aucune ligne.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

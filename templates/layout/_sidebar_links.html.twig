@@ -135,6 +135,16 @@
                 {% endif %}
 
                 {% if module.slug == 'interimaires' %}
+                    {% if is_granted('MODULE_ACCESS', 'pointage-personnel') %}
+                        <a class="sidebar-sub-link ps-4 {{ current_route == 'app_interim_attendance_details' ? 'active' : '' }}" href="{{ path('app_interim_attendance_details') }}">
+                            <i class="bi bi-clipboard-data"></i>
+                            <span>Details pointage</span>
+                        </a>
+                        <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_interim_payment' ? 'active' : '' }}" href="{{ path('app_interim_payment_index') }}">
+                            <i class="bi bi-wallet2"></i>
+                            <span>Paiements</span>
+                        </a>
+                    {% endif %}
                     <a
                         class="sidebar-sub-link ps-4"
                         href="{{ path(module.routeName) }}#nouvel-intérimaire"
@@ -146,6 +156,14 @@
                 {% endif %}
 
                 {% if module.slug == 'pointage-personnel' %}
+                    <a class="sidebar-sub-link ps-4 {{ current_route == 'app_interim_attendance_details' ? 'active' : '' }}" href="{{ path('app_interim_attendance_details') }}">
+                        <i class="bi bi-clipboard-data"></i>
+                        <span>Details pointage</span>
+                    </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_interim_payment' ? 'active' : '' }}" href="{{ path('app_interim_payment_index') }}">
+                        <i class="bi bi-wallet2"></i>
+                        <span>Paiements</span>
+                    </a>
                     <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_interim_attendance_rate' ? 'active' : '' }}" href="{{ path('app_interim_attendance_rate_index') }}">
                         <i class="bi bi-cash-coin"></i>
                         <span>Tarifs pointage</span>
