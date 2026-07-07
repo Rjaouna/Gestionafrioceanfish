@@ -143,6 +143,62 @@ final readonly class FishReceptionService
         }
 
         $this->prepare($reception);
+        $this->prepareWorkflowCorrection($reception);
+        $this->assertInitialStorageLocationsCoherent($reception);
+        $this->assertQuantitiesCoherent($reception);
+        $this->assertWorkflowTraceabilityCoherent($reception);
+        $this->autoRefreshStatus($reception);
+        $this->entityManager->flush();
+
+        return $reception;
+    }
+
+    public function correctWorkflowStage(FishReception $reception, User $actor): FishReception
+    {
+        if (!$this->permission->canEdit($actor, $reception)) {
+            throw new AccessDeniedException();
+        }
+
+        $this->prepareWorkflowCorrection($reception);
+        $this->assertInitialStorageLocationsCoherent($reception);
+        $this->assertQuantitiesCoherent($reception);
+        $this->autoRefreshStatus($reception);
+        $this->entityManager->flush();
+
+        return $reception;
+    }
+
+    public function updateInitialStorageMovement(FishReception $reception, FishReceptionStorageMovement $movement, User $actor, float $availableQuantity, string $originalLocation, float $originalQuantity): FishReception
+    {
+        if (!$this->permission->canEdit($actor, $reception)) {
+            throw new AccessDeniedException();
+        }
+
+        if ($movement->getReception()?->getId() !== $reception->getId() || $movement->getStorageStage() !== FishReceptionStorageMovement::STAGE_INITIAL || $movement->getMovementType() !== FishReceptionStorageMovement::TYPE_INITIAL_ENTRY) {
+            throw new \DomainException('Mouvement de stockage initial invalide.');
+        }
+
+        $quantity = $movement->getAbsoluteQuantityKgValue();
+        $this->assertStageQuantity($reception, $quantity, $availableQuantity, 'la reception disponible pour cette ligne de stockage');
+        if (trim($movement->getLocation()) === '') {
+            throw new \DomainException('Selectionnez la chambre ou la zone de stockage initial.');
+        }
+        if (!$movement->getMovementDate() instanceof \DateTimeImmutable) {
+            throw new \DomainException('Indiquez la date du stockage initial.');
+        }
+
+        $capacityQuantity = trim($movement->getLocation()) === trim($originalLocation)
+            ? max(0.0, $quantity - $originalQuantity)
+            : $quantity;
+        if ($capacityQuantity > 0.001) {
+            $this->factoryUnitService->assertStorageCanReceive($actor, $movement->getLocation(), $capacityQuantity);
+        }
+        $movement
+            ->setQuantityKg($quantity)
+            ->setUpdatedAt(new \DateTimeImmutable())
+            ->setUpdatedBy($actor);
+
+        $this->assertInitialStorageLocationsCoherent($reception);
         $this->assertQuantitiesCoherent($reception);
         $this->autoRefreshStatus($reception);
         $this->entityManager->flush();
@@ -635,6 +691,57 @@ final readonly class FishReceptionService
         };
 
         $reception->setStatut($status);
+    }
+
+    private function prepareWorkflowCorrection(FishReception $reception): void
+    {
+        $reception->refreshCoutEmballage();
+    }
+
+    private function assertInitialStorageLocationsCoherent(FishReception $reception): void
+    {
+        $stocks = [];
+        foreach ($reception->getStorageMovements() as $movement) {
+            if ($movement->getStorageStage() !== FishReceptionStorageMovement::STAGE_INITIAL) {
+                continue;
+            }
+
+            $location = trim($movement->getLocation());
+            if ($location === '') {
+                continue;
+            }
+
+            $stocks[$location] = ($stocks[$location] ?? 0.0) + $movement->getQuantityKgValue();
+        }
+
+        foreach ($stocks as $location => $quantity) {
+            if ($quantity < -0.001) {
+                throw new \DomainException(sprintf('Stock initial incoherent pour %s : les sorties traitement depassent les entrees de %.3f kg.', $location, abs($quantity)));
+            }
+        }
+    }
+
+    private function assertWorkflowTraceabilityCoherent(FishReception $reception): void
+    {
+        if ($reception->getQuantiteTotalePrepareeValue() > 0.001 && (!$reception->getDateDebutTraitement() || !$reception->getHeureDebutTraitement())) {
+            throw new \DomainException('La correction traitement doit garder une date et une heure de debut traitement.');
+        }
+
+        if ($reception->getQuantiteCongeleeValue() > 0.001 && (!$reception->getTunnel() || !$reception->getDateEntreeTunnel() || !$reception->getHeureEntreeTunnel())) {
+            throw new \DomainException('La correction congelation doit garder le tunnel, la date et l heure d entree tunnel.');
+        }
+
+        if ($reception->getQuantiteStockeeValue() > 0.001 && (!$reception->getChambreFroide() || !$reception->getDateSortieTunnel() || !$reception->getHeureSortieTunnel() || !$reception->getDateEntreeStockage() || !$reception->getHeureEntreeStockage())) {
+            throw new \DomainException('La correction cristallisation doit garder la sortie tunnel et l entree en chambre.');
+        }
+
+        if ($reception->getQuantiteConditionneeValue() > 0.001 && (!$reception->getProduitConditionne() || !$reception->getDateConditionnement() || !$reception->getHeureDebutConditionnement() || !$reception->getHeureFinConditionnement() || !$reception->getChambreRemiseEnChambre() || !$reception->getDateRemiseEnChambre() || !$reception->getHeureRemiseEnChambre())) {
+            throw new \DomainException('La correction emballage doit garder les heures emballage et la chambre de retour.');
+        }
+
+        if ($reception->getQuantiteTotaleExpedieeValue() > 0.001 && (!$reception->getDestinationFinaleClient() || !$reception->getExpeditionDateDepart() || !$reception->getExpeditionHeureDepart() || !$reception->getExpeditionMatriculeVehicule() || !$reception->getExpeditionChauffeur() || !$reception->getExpeditionResponsableChargement())) {
+            throw new \DomainException('La correction expedition doit garder client, date, heure, camion, chauffeur et responsable chargement.');
+        }
     }
 
     private function assertQuantitiesCoherent(FishReception $reception): void

@@ -51,6 +51,7 @@
     {label: 'Emballage + chambre', icon: 'bi-box-arrow-in-down', done: item.quantiteRemiseEnChambreValue > 0.001, detail: ui.kg(item.quantiteRemiseEnChambre)},
     {label: 'Expedition', icon: 'bi-truck', done: item.quantiteTotaleExpedieeValue > 0.001 or item.expeditedAt, detail: ui.kg(item.quantiteTotaleExpediee)}
 ] %}
+{% set can_correct_workflow = is_granted('FISH_RECEPTION_EDIT', item) and not item.locked %}
 
 <div class="reception-show">
     <section class="reception-show-hero">
@@ -124,6 +125,11 @@
                         <h2>Réception matière première</h2>
                         <p>Contrôle fournisseur, transport, quantité BL et qualité à l'arrivée.</p>
                     </div>
+                    {% if can_correct_workflow %}
+                        <a class="btn btn-sm btn-outline-primary ms-auto" href="{{ path('app_fish_reception_edit', {id: item.id}) }}">
+                            <i class="bi bi-pencil-square me-1"></i>Corriger
+                        </a>
+                    {% endif %}
                 </div>
                 <div class="reception-info-grid">
                     {{ ui.row('Fournisseur', ui.text(item.fournisseur)) }}
@@ -152,6 +158,11 @@
                         <h2>Stockage initial avant traitement</h2>
                         <p>Dispatch de la reception dans les chambres avant lancement en production.</p>
                     </div>
+                    {% if can_correct_workflow and item.quantiteDisponibleReceptionValue > 0.001 %}
+                        <button class="btn btn-sm btn-outline-success ms-auto" type="button" data-remote-modal="{{ path('app_fish_reception_initial_storage_form', {id: item.id}) }}">
+                            <i class="bi bi-plus-circle me-1"></i>Stocker
+                        </button>
+                    {% endif %}
                 </div>
                 <div class="reception-info-grid mb-3">
                     {{ ui.row('Stocke initial', ui.kg(item.quantiteStockInitialEntreeValue), 'text-success') }}
@@ -191,6 +202,7 @@
                                     <th class="text-end">Quantite</th>
                                     <th>Temperature</th>
                                     <th>Par</th>
+                                    {% if can_correct_workflow %}<th class="text-end">Actions</th>{% endif %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -202,11 +214,22 @@
                                     <td class="text-end fw-semibold {{ movement.entryMovement ? 'text-success' : 'text-primary' }}">{{ movement.entryMovement ? '+' : '-' }}{{ ui.kg(movement.absoluteQuantityKgValue) }}</td>
                                     <td>{{ ui.temp(movement.temperatureChamber) }} / {{ ui.temp(movement.temperatureProduct) }}</td>
                                     <td>{{ movement.createdBy ? movement.createdBy.displayName : '-' }}</td>
+                                    {% if can_correct_workflow %}
+                                        <td class="text-end">
+                                            {% if movement.movementType == 'initial_entry' %}
+                                                <button class="btn btn-sm btn-outline-primary" type="button" data-remote-modal="{{ path('app_fish_reception_initial_storage_edit_form', {id: item.id, movement: movement.id}) }}" title="Corriger cette entree">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </button>
+                                            {% else %}
+                                                <span class="text-secondary small">Auto</span>
+                                            {% endif %}
+                                        </td>
+                                    {% endif %}
                                 </tr>
                                 {% if movement.note %}
                                     <tr>
                                         <td></td>
-                                        <td colspan="5" class="small text-secondary">{{ movement.note }}</td>
+                                        <td colspan="{{ can_correct_workflow ? 6 : 5 }}" class="small text-secondary">{{ movement.note }}</td>
                                     </tr>
                                 {% endif %}
                             {% endfor %}
@@ -225,6 +248,11 @@
                         <h2>Coûts d'entrée reception</h2>
                         <p>Achat matière et frais directs rattaches a la reception.</p>
                     </div>
+                    {% if can_correct_workflow %}
+                        <a class="btn btn-sm btn-outline-primary ms-auto" href="{{ path('app_fish_reception_edit', {id: item.id}) }}">
+                            <i class="bi bi-pencil-square me-1"></i>Corriger
+                        </a>
+                    {% endif %}
                 </div>
                 <div class="reception-info-grid">
                     {{ ui.row('Type opération', item.operationTypeLabel) }}
@@ -249,6 +277,11 @@
                         <h2>Traitement / Production</h2>
                         <p>Suivi des quantités préparées avant conditionnement.</p>
                     </div>
+                    {% if can_correct_workflow %}
+                        <button class="btn btn-sm btn-outline-primary ms-auto" type="button" data-remote-modal="{{ path('app_fish_reception_stage_correction_form', {id: item.id, stage: 'traitement'}) }}">
+                            <i class="bi bi-pencil-square me-1"></i>Corriger
+                        </button>
+                    {% endif %}
                 </div>
                 <div class="reception-progress-list">
                     <div>
@@ -282,6 +315,16 @@
                         <h2>Congelation et cristallisation</h2>
                         <p>Entree tunnel, sortie tunnel puis entree en chambre positive.</p>
                     </div>
+                    {% if can_correct_workflow %}
+                        <div class="ms-auto d-flex flex-wrap gap-1">
+                            <button class="btn btn-sm btn-outline-primary" type="button" data-remote-modal="{{ path('app_fish_reception_stage_correction_form', {id: item.id, stage: 'congelation'}) }}">
+                                <i class="bi bi-pencil-square me-1"></i>Congelation
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" type="button" data-remote-modal="{{ path('app_fish_reception_stage_correction_form', {id: item.id, stage: 'stockage'}) }}">
+                                <i class="bi bi-pencil-square me-1"></i>Cristallisation
+                            </button>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="reception-info-grid">
                     {{ ui.row('Tunnel', ui.text(item.tunnel)) }}
@@ -312,6 +355,16 @@
                         <h2>Emballage et expedition</h2>
                         <p>Emballage apres cristallisation avec retour immediat en chambre avant sortie client.</p>
                     </div>
+                    {% if can_correct_workflow %}
+                        <div class="ms-auto d-flex flex-wrap gap-1">
+                            <button class="btn btn-sm btn-outline-primary" type="button" data-remote-modal="{{ path('app_fish_reception_stage_correction_form', {id: item.id, stage: 'emballage'}) }}">
+                                <i class="bi bi-pencil-square me-1"></i>Emballage
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" type="button" data-remote-modal="{{ path('app_fish_reception_stage_correction_form', {id: item.id, stage: 'expedition'}) }}">
+                                <i class="bi bi-pencil-square me-1"></i>Expedition
+                            </button>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="reception-info-grid">
                     {{ ui.row('Date emballage', ui.date(item.dateConditionnement)) }}

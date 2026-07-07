@@ -10,6 +10,7 @@ use App\Form\FishReceptionFreezingType;
 use App\Form\FishReceptionPackagingType;
 use App\Form\FishReceptionReturnStorageType;
 use App\Form\FishReceptionShippingType;
+use App\Form\FishReceptionStageCorrectionType;
 use App\Form\FishReceptionStorageType;
 use App\Form\FishReceptionTreatmentCancelType;
 use App\Form\FishReceptionTreatmentType;
@@ -296,6 +297,40 @@ final class FishReceptionController extends AbstractController
         return $this->transition($reception, $request, 'validate_fish_reception_', 'Réception validée.', fn () => $this->receptionService->validateReception($reception, $this->currentUser()));
     }
 
+    #[Route('/{id}/etape/{stage}/correction/formulaire', name: 'app_fish_reception_stage_correction_form', requirements: ['id' => '\d+', 'stage' => 'traitement|congelation|stockage|emballage|expedition'], methods: ['GET'])]
+    public function stageCorrectionForm(FishReception $reception, string $stage): Response
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::EDIT, $reception);
+
+        return $this->render('fish_reception/_stage_correction_modal.html.twig', [
+            'item' => $reception,
+            'form' => $this->buildStageCorrectionForm($reception, $stage),
+            'title' => FishReceptionStageCorrectionType::STAGE_LABELS[$stage] ?? 'etape',
+        ]);
+    }
+
+    #[Route('/{id}/etape/{stage}/correction', name: 'app_fish_reception_stage_correction_update', requirements: ['id' => '\d+', 'stage' => 'traitement|congelation|stockage|emballage|expedition'], methods: ['POST'])]
+    public function updateStageCorrection(FishReception $reception, string $stage, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::EDIT, $reception);
+        $form = $this->buildStageCorrectionForm($reception, $stage);
+        $form->handleRequest($request);
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->jsonResponder->invalidForm($form);
+        }
+
+        try {
+            $this->receptionService->correctWorkflowStage($reception, $this->currentUser());
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
+
+        return $this->jsonResponder->success('Correction enregistree.', [
+            'closeModal' => true,
+            'refreshRegions' => ['fishReceptionGrid', 'fishReceptionFactoryOverview', 'fishReceptionShow'],
+        ]);
+    }
+
     #[Route('/{id}/stockage-initial/formulaire', name: 'app_fish_reception_initial_storage_form', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function initialStorageForm(FishReception $reception): Response
     {
@@ -338,6 +373,48 @@ final class FishReceptionController extends AbstractController
     public function startTreatment(FishReception $reception, Request $request): JsonResponse
     {
         return $this->transition($reception, $request, 'treatment_fish_reception_', 'Réception envoyée en traitement.', fn () => $this->receptionService->startTreatment($reception, $this->currentUser()));
+    }
+
+    #[Route('/{id}/stockage-initial/{movement}/modifier/formulaire', name: 'app_fish_reception_initial_storage_edit_form', requirements: ['id' => '\d+', 'movement' => '\d+'], methods: ['GET'])]
+    public function initialStorageMovementEditForm(FishReception $reception, FishReceptionStorageMovement $movement): Response
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::EDIT, $reception);
+        $this->assertInitialStorageMovementEditable($reception, $movement);
+
+        return $this->render('fish_reception/_stage_action_modal.html.twig', [
+            'item' => $reception,
+            'form' => $this->buildInitialStorageMovementForm($reception, $movement, $movement->getAbsoluteQuantityKgValue()),
+            'title' => 'Corriger stockage initial',
+            'message' => 'Corrigez la chambre, la date, l heure, la temperature ou la quantite stockee. Le stock par chambre ne peut pas devenir negatif.',
+            'icon' => 'bi-pencil-square',
+            'button_class' => 'btn-primary',
+        ]);
+    }
+
+    #[Route('/{id}/stockage-initial/{movement}/modifier', name: 'app_fish_reception_initial_storage_update', requirements: ['id' => '\d+', 'movement' => '\d+'], methods: ['POST'])]
+    public function updateInitialStorageMovement(FishReception $reception, FishReceptionStorageMovement $movement, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(FishReceptionVoter::EDIT, $reception);
+        $this->assertInitialStorageMovementEditable($reception, $movement);
+        $originalQuantity = $movement->getAbsoluteQuantityKgValue();
+        $originalLocation = $movement->getLocation();
+        $available = $reception->getQuantiteDisponibleStockageInitialValue() + $originalQuantity;
+        $form = $this->buildInitialStorageMovementForm($reception, $movement, $originalQuantity);
+        $form->handleRequest($request);
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->jsonResponder->invalidForm($form);
+        }
+
+        try {
+            $this->receptionService->updateInitialStorageMovement($reception, $movement, $this->currentUser(), $available, $originalLocation, $originalQuantity);
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
+
+        return $this->jsonResponder->success('Stockage initial corrige.', [
+            'closeModal' => true,
+            'refreshRegions' => ['fishReceptionGrid', 'fishReceptionFactoryOverview', 'fishReceptionShow'],
+        ]);
     }
 
     #[Route('/{id}/traitement/formulaire', name: 'app_fish_reception_treatment_form', requirements: ['id' => '\d+'], methods: ['GET'])]
@@ -674,6 +751,17 @@ final class FishReceptionController extends AbstractController
         ]);
     }
 
+    private function buildStageCorrectionForm(FishReception $reception, string $stage): FormInterface
+    {
+        return $this->createForm(FishReceptionStageCorrectionType::class, $reception, [
+            'action' => $this->generateUrl('app_fish_reception_stage_correction_update', ['id' => $reception->getId(), 'stage' => $stage]),
+            'stage' => $stage,
+            'tunnel_choices' => $this->factoryUnitService->tunnelChoices($this->currentUser(), $reception->getTunnel()),
+            'positive_storage_choices' => $this->factoryUnitService->positiveStorageChoices($this->currentUser(), $stage === FishReceptionStageCorrectionType::STAGE_PACKAGING ? $reception->getChambreRemiseEnChambre() : $reception->getChambreFroide()),
+            'validation_groups' => false,
+        ]);
+    }
+
     /** @return array<string, string> */
     private function filtersFromRequest(Request $request, ?string $stage = null): array
     {
@@ -795,6 +883,18 @@ final class FishReceptionController extends AbstractController
         ]);
     }
 
+    private function buildInitialStorageMovementForm(FishReception $reception, FishReceptionStorageMovement $movement, float $originalQuantity): FormInterface
+    {
+        return $this->createForm(FishReceptionInitialStorageType::class, $movement, [
+            'action' => $this->generateUrl('app_fish_reception_initial_storage_update', ['id' => $reception->getId(), 'movement' => $movement->getId()]),
+            'available_quantity' => $reception->getQuantiteDisponibleStockageInitialValue() + $originalQuantity,
+            'factory_unit_choices' => $this->factoryUnitService->storageChoices($this->currentUser(), $movement->getLocation()),
+            'capacity_check_url' => $this->generateUrl('app_fish_reception_storage_capacity_check', ['id' => $reception->getId()]),
+            'attr' => ['data-factory-capacity-form' => 'true'],
+            'validation_groups' => false,
+        ]);
+    }
+
     /** @return array<string, string> */
     private function initialStockSourceChoices(FishReception $reception): array
     {
@@ -804,6 +904,13 @@ final class FishReceptionController extends AbstractController
         }
 
         return $choices;
+    }
+
+    private function assertInitialStorageMovementEditable(FishReception $reception, FishReceptionStorageMovement $movement): void
+    {
+        if ($movement->getReception()?->getId() !== $reception->getId() || $movement->getStorageStage() !== FishReceptionStorageMovement::STAGE_INITIAL || $movement->getMovementType() !== FishReceptionStorageMovement::TYPE_INITIAL_ENTRY) {
+            throw $this->createNotFoundException('Mouvement de stockage initial introuvable.');
+        }
     }
 
     private function downloadExcelTemplate(string $stage, ?FishReception $reception): BinaryFileResponse

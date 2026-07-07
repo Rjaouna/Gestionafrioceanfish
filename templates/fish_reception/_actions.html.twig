@@ -168,6 +168,29 @@
                     </li>
                 {% endif %}
 
+                {% if can_edit %}
+                    {% if can_view or can_transition %}<li><hr class="dropdown-divider"></li>{% endif %}
+                    <li><h6 class="dropdown-header">Corrections</h6></li>
+                    <li>
+                        <a class="dropdown-item" href="{{ path('app_fish_reception_edit', {id: item.id}) }}">
+                            <i class="bi bi-pencil-square me-2"></i>Reception et couts
+                        </a>
+                    </li>
+                    {% for correction_stage, correction_label in {
+                        traitement: 'Traitement / Production',
+                        congelation: 'Congelation',
+                        stockage: 'Cristallisation',
+                        emballage: 'Emballage + retour chambre',
+                        expedition: 'Expedition'
+                    } %}
+                        <li>
+                            <button class="dropdown-item" type="button" data-remote-modal="{{ path('app_fish_reception_stage_correction_form', {id: item.id, stage: correction_stage}) }}">
+                                <i class="bi bi-pencil-square me-2"></i>{{ correction_label }}
+                            </button>
+                        </li>
+                    {% endfor %}
+                {% endif %}
+
                 {% if can_delete %}
                     <li><hr class="dropdown-divider"></li>
                     <li>

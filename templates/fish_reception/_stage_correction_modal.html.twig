@@ -1,0 +1,30 @@
+{{ form_start(form, {attr: form.vars.attr|merge({'data-ajax-form': 'true'})}) }}
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">Corriger {{ title }}</h2>
+            <p class="text-secondary small mb-0">{{ item.numeroReception }} - {{ item.fournisseur }} - {{ item.especePoisson }}</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-warning small">
+            <i class="bi bi-pencil-square me-2"></i>Ces valeurs remplacent les informations deja validees. Les controles de quantite du workflow restent actifs.
+        </div>
+        <div class="row g-3">
+            {% for child in form %}
+                {% if child.vars.name != '_token' %}
+                    <div class="{{ 'textarea' in child.vars.block_prefixes ? 'col-12' : 'col-md-4' }}">
+                        {{ form_row(child) }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {{ form_rest(form) }}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check2 me-2"></i>Enregistrer correction
+        </button>
+    </div>
+{{ form_end(form) }}
