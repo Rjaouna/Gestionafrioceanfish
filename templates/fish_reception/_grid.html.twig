@@ -40,6 +40,9 @@
                     <th class="text-end">{{ source_label }}</th>
                     <th class="text-end">{{ moved_label }}</th>
                     <th class="text-end">{{ available_label }}</th>
+                    {% if stage == 'reception' %}
+                        <th class="text-end">Reste non traite</th>
+                    {% endif %}
                     <th>Suivi</th>
                     <th>Statut</th>
                     <th class="text-end">Actions</th>
@@ -50,6 +53,7 @@
                     {% set source = stage == 'traitement' ? item.quantiteStockInitialEntreeValue : (stage == 'congelation' ? item.quantiteEnTraitementValue : (stage == 'stockage' ? item.quantiteCongeleeValue : (stage == 'emballage' ? item.quantiteStockeeValue : (stage == 'expedition' ? item.quantiteExpediableValue : item.quantiteReceptionneeValue)))) %}
                     {% set moved = stage == 'reception' ? item.quantiteStockInitialEntreeValue : (stage == 'traitement' ? item.quantiteTotalePrepareeValue : (stage == 'congelation' ? item.totalSortieTraitementValue : (stage == 'stockage' ? item.quantiteStockeeValue : (stage == 'emballage' ? item.quantiteConditionneeValue : item.quantiteTotaleExpedieeValue)))) %}
                     {% set available = stage == 'traitement' ? item.quantiteDisponibleTraitementSourceValue : (stage == 'congelation' ? item.quantiteDisponibleTraitementValue : (stage == 'stockage' ? item.quantiteDisponibleCongelationValue : (stage == 'emballage' ? item.quantiteDisponibleCristallisationValue : (stage == 'expedition' ? item.quantiteDisponibleStockageValue : item.quantiteDisponibleReceptionValue)))) %}
+                    {% set remaining_before_treatment = item.quantiteResteAvantTraitementValue %}
                     {% set row_class = item.statut == 'bloquee' ? 'table-danger' : (available <= 0.001 and moved > 0 ? 'table-light' : '') %}
                     <tr class="{{ row_class }}">
                         <td class="text-nowrap">{{ item.dateReception ? item.dateReception|date('d/m/Y') : '-' }}</td>
@@ -88,6 +92,20 @@
                                 {% endif %}
                             </div>
                         </td>
+                        {% if stage == 'reception' %}
+                            <td class="text-end fw-semibold {{ remaining_before_treatment <= 0.001 ? 'text-secondary' : (remaining_before_treatment < item.quantiteReceptionneeValue ? 'text-warning' : 'text-success') }}">
+                                {{ remaining_before_treatment|number_format(3, ',', ' ')|replace({',000': ''}) }} kg
+                                <div>
+                                    {% if remaining_before_treatment <= 0.001 %}
+                                        <span class="badge text-bg-dark">Tout sorti</span>
+                                    {% elseif remaining_before_treatment < item.quantiteReceptionneeValue %}
+                                        <span class="badge text-bg-warning">Reste</span>
+                                    {% else %}
+                                        <span class="badge text-bg-success">Non sorti</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        {% endif %}
                         <td>
                             {% if stage == 'traitement' %}
                                 <div>En traitement {{ item.quantiteEnTraitementValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>

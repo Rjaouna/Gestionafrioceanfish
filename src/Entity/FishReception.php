@@ -2064,6 +2064,18 @@ class FishReception
         return $this->getQuantiteDisponibleStockInitialValue();
     }
 
+    public function getQuantiteResteAvantTraitementValue(): float
+    {
+        $netTreatmentExit = max(0.0, $this->getQuantiteStockInitialSortieValue() - $this->getQuantiteStockInitialRetourValue());
+        $usedBeforeTreatment = max(
+            $netTreatmentExit,
+            $this->getQuantiteTotalePrepareeValue(),
+            $this->getQuantiteUtiliseeProductionValue(),
+        );
+
+        return max(0.0, $this->getQuantiteReceptionneeValue() - $usedBeforeTreatment);
+    }
+
     public function getQuantiteDisponibleTraitementValue(): float
     {
         return max(0.0, $this->getQuantiteEnTraitementValue() - $this->getTotalSortieTraitementValue());
