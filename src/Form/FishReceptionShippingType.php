@@ -36,7 +36,7 @@ final class FishReceptionShippingType extends AbstractType
         ];
 
         $builder
-            ->add('quantity', NumberType::class, $this->quantityOptions('Quantité à expédier (kg)', (float) $options['available_quantity']))
+            ->add('quantity', NumberType::class, $this->quantityOptions('Poids net a expedier (kg)', (float) $options['available_quantity']))
             ->add('expeditionDateDepart', DateType::class, [
                 'label' => 'Date expédition',
                 'required' => true,
@@ -95,10 +95,10 @@ final class FishReceptionShippingType extends AbstractType
                 'data-stage-quantity-limit' => 'true',
                 'data-stage-available' => (string) round(max(0.0, $available), 3),
                 'data-stage-requested-label' => 'a expedier',
-                'data-stage-available-label' => 'en stock disponible',
-                'data-stage-submit-message' => 'Quantite a expedier superieure au stock disponible.',
+                'data-stage-available-label' => 'net disponible',
+                'data-stage-submit-message' => 'Poids net a expedier superieur au poids net disponible.',
             ],
-            'help' => sprintf('Disponible en stock : %.3f kg', max(0.0, $available)),
+            'help' => sprintf('Poids net disponible apres emballage : %.3f kg', max(0.0, $available)),
         ];
     }
 

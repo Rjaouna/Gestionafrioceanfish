@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\FactoryUnit;
 use App\Entity\FishReception;
+use App\Entity\FishReceptionStorageMovement;
 use App\Entity\User;
 use App\Repository\FactoryUnitRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,7 +17,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:fish-reception:inject-july-2026',
-    description: 'Simulates or injects the real July 2026 reception dataset at reception stage only.',
+    description: 'Simulates or injects the July 2026 reception dataset with Anchois workflow.',
 )]
 final class InjectJulyFishReceptionsCommand extends Command
 {
@@ -54,7 +55,7 @@ final class InjectJulyFishReceptionsCommand extends Command
         $rows = $this->dataset($year, $chambre1['value'], $chambre2['value'], $tunnel1['value'], $tunnel2['value']);
 
         $io->title('Injection receptions poisson - jeu terrain juillet '.$year);
-        $io->section('Pieces usine reperees pour les observations');
+        $io->section('Pieces usine utilisees');
         $io->table(
             ['Usage', 'Valeur stockee', 'Piece detectee'],
             [
@@ -74,17 +75,17 @@ final class InjectJulyFishReceptionsCommand extends Command
                 $row['especePoisson'],
                 number_format((float) $row['quantiteIndiqueeBl'], 3, ',', ' '),
                 number_format((float) $row['quantiteReceptionnee'], 3, ',', ' '),
-                'Receptionnee',
+                FishReception::STATUS_LABELS[$row['statut'] ?? FishReception::STATUS_RECEIVED] ?? 'Receptionnee',
                 $row['destinationPrevue'],
                 $row['resume'],
             ], $rows),
         );
 
         $io->note([
-            'Dates interpretees : 27/29/30 = juin '.$year.' ; hier = 04/07/'.$year.'.',
-            'Toutes les lignes sont injectees uniquement a l etape Reception : aucun traitement, emballage, congelation, stockage ou expedition n est valide automatiquement.',
-            'Les estimations et destinations prevues restent dans les observations pour gerer ensuite chaque reception cas par cas.',
-            'Les pieces declarees dans Composition usine sont seulement reperees pour l aide metier, pas utilisees comme stock actif.',
+            'Dates interpretees : receptions 27/29/30 juin '.$year.', productions Anchois du 02/07 au 07/07/'.$year.'.',
+            'Maquereau : cree uniquement en reception, sans workflow valide.',
+            'Anchois 2000/3000 : workflow simule avec stockage initial, sorties traitement, tunnel 1, cristallisation et emballage partiel de 700 kg.',
+            'Hypothese retenue : sorties traitement 600/600/600/600/604 kg. Le stock MP restant calcule est note dans les observations avec la mention terrain environ 2500 kg.',
         ]);
 
         if (!$force) {
@@ -107,6 +108,7 @@ final class InjectJulyFishReceptionsCommand extends Command
             if (!$append) {
                 $purged = (int) $connection->fetchOne('SELECT COUNT(*) FROM fish_reception');
                 $connection->executeStatement('UPDATE cout_revient SET reception_id = NULL WHERE reception_id IS NOT NULL');
+                $connection->executeStatement('DELETE FROM fish_reception_storage_movement');
                 $connection->executeStatement('DELETE FROM fish_reception');
             }
 
@@ -178,6 +180,17 @@ final class InjectJulyFishReceptionsCommand extends Command
     {
         $maquereau1Stock = round(5060 * 0.96, 3);
         $maquereau2Stock = round(8043 * 0.96, 3);
+        $anchois1Prepared = 2000.000;
+        $anchois1Finished = 1008.000;
+        $anchois1Waste = 618.333;
+        $anchois1Loss = round($anchois1Prepared - $anchois1Finished - $anchois1Waste, 3);
+        $anchois2Prepared = 1004.000;
+        $anchois2Finished = 554.240;
+        $anchois2Waste = 345.667;
+        $anchois2Loss = round($anchois2Prepared - $anchois2Finished - $anchois2Waste, 3);
+        $packagedGross = 700.000;
+        $packagingLoss = 28.000;
+        $packagedNet = $packagedGross - $packagingLoss;
 
         return [
             $this->row([
@@ -283,34 +296,110 @@ final class InjectJulyFishReceptionsCommand extends Command
                 'numeroBonLivraison' => sprintf('BL-%d-06-29-02', $year),
                 'quantiteIndiqueeBl' => 2000,
                 'quantiteReceptionnee' => 2000,
-                'quantiteTotalePreparee' => 2000,
-                'quantiteConditionnee' => 2000,
-                'quantiteCongelee' => 2000,
-                'quantiteStockee' => 2000,
                 'poidsMoyenParCaisse' => 20,
                 'nombreMoules' => 0,
                 'temperaturePoissonReception' => -18,
-                'temperatureEauGlacee' => null,
                 'presenceGlace' => false,
-                'categorieFraicheur' => 'Congelé',
-                'dateDebutTraitement' => sprintf('%d-06-29', $year),
-                'heureDebutTraitement' => '16:30',
-                'dateConditionnement' => sprintf('%d-06-29', $year),
-                'heureDebutConditionnement' => '16:45',
-                'heureFinConditionnement' => '17:10',
-                'produitConditionne' => 'Anchois congele',
-                'tunnel' => null,
-                'heureEntreeTunnel' => null,
-                'dateSortieTunnel' => null,
-                'temperatureTunnel' => null,
-                'temperatureCoeurProduit' => -18,
+                'categorieFraicheur' => 'Congele',
+                'simulateWorkflow' => true,
+                'statut' => FishReception::STATUS_RETURNED_TO_ROOM,
+                'quantiteTotalePreparee' => $anchois1Prepared,
+                'quantiteConditionnee' => $packagedGross,
+                'quantiteCongelee' => $anchois1Finished,
+                'quantiteStockee' => $anchois1Finished,
+                'quantiteUtiliseeProduction' => $anchois1Prepared,
+                'poidsDechetsTraitement' => $anchois1Waste,
+                'poidsPertesTraitement' => $anchois1Loss,
+                'poidsDechetsEmballage' => 0,
+                'poidsPertesEmballage' => $packagingLoss,
+                'poidsNet' => $packagedNet,
+                'quantiteRemiseEnChambre' => $packagedGross,
+                'temperatureEauGlacee' => -2,
+                'nombreCaissesApresTraitement' => (int) ceil($anchois1Finished / 20),
+                'nombreCaissesParPalette' => self::BOXES_PER_PALLET,
+                'nombreTotalPalettes' => 1,
+                'dateDebutTraitement' => sprintf('%d-07-02', $year),
+                'heureDebutTraitement' => '08:00',
+                'dateConditionnement' => sprintf('%d-07-07', $year),
+                'heureDebutConditionnement' => '12:00',
+                'heureFinConditionnement' => '18:42',
+                'produitConditionne' => 'Anchois emballe',
+                'tunnel' => $tunnel1,
+                'dateEntreeTunnel' => sprintf('%d-07-06', $year),
+                'heureEntreeTunnel' => '10:30',
+                'heureSortieTunnel' => '11:45',
+                'dateSortieTunnel' => sprintf('%d-07-06', $year),
+                'temperatureTunnel' => -32,
+                'temperatureCoeurProduit' => -1,
                 'chambreFroide' => $chambre1,
-                'dateEntreeStockage' => sprintf('%d-06-29', $year),
-                'heureEntreeStockage' => '17:30',
-                'temperatureChambre' => -20,
-                'temperatureStockage' => -18,
-                'resume' => 'Anchois recu congele, stockage direct.',
-                'observations' => 'Reception terrain du 29 : Anchois 2000 kg BL, 2000 kg reel, reçu déjà congelé et stocke directement en Chambre negative 1. Les étapes intermédiaires sont renseignees pour garder un workflow coherent.',
+                'dateEntreeStockage' => sprintf('%d-07-06', $year),
+                'heureEntreeStockage' => '12:05',
+                'temperatureChambre' => -18,
+                'temperatureStockage' => -1,
+                'chambreRemiseEnChambre' => $chambre1,
+                'dateRemiseEnChambre' => sprintf('%d-07-07', $year),
+                'heureRemiseEnChambre' => '18:50',
+                'temperatureChambreRemise' => -18,
+                'temperatureProduitRemise' => 0,
+                'storageMovements' => [
+                    [
+                        'stage' => FishReceptionStorageMovement::STAGE_INITIAL,
+                        'type' => FishReceptionStorageMovement::TYPE_INITIAL_ENTRY,
+                        'location' => $chambre1,
+                        'quantity' => 2000,
+                        'date' => sprintf('%d-06-29', $year),
+                        'time' => '17:10',
+                        'temperatureChamber' => -18,
+                        'temperatureProduct' => -18,
+                        'note' => 'Stockage initial Anchois 2000 kg en chambre negative 1.',
+                    ],
+                    [
+                        'stage' => FishReceptionStorageMovement::STAGE_INITIAL,
+                        'type' => FishReceptionStorageMovement::TYPE_INITIAL_EXIT,
+                        'location' => $chambre1,
+                        'quantity' => -600,
+                        'date' => sprintf('%d-07-02', $year),
+                        'time' => '08:00',
+                        'temperatureChamber' => -18,
+                        'temperatureProduct' => -1,
+                        'note' => 'Traitement 600 kg : PF 288 kg, dechets 266 kg, pertes 46 kg.',
+                    ],
+                    [
+                        'stage' => FishReceptionStorageMovement::STAGE_INITIAL,
+                        'type' => FishReceptionStorageMovement::TYPE_INITIAL_EXIT,
+                        'location' => $chambre1,
+                        'quantity' => -600,
+                        'date' => sprintf('%d-07-03', $year),
+                        'time' => '08:10',
+                        'temperatureChamber' => -18,
+                        'temperatureProduct' => -1,
+                        'note' => 'Traitement 600 kg : PF 300 kg, dechets 175 kg, pertes 125 kg.',
+                    ],
+                    [
+                        'stage' => FishReceptionStorageMovement::STAGE_INITIAL,
+                        'type' => FishReceptionStorageMovement::TYPE_INITIAL_EXIT,
+                        'location' => $chambre1,
+                        'quantity' => -600,
+                        'date' => sprintf('%d-07-04', $year),
+                        'time' => '08:05',
+                        'temperatureChamber' => -18,
+                        'temperatureProduct' => 0,
+                        'note' => 'Traitement 600 kg : PF 312 kg, dechets 107 kg, pertes 181 kg.',
+                    ],
+                    [
+                        'stage' => FishReceptionStorageMovement::STAGE_INITIAL,
+                        'type' => FishReceptionStorageMovement::TYPE_INITIAL_EXIT,
+                        'location' => $chambre1,
+                        'quantity' => -200,
+                        'date' => sprintf('%d-07-06', $year),
+                        'time' => '08:00',
+                        'temperatureChamber' => -18,
+                        'temperatureProduct' => 0,
+                        'note' => 'Traitement 200 kg : PF 108 kg, dechets 70.333 kg, pertes 21.667 kg.',
+                    ],
+                ],
+                'resume' => 'Anchois 2000 kg : workflow simule, 700 kg emballes, 672 kg net.',
+                'observations' => 'Reception terrain du 29 : Anchois 2000 kg BL, 2000 kg reel, recu congele puis stocke en Chambre negative 1. Simulation traitement : 02/07 600 kg, 03/07 600 kg, 04/07 600 kg, 06/07 200 kg. Totaux : prepare 2000 kg, produit fini 1008 kg, dechets 618.333 kg, pertes 373.667 kg. Tunnel 1 entre 45 min et 1h15 par production, temperature tunnel simulee -32 deg C, eau -2 deg C, coeur produit -1 deg C. Emballage du 07/07 : 700 kg, perte 28 kg, poids net 672 kg, retour en chambre negative 1.',
             ]),
             $this->row([
                 'numeroReception' => sprintf('REC-%d-0004', $year),
@@ -326,34 +415,83 @@ final class InjectJulyFishReceptionsCommand extends Command
                 'numeroBonLivraison' => sprintf('BL-%d-06-30-01', $year),
                 'quantiteIndiqueeBl' => 3000,
                 'quantiteReceptionnee' => 3000,
-                'quantiteTotalePreparee' => 3000,
-                'quantiteConditionnee' => 3000,
-                'quantiteCongelee' => 3000,
-                'quantiteStockee' => 3000,
                 'poidsMoyenParCaisse' => 20,
                 'nombreMoules' => 0,
                 'temperaturePoissonReception' => -18,
-                'temperatureEauGlacee' => null,
                 'presenceGlace' => false,
-                'categorieFraicheur' => 'Congelé',
-                'dateDebutTraitement' => sprintf('%d-06-30', $year),
-                'heureDebutTraitement' => '10:30',
-                'dateConditionnement' => sprintf('%d-06-30', $year),
-                'heureDebutConditionnement' => '10:45',
-                'heureFinConditionnement' => '11:10',
-                'produitConditionne' => 'Anchois congele',
-                'tunnel' => null,
-                'heureEntreeTunnel' => null,
-                'dateSortieTunnel' => null,
-                'temperatureTunnel' => null,
-                'temperatureCoeurProduit' => -18,
+                'categorieFraicheur' => 'Congele',
+                'simulateWorkflow' => true,
+                'statut' => FishReception::STATUS_STORED,
+                'quantiteTotalePreparee' => $anchois2Prepared,
+                'quantiteConditionnee' => 0,
+                'quantiteCongelee' => $anchois2Finished,
+                'quantiteStockee' => $anchois2Finished,
+                'quantiteUtiliseeProduction' => $anchois2Prepared,
+                'poidsDechetsTraitement' => $anchois2Waste,
+                'poidsPertesTraitement' => $anchois2Loss,
+                'poidsDechetsEmballage' => 0,
+                'poidsPertesEmballage' => 0,
+                'poidsNet' => 0,
+                'quantiteRemiseEnChambre' => 0,
+                'temperatureEauGlacee' => -2,
+                'nombreCaissesApresTraitement' => (int) ceil($anchois2Finished / 20),
+                'nombreCaissesParPalette' => self::BOXES_PER_PALLET,
+                'nombreTotalPalettes' => 1,
+                'dateDebutTraitement' => sprintf('%d-07-06', $year),
+                'heureDebutTraitement' => '08:20',
+                'dateConditionnement' => null,
+                'heureDebutConditionnement' => null,
+                'heureFinConditionnement' => null,
+                'produitConditionne' => null,
+                'tunnel' => $tunnel1,
+                'dateEntreeTunnel' => sprintf('%d-07-07', $year),
+                'heureEntreeTunnel' => '10:45',
+                'heureSortieTunnel' => '12:00',
+                'dateSortieTunnel' => sprintf('%d-07-07', $year),
+                'temperatureTunnel' => -28,
+                'temperatureCoeurProduit' => 0,
                 'chambreFroide' => $chambre2,
-                'dateEntreeStockage' => sprintf('%d-06-30', $year),
-                'heureEntreeStockage' => '11:30',
-                'temperatureChambre' => -20,
-                'temperatureStockage' => -18,
-                'resume' => 'Anchois recu congele, stockage direct.',
-                'observations' => 'Reception terrain du 30 : Anchois 3000 kg BL, 3000 kg reel, reçu déjà congelé et stocke directement en Chambre negative 2. Les étapes intermédiaires sont renseignees pour garder un workflow coherent.',
+                'dateEntreeStockage' => sprintf('%d-07-07', $year),
+                'heureEntreeStockage' => '12:15',
+                'temperatureChambre' => -18,
+                'temperatureStockage' => 0,
+                'storageMovements' => [
+                    [
+                        'stage' => FishReceptionStorageMovement::STAGE_INITIAL,
+                        'type' => FishReceptionStorageMovement::TYPE_INITIAL_ENTRY,
+                        'location' => $chambre2,
+                        'quantity' => 3000,
+                        'date' => sprintf('%d-06-30', $year),
+                        'time' => '11:15',
+                        'temperatureChamber' => -18,
+                        'temperatureProduct' => -18,
+                        'note' => 'Stockage initial Anchois 3000 kg en chambre negative 2.',
+                    ],
+                    [
+                        'stage' => FishReceptionStorageMovement::STAGE_INITIAL,
+                        'type' => FishReceptionStorageMovement::TYPE_INITIAL_EXIT,
+                        'location' => $chambre2,
+                        'quantity' => -400,
+                        'date' => sprintf('%d-07-06', $year),
+                        'time' => '08:20',
+                        'temperatureChamber' => -18,
+                        'temperatureProduct' => 0,
+                        'note' => 'Traitement 400 kg : PF 216 kg, dechets 140.667 kg, pertes 43.333 kg.',
+                    ],
+                    [
+                        'stage' => FishReceptionStorageMovement::STAGE_INITIAL,
+                        'type' => FishReceptionStorageMovement::TYPE_INITIAL_EXIT,
+                        'location' => $chambre2,
+                        'quantity' => -604,
+                        'date' => sprintf('%d-07-07', $year),
+                        'time' => '08:15',
+                        'temperatureChamber' => -18,
+                        'temperatureProduct' => 0,
+                        'note' => 'Traitement 604 kg : PF 338.240 kg, dechets 205 kg, pertes 60.760 kg.',
+                    ],
+                ],
+                'resume' => 'Anchois 3000 kg : workflow simule, reste MP calcule 1996 kg.',
+                'observations' => 'Reception terrain du 30 : Anchois 3000 kg BL, 3000 kg reel, recu congele puis stocke en Chambre negative 2. Simulation traitement : 06/07 400 kg, 07/07 604 kg. Totaux : prepare 1004 kg, produit fini 554.240 kg, dechets 345.667 kg, pertes 104.093 kg. Tunnel 1 entre 45 min et 1h15 par production, temperature tunnel simulee -28 deg C, eau -2 deg C, coeur produit 0 deg C. Stock MP restant calcule : 1996 kg ; note terrain fournie : environ 2500 kg restant.',
             ]),
         ];
     }
@@ -367,6 +505,7 @@ final class InjectJulyFishReceptionsCommand extends Command
     {
         $received = (float) $data['quantiteReceptionnee'];
         $boxWeight = max(0.001, (float) ($data['poidsMoyenParCaisse'] ?? 1));
+        $simulateWorkflow = (bool) ($data['simulateWorkflow'] ?? false);
         $plannedSteps = [];
         if (trim((string) ($data['tunnel'] ?? '')) !== '') {
             $plannedSteps[] = 'tunnel prevu '.$data['tunnel'];
@@ -377,37 +516,100 @@ final class InjectJulyFishReceptionsCommand extends Command
 
         $data['nombreCaissesReception'] = (int) ceil($received / $boxWeight);
         $data['destinationPrevue'] = $plannedSteps !== [] ? implode(' / ', $plannedSteps) : 'A definir depuis l interface';
-        $data['observations'] = trim((string) ($data['observations'] ?? '')).' Import volontairement limite a l etape reception : lancer le traitement, le conditionnement, la congelation, le stockage et l expedition depuis l interface, cas par cas. '.$data['destinationPrevue'].'.';
+        $data['observations'] = trim((string) ($data['observations'] ?? ''));
 
-        $data['quantiteTotalePreparee'] = 0;
-        $data['quantiteConditionnee'] = 0;
-        $data['quantiteCongelee'] = 0;
-        $data['quantiteStockee'] = 0;
-        $data['quantiteUtiliseeProduction'] = 0;
-        $data['dateDebutTraitement'] = null;
-        $data['heureDebutTraitement'] = null;
-        $data['temperatureEauGlacee'] = null;
-        $data['nombreCaissesApresTraitement'] = 0;
-        $data['poidsMoyenParCaisse'] = 0;
-        $data['nombreMoules'] = 0;
-        $data['nombreCaissesParPalette'] = 0;
-        $data['nombreTotalPalettes'] = 0;
-        $data['dateConditionnement'] = null;
-        $data['heureDebutConditionnement'] = null;
-        $data['heureFinConditionnement'] = null;
-        $data['produitConditionne'] = null;
-        $data['poidsNet'] = 0;
-        $data['tunnel'] = null;
-        $data['heureEntreeTunnel'] = null;
-        $data['heureSortieTunnel'] = null;
-        $data['temperatureTunnel'] = null;
-        $data['dateSortieTunnel'] = null;
-        $data['temperatureCoeurProduit'] = null;
-        $data['chambreFroide'] = null;
-        $data['temperatureChambre'] = null;
-        $data['dateEntreeStockage'] = null;
-        $data['heureEntreeStockage'] = null;
-        $data['temperatureStockage'] = null;
+        $data += [
+            'statut' => FishReception::STATUS_RECEIVED,
+            'quantiteTotalePreparee' => 0,
+            'quantiteConditionnee' => 0,
+            'quantiteCongelee' => 0,
+            'quantiteStockee' => 0,
+            'quantiteUtiliseeProduction' => 0,
+            'dateDebutTraitement' => null,
+            'heureDebutTraitement' => null,
+            'temperatureEauGlacee' => null,
+            'nombreCaissesApresTraitement' => 0,
+            'poidsMoyenParCaisse' => 0,
+            'nombreMoules' => 0,
+            'nombreCaissesParPalette' => 0,
+            'nombreTotalPalettes' => 0,
+            'poidsDechetsTraitement' => 0,
+            'poidsPertesTraitement' => 0,
+            'dateConditionnement' => null,
+            'heureDebutConditionnement' => null,
+            'heureFinConditionnement' => null,
+            'produitConditionne' => null,
+            'poidsNet' => 0,
+            'poidsDechetsEmballage' => 0,
+            'poidsPertesEmballage' => 0,
+            'tunnel' => null,
+            'dateEntreeTunnel' => null,
+            'heureEntreeTunnel' => null,
+            'heureSortieTunnel' => null,
+            'temperatureTunnel' => null,
+            'dateSortieTunnel' => null,
+            'temperatureCoeurProduit' => null,
+            'chambreFroide' => null,
+            'temperatureChambre' => null,
+            'dateEntreeStockage' => null,
+            'heureEntreeStockage' => null,
+            'temperatureStockage' => null,
+            'chambreRemiseEnChambre' => null,
+            'dateRemiseEnChambre' => null,
+            'heureRemiseEnChambre' => null,
+            'temperatureChambreRemise' => null,
+            'temperatureProduitRemise' => null,
+            'quantiteRemiseEnChambre' => 0,
+            'storageMovements' => [],
+        ];
+
+        if (!$simulateWorkflow) {
+            $data['observations'] .= ' Import volontairement limite a l etape reception : lancer le traitement, le conditionnement, la congelation, le stockage et l expedition depuis l interface, cas par cas. '.$data['destinationPrevue'].'.';
+            $data['statut'] = FishReception::STATUS_RECEIVED;
+            $data['quantiteTotalePreparee'] = 0;
+            $data['quantiteConditionnee'] = 0;
+            $data['quantiteCongelee'] = 0;
+            $data['quantiteStockee'] = 0;
+            $data['quantiteUtiliseeProduction'] = 0;
+            $data['dateDebutTraitement'] = null;
+            $data['heureDebutTraitement'] = null;
+            $data['temperatureEauGlacee'] = null;
+            $data['nombreCaissesApresTraitement'] = 0;
+            $data['poidsMoyenParCaisse'] = 0;
+            $data['nombreMoules'] = 0;
+            $data['nombreCaissesParPalette'] = 0;
+            $data['nombreTotalPalettes'] = 0;
+            $data['poidsDechetsTraitement'] = 0;
+            $data['poidsPertesTraitement'] = 0;
+            $data['dateConditionnement'] = null;
+            $data['heureDebutConditionnement'] = null;
+            $data['heureFinConditionnement'] = null;
+            $data['produitConditionne'] = null;
+            $data['poidsNet'] = 0;
+            $data['poidsDechetsEmballage'] = 0;
+            $data['poidsPertesEmballage'] = 0;
+            $data['tunnel'] = null;
+            $data['dateEntreeTunnel'] = null;
+            $data['heureEntreeTunnel'] = null;
+            $data['heureSortieTunnel'] = null;
+            $data['temperatureTunnel'] = null;
+            $data['dateSortieTunnel'] = null;
+            $data['temperatureCoeurProduit'] = null;
+            $data['chambreFroide'] = null;
+            $data['temperatureChambre'] = null;
+            $data['dateEntreeStockage'] = null;
+            $data['heureEntreeStockage'] = null;
+            $data['temperatureStockage'] = null;
+            $data['chambreRemiseEnChambre'] = null;
+            $data['dateRemiseEnChambre'] = null;
+            $data['heureRemiseEnChambre'] = null;
+            $data['temperatureChambreRemise'] = null;
+            $data['temperatureProduitRemise'] = null;
+            $data['quantiteRemiseEnChambre'] = 0;
+            $data['storageMovements'] = [];
+        } else {
+            $data['observations'] .= ' Workflow simule depuis les donnees terrain : mouvements de stock initial, traitement, tunnel, cristallisation et emballage partiel selon les informations fournies.';
+        }
 
         return $data;
     }
@@ -444,13 +646,18 @@ final class InjectJulyFishReceptionsCommand extends Command
             ->setNombreCaissesParPalette($row['nombreCaissesParPalette'])
             ->setNombreTotalPalettes($row['nombreTotalPalettes'])
             ->setQuantiteTotalePreparee($row['quantiteTotalePreparee'])
+            ->setPoidsDechetsTraitement($row['poidsDechetsTraitement'])
+            ->setPoidsPertesTraitement($row['poidsPertesTraitement'])
             ->setDateConditionnement($this->date($row['dateConditionnement']))
             ->setHeureDebutConditionnement($this->time($row['heureDebutConditionnement']))
             ->setHeureFinConditionnement($this->time($row['heureFinConditionnement']))
             ->setProduitConditionne($row['produitConditionne'])
             ->setQuantiteConditionnee($row['quantiteConditionnee'])
             ->setPoidsNet($row['poidsNet'])
+            ->setPoidsDechetsEmballage($row['poidsDechetsEmballage'])
+            ->setPoidsPertesEmballage($row['poidsPertesEmballage'])
             ->setTunnel($row['tunnel'])
+            ->setDateEntreeTunnel($this->date($row['dateEntreeTunnel']))
             ->setHeureEntreeTunnel($this->time($row['heureEntreeTunnel']))
             ->setHeureSortieTunnel($this->time($row['heureSortieTunnel'] ?? null))
             ->setTemperatureTunnel($row['temperatureTunnel'])
@@ -463,20 +670,66 @@ final class InjectJulyFishReceptionsCommand extends Command
             ->setHeureEntreeStockage($this->time($row['heureEntreeStockage']))
             ->setQuantiteStockee($row['quantiteStockee'])
             ->setTemperatureStockage($row['temperatureStockage'])
+            ->setChambreRemiseEnChambre($row['chambreRemiseEnChambre'])
+            ->setDateRemiseEnChambre($this->date($row['dateRemiseEnChambre']))
+            ->setHeureRemiseEnChambre($this->time($row['heureRemiseEnChambre']))
+            ->setTemperatureChambreRemise($row['temperatureChambreRemise'])
+            ->setTemperatureProduitRemise($row['temperatureProduitRemise'])
+            ->setQuantiteRemiseEnChambre($row['quantiteRemiseEnChambre'])
             ->setQuantiteUtiliseeProduction($row['quantiteUtiliseeProduction'] ?? 0)
-            ->setStatut(FishReception::STATUS_RECEIVED)
+            ->setStatut($row['statut'])
             ->setReceivedAt($this->dateTime($row['dateReception'], $row['heureFinReception']))
-            ->setTreatmentStartedAt(null)
-            ->setStoredAt(null)
+            ->setTreatmentStartedAt($this->dateTime($row['dateDebutTraitement'], $row['heureDebutTraitement']))
+            ->setStoredAt($this->dateTime($row['dateEntreeStockage'], $row['heureEntreeStockage']))
+            ->setRemiseEnChambreAt($this->dateTime($row['dateRemiseEnChambre'], $row['heureRemiseEnChambre']))
             ->setObservations($row['observations']);
 
         if ($actor instanceof User) {
             $reception
                 ->setCreatedBy($actor)
                 ->setReceivedBy($actor);
+
+            if ($row['dateDebutTraitement'] !== null) {
+                $reception->setTreatmentStartedBy($actor);
+            }
+
+            if ($row['dateEntreeStockage'] !== null) {
+                $reception->setStoredBy($actor);
+            }
+
+            if ($row['dateRemiseEnChambre'] !== null) {
+                $reception->setRemiseEnChambreBy($actor);
+            }
+        }
+
+        foreach ($row['storageMovements'] as $movementRow) {
+            $reception->addStorageMovement($this->buildStorageMovement($movementRow, $actor));
         }
 
         return $reception;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function buildStorageMovement(array $row, ?User $actor): FishReceptionStorageMovement
+    {
+        $movement = (new FishReceptionStorageMovement())
+            ->setStorageStage($row['stage'])
+            ->setMovementType($row['type'])
+            ->setLocation($row['location'])
+            ->setQuantityKg($row['quantity'])
+            ->setMovementDate($this->date($row['date']))
+            ->setMovementTime($this->time($row['time'] ?? null))
+            ->setTemperatureChamber($row['temperatureChamber'] ?? null)
+            ->setTemperatureProduct($row['temperatureProduct'] ?? null)
+            ->setNote($row['note'] ?? null);
+
+        if ($actor instanceof User) {
+            $movement->setCreatedBy($actor);
+        }
+
+        return $movement;
     }
 
     private function findActor(mixed $email): ?User

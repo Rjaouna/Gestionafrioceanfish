@@ -196,7 +196,7 @@
                     <dt class="col-6 text-secondary">Chambre retour</dt><dd class="col-6 text-end">{{ item.chambreRemiseEnChambre ?: '-' }}</dd>
                     <dt class="col-6 text-secondary">Date retour</dt><dd class="col-6 text-end">{{ item.dateRemiseEnChambre ? item.dateRemiseEnChambre|date('d/m/Y') : '-' }}</dd>
                     <dt class="col-6 text-secondary">Heure retour</dt><dd class="col-6 text-end">{{ item.heureRemiseEnChambre ? item.heureRemiseEnChambre|date('H:i') : '-' }}</dd>
-                    <dt class="col-6 text-secondary">Quantite en chambre apres emballage</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteRemiseEnChambre|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
+                    <dt class="col-6 text-secondary">Poids net en chambre</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteExpediableValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                     <dt class="col-6 text-secondary">Reste à expédier</dt><dd class="col-6 text-end fw-semibold">{{ item.quantiteDisponibleStockageValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</dd>
                 </dl>
             </div>

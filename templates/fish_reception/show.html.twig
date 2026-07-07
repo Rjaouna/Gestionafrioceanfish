@@ -41,14 +41,14 @@
 {% set frozenRate = item.quantiteEnTraitementValue > 0 ? (item.totalSortieTraitementValue / item.quantiteEnTraitementValue * 100) : 0 %}
 {% set storedRate = item.quantiteCongeleeValue > 0 ? (item.quantiteStockeeValue / item.quantiteCongeleeValue * 100) : 0 %}
 {% set packagedRate = item.quantiteStockeeValue > 0 ? (item.quantiteConditionneeValue / item.quantiteStockeeValue * 100) : 0 %}
-{% set shippedRate = item.quantiteRemiseEnChambreValue > 0 ? (item.quantiteTotaleExpedieeValue / item.quantiteRemiseEnChambreValue * 100) : 0 %}
+{% set shippedRate = item.quantiteExpediableValue > 0 ? (item.quantiteTotaleExpedieeValue / item.quantiteExpediableValue * 100) : 0 %}
 {% set workflow = [
     {label: 'Reception', icon: 'bi-clipboard2-check', done: item.receivedAt or item.statut != 'brouillon', detail: item.receivedAt ? item.receivedAt|date('d/m H:i') : item.statutLabel},
     {label: 'Stock initial', icon: 'bi-inboxes', done: item.quantiteStockInitialEntreeValue > 0.001, detail: ui.kg(item.quantiteStockInitialEntreeValue)},
     {label: 'Traitement', icon: 'bi-arrow-repeat', done: item.quantiteTotalePrepareeValue > 0.001, detail: ui.kg(item.quantiteTotalePreparee)},
     {label: 'Bilan traitement', icon: 'bi-snow', done: item.totalSortieTraitementValue > 0.001, detail: ui.kg(item.totalSortieTraitementValue)},
     {label: 'Cristallisation', icon: 'bi-box-seam', done: item.quantiteStockeeValue > 0.001, detail: ui.kg(item.quantiteStockee)},
-    {label: 'Emballage + chambre', icon: 'bi-box-arrow-in-down', done: item.quantiteRemiseEnChambreValue > 0.001, detail: ui.kg(item.quantiteRemiseEnChambre)},
+    {label: 'Emballage + chambre', icon: 'bi-box-arrow-in-down', done: item.quantiteRemiseEnChambreValue > 0.001, detail: ui.kg(item.quantiteExpediableValue)},
     {label: 'Expedition', icon: 'bi-truck', done: item.quantiteTotaleExpedieeValue > 0.001 or item.expeditedAt, detail: ui.kg(item.quantiteTotaleExpediee)}
 ] %}
 {% set can_correct_workflow = is_granted('FISH_RECEPTION_EDIT', item) and not item.locked %}
@@ -99,7 +99,7 @@
         {{ ui.metric('Préparée', ui.kg(item.quantiteTotalePreparee), 'bi-arrow-repeat', 'info', treatmentRate|number_format(1, ',', ' ') ~ ' % traitement') }}
         {{ ui.metric('Sortie traitement', ui.kg(item.totalSortieTraitementValue), 'bi-snow', 'primary', frozenRate|number_format(1, ',', ' ') ~ ' % solde') }}
         {{ ui.metric('Cristallisee', ui.kg(item.quantiteStockee), 'bi-box-seam', 'success', storedRate|number_format(1, ',', ' ') ~ ' % cristallisation') }}
-        {{ ui.metric('Emballee en chambre', ui.kg(item.quantiteRemiseEnChambre), 'bi-box-arrow-in-down', 'success', packagedRate|number_format(1, ',', ' ') ~ ' % emballage') }}
+        {{ ui.metric('Poids net en chambre', ui.kg(item.quantiteExpediableValue), 'bi-box-arrow-in-down', 'success', packagedRate|number_format(1, ',', ' ') ~ ' % emballage') }}
         {{ ui.metric('Expediee', ui.kg(item.quantiteTotaleExpediee), 'bi-truck', 'dark', shippedRate|number_format(1, ',', ' ') ~ ' % expedition') }}
         {{ ui.metric('Coût réception/kg', item.coutKgReceptionValue|number_format(2, ',', ' ') ~ ' ' ~ item.receptionDevise, 'bi-cash-coin', 'primary', item.operationTypeLabel) }}
     </section>
@@ -384,7 +384,7 @@
                     {{ ui.row('Heure retour chambre', ui.time(item.heureRemiseEnChambre)) }}
                     {{ ui.row('Temperature chambre retour', ui.temp(item.temperatureChambreRemise)) }}
                     {{ ui.row('Temperature produit retour', ui.temp(item.temperatureProduitRemise)) }}
-                    {{ ui.row('Quantite en chambre apres emballage', ui.kg(item.quantiteRemiseEnChambre), 'text-success') }}
+                    {{ ui.row('Poids net en chambre', ui.kg(item.quantiteExpediableValue), 'text-success') }}
                     {{ ui.row('Duree chambre avant expedition', item.dureeRemiseChambreAvantExpeditionHeuresValue|number_format(2, ',', ' ') ~ ' h') }}
                     {{ ui.row('Reste a expedier', ui.kg(item.quantiteDisponibleStockageValue), 'text-warning') }}
                     {{ ui.row('Destination', ui.text(item.destinationFinaleClient)) }}

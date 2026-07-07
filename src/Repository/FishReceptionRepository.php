@@ -174,7 +174,7 @@ class FishReceptionRepository extends ServiceEntityRepository
             'congelation' => $item->getQuantiteEnTraitementValue(),
             'stockage' => $item->getQuantiteCongeleeValue(),
             'emballage' => $item->getQuantiteStockeeValue(),
-            'expedition' => $item->getQuantiteRemiseEnChambreValue(),
+            'expedition' => $item->getQuantiteExpediableValue(),
             default => $item->getQuantiteReceptionneeValue(),
         }, $items));
         $used = array_sum(array_map(static fn (FishReception $item): float => $item->getWorkflowMovedForStage($stage), $items));
@@ -198,11 +198,11 @@ class FishReceptionRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('r')
             ->select('r.chambreRemiseEnChambre AS location')
-            ->addSelect('SUM(r.quantiteRemiseEnChambre - r.quantiteTotaleExpediee) AS quantity')
+            ->addSelect('SUM('.$this->finalStockSourceExpression().' - r.quantiteTotaleExpediee) AS quantity')
             ->andWhere('r.isDeleted = false')
             ->andWhere('r.chambreRemiseEnChambre IS NOT NULL')
             ->andWhere("r.chambreRemiseEnChambre <> ''")
-            ->andWhere('r.quantiteRemiseEnChambre > r.quantiteTotaleExpediee')
+            ->andWhere($this->finalStockSourceExpression().' > r.quantiteTotaleExpediee')
             ->groupBy('r.chambreRemiseEnChambre')
             ->orderBy('quantity', 'DESC')
             ->getQuery()
@@ -296,7 +296,7 @@ class FishReceptionRepository extends ServiceEntityRepository
             'congelation' => $builder->andWhere('r.quantiteTotalePreparee > 0'),
             'stockage' => $builder->andWhere('r.quantiteCongelee > 0'),
             'emballage' => $builder->andWhere('r.quantiteStockee > 0'),
-            'expedition' => $builder->andWhere('r.quantiteRemiseEnChambre > 0'),
+            'expedition' => $builder->andWhere($this->finalStockSourceExpression().' > 0'),
             default => null,
         };
 
@@ -326,7 +326,7 @@ class FishReceptionRepository extends ServiceEntityRepository
             'congelation' => 'r.quantiteTotalePreparee - r.quantiteCongelee - r.poidsDechetsTraitement - r.poidsPertesTraitement',
             'stockage' => 'r.quantiteCongelee - r.quantiteStockee',
             'emballage' => 'r.quantiteStockee - r.quantiteConditionnee',
-            'expedition' => 'r.quantiteRemiseEnChambre - r.quantiteTotaleExpediee',
+            'expedition' => $this->finalStockSourceExpression().' - r.quantiteTotaleExpediee',
             default => 'r.quantiteReceptionnee - r.quantiteTotalePreparee',
         };
     }
@@ -340,5 +340,10 @@ class FishReceptionRepository extends ServiceEntityRepository
             'expedition' => 'r.quantiteTotaleExpediee',
             default => 'r.quantiteTotalePreparee',
         };
+    }
+
+    private function finalStockSourceExpression(): string
+    {
+        return '(CASE WHEN r.poidsNet > 0 THEN r.poidsNet ELSE r.quantiteRemiseEnChambre END)';
     }
 }

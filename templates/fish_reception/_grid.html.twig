@@ -5,7 +5,7 @@
     congelation: 'En traitement',
     stockage: 'Congelee',
     emballage: 'Cristallisee',
-    expedition: 'En chambre'
+    expedition: 'Poids net en chambre'
 } %}
 {% set moved_labels = {
     reception: 'Stockee initial',
@@ -47,7 +47,7 @@
                 </thead>
                 <tbody>
                 {% for item in items %}
-                    {% set source = stage == 'traitement' ? item.quantiteStockInitialEntreeValue : (stage == 'congelation' ? item.quantiteEnTraitementValue : (stage == 'stockage' ? item.quantiteCongeleeValue : (stage == 'emballage' ? item.quantiteStockeeValue : (stage == 'expedition' ? item.quantiteRemiseEnChambreValue : item.quantiteReceptionneeValue)))) %}
+                    {% set source = stage == 'traitement' ? item.quantiteStockInitialEntreeValue : (stage == 'congelation' ? item.quantiteEnTraitementValue : (stage == 'stockage' ? item.quantiteCongeleeValue : (stage == 'emballage' ? item.quantiteStockeeValue : (stage == 'expedition' ? item.quantiteExpediableValue : item.quantiteReceptionneeValue)))) %}
                     {% set moved = stage == 'reception' ? item.quantiteStockInitialEntreeValue : (stage == 'traitement' ? item.quantiteTotalePrepareeValue : (stage == 'congelation' ? item.totalSortieTraitementValue : (stage == 'stockage' ? item.quantiteStockeeValue : (stage == 'emballage' ? item.quantiteConditionneeValue : item.quantiteTotaleExpedieeValue)))) %}
                     {% set available = stage == 'traitement' ? item.quantiteDisponibleTraitementSourceValue : (stage == 'congelation' ? item.quantiteDisponibleTraitementValue : (stage == 'stockage' ? item.quantiteDisponibleCongelationValue : (stage == 'emballage' ? item.quantiteDisponibleCristallisationValue : (stage == 'expedition' ? item.quantiteDisponibleStockageValue : item.quantiteDisponibleReceptionValue)))) %}
                     {% set row_class = item.statut == 'bloquee' ? 'table-danger' : (available <= 0.001 and moved > 0 ? 'table-light' : '') %}
@@ -109,7 +109,7 @@
                                 <div class="small text-secondary">Sortie tunnel {{ item.dateSortieTunnel ? item.dateSortieTunnel|date('d/m') : '-' }} {{ item.heureSortieTunnel ? item.heureSortieTunnel|date('H:i') : '' }}</div>
                             {% elseif stage == 'emballage' %}
                                 <div>{{ item.produitConditionne ?: 'Produit non renseigne' }}</div>
-                                <div class="small text-secondary">{{ item.quantiteRemiseEnChambre|number_format(3, ',', ' ')|replace({',000': ''}) }} kg en chambre</div>
+                                <div class="small text-secondary">{{ item.quantiteExpediableValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg net en chambre</div>
                                 <div class="small text-secondary">{{ item.chambreRemiseEnChambre ?: 'Chambre retour non renseignee' }}</div>
                                 <div class="small text-secondary">Duree {{ item.dureeConditionnementHeuresValue|number_format(2, ',', ' ') }} h</div>
                             {% elseif stage == 'expedition' %}

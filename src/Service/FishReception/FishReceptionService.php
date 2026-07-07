@@ -782,8 +782,8 @@ final readonly class FishReceptionService
             throw new \DomainException('La quantite remise en chambre ne peut pas depasser la quantite emballee.');
         }
 
-        if ($reception->getQuantiteTotaleExpedieeValue() - $reception->getQuantiteRemiseEnChambreValue() > 0.001) {
-            throw new \DomainException('La quantite expediee ne peut pas depasser la quantite remise en chambre.');
+        if ($reception->getQuantiteTotaleExpedieeValue() - $reception->getQuantiteExpediableValue() > 0.001) {
+            throw new \DomainException('La quantite expediee ne peut pas depasser le poids net disponible apres emballage.');
         }
     }
 

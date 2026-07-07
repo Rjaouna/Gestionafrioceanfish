@@ -1965,6 +1965,13 @@ class FishReception
         return (float) $this->quantiteRemiseEnChambre;
     }
 
+    public function getQuantiteExpediableValue(): float
+    {
+        $net = $this->getPoidsNetValue();
+
+        return $net > 0.001 ? $net : $this->getQuantiteRemiseEnChambreValue();
+    }
+
     public function getPoidsNetValue(): float
     {
         return (float) $this->poidsNet;
@@ -2079,7 +2086,7 @@ class FishReception
 
     public function getQuantiteDisponibleStockageValue(): float
     {
-        return max(0.0, $this->getQuantiteRemiseEnChambreValue() - $this->getQuantiteTotaleExpedieeValue());
+        return max(0.0, $this->getQuantiteExpediableValue() - $this->getQuantiteTotaleExpedieeValue());
     }
 
     public function getQuantiteDisponibleProductionValue(): float

@@ -1078,7 +1078,7 @@ final class FishReceptionController extends AbstractController
             'expedition' => [
                 'title' => 'Expedition',
                 'description' => 'Sorties client depuis la chambre positive finale.',
-                'source_label' => 'En chambre',
+                'source_label' => 'Poids net en chambre',
                 'moved_label' => 'Expediee',
                 'available_label' => 'Reste a expedier',
                 'rate_label' => 'Taux expedition',
