@@ -1,0 +1,175 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques receptions{% endblock %}
+
+{% block body %}
+{% set totals = statistics.totals %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Statistiques receptions</h1>
+        <p class="text-secondary mb-0">Un bloc par jour avec PF, dechets, pertes et cout de production.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_fish_reception_index') }}">
+            <i class="bi bi-table me-2"></i>Liste receptions
+        </a>
+        <a class="btn btn-outline-secondary" href="{{ path('app_cout_revient_charge_index') }}">
+            <i class="bi bi-sliders me-2"></i>Charges production
+        </a>
+    </div>
+</div>
+
+<form class="card border-0 shadow-sm mb-4" method="get">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-md-4 col-xl-3">
+                <label class="form-label" for="reception-stat-date-to">Fin de periode</label>
+                <input id="reception-stat-date-to" class="form-control" type="date" name="dateTo" value="{{ statistics.filters.dateTo }}">
+                <div class="form-text">Affichage automatique des 6 jours jusqu'a cette date.</div>
+            </div>
+            <div class="col-12 col-md-auto ms-md-auto">
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-search me-2"></i>Analyser
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% for warning in statistics.warnings %}
+    <div class="alert alert-{{ warning.tone }} border-0 shadow-sm">
+        <i class="bi bi-info-circle me-2"></i>{{ warning.text }}
+    </div>
+{% endfor %}
+
+<div class="dashboard-kpi-grid mb-4">
+    {% for kpi in statistics.kpis %}
+        <div class="dashboard-kpi-card dashboard-kpi-card-{{ kpi.tone }} card border-0 shadow-sm">
+            <div class="dashboard-kpi-head">
+                <span class="dashboard-kpi-title">{{ kpi.label }}</span>
+                <span class="dashboard-kpi-icon"><i class="bi {{ kpi.icon }}"></i></span>
+            </div>
+            <div class="dashboard-kpi-value">{{ kpi.display }}</div>
+            <div class="dashboard-kpi-hint">{{ kpi.hint }}</div>
+        </div>
+    {% endfor %}
+</div>
+
+<section class="reception-stat-days" aria-label="Statistiques par jour">
+    <div class="row g-4">
+        {% for day in statistics.days %}
+            {% set output_total = day.finished + day.waste + day.total_loss %}
+            {% set pf_share = output_total > 0 ? day.finished / output_total * 100 : 0 %}
+            {% set waste_share = output_total > 0 ? day.waste / output_total * 100 : 0 %}
+            {% set loss_share = output_total > 0 ? day.total_loss / output_total * 100 : 0 %}
+            {% set waste_end = pf_share + waste_share %}
+            {% set loss_end = pf_share + waste_share + loss_share %}
+            {% set donut_style = output_total > 0
+                ? 'background: conic-gradient(#10b981 0 ' ~ pf_share|number_format(2, '.', '') ~ '%, #f59e0b ' ~ pf_share|number_format(2, '.', '') ~ '% ' ~ waste_end|number_format(2, '.', '') ~ '%, #ef4444 ' ~ waste_end|number_format(2, '.', '') ~ '% ' ~ loss_end|number_format(2, '.', '') ~ '%, #e5e7eb ' ~ loss_end|number_format(2, '.', '') ~ '% 100%);'
+                : 'background: #e5e7eb;'
+            %}
+
+            <div class="col-12 col-lg-6 col-xxl-4">
+                <article class="reception-stat-day-card card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                            <div>
+                                <div class="reception-stat-day-label">{{ day.date|date('d/m/Y') }}</div>
+                                <h2 class="h5 mb-0">Production jour</h2>
+                            </div>
+                            <span class="badge {{ day.prepared > 0 ? 'text-bg-success' : 'text-bg-secondary' }}">
+                                {{ day.prepared > 0 ? 'Active' : 'Aucune prod' }}
+                            </span>
+                        </div>
+
+                        <div class="reception-stat-day-main">
+                            <div class="reception-stat-donut" style="{{ donut_style }}">
+                                <div class="reception-stat-donut-center">
+                                    <strong>{{ day.finished|number_format(0, ',', ' ') }}</strong>
+                                    <span>kg PF</span>
+                                </div>
+                            </div>
+
+                            <div class="reception-stat-legend">
+                                <div>
+                                    <span class="reception-stat-dot reception-stat-dot-pf"></span>
+                                    <span>PF</span>
+                                    <strong>{{ day.finished|number_format(0, ',', ' ') }} kg</strong>
+                                    <small>{{ pf_share|number_format(1, ',', ' ') }} %</small>
+                                </div>
+                                <div>
+                                    <span class="reception-stat-dot reception-stat-dot-waste"></span>
+                                    <span>Dechets</span>
+                                    <strong>{{ day.waste|number_format(0, ',', ' ') }} kg</strong>
+                                    <small>{{ waste_share|number_format(1, ',', ' ') }} %</small>
+                                </div>
+                                <div>
+                                    <span class="reception-stat-dot reception-stat-dot-loss"></span>
+                                    <span>Pertes</span>
+                                    <strong>{{ day.total_loss|number_format(0, ',', ' ') }} kg</strong>
+                                    <small>{{ loss_share|number_format(1, ',', ' ') }} %</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="reception-stat-metrics">
+                            <div>
+                                <span>Production</span>
+                                <strong>{{ day.prepared|number_format(0, ',', ' ') }} kg</strong>
+                            </div>
+                            <div>
+                                <span>Sortie totale</span>
+                                <strong>{{ output_total|number_format(0, ',', ' ') }} kg</strong>
+                            </div>
+                            <div>
+                                <span>Rendement</span>
+                                <strong>{{ day.yield_rate|number_format(1, ',', ' ') }} %</strong>
+                            </div>
+                            <div>
+                                <span>Heures</span>
+                                <strong>{{ day.hours|number_format(1, ',', ' ') }} h</strong>
+                            </div>
+                            <div class="reception-stat-metric-cost">
+                                <span>Cout production</span>
+                                <strong>{{ day.charges|number_format(0, ',', ' ') }} dh</strong>
+                            </div>
+                            <div>
+                                <span>Cout / kg PF</span>
+                                <strong>{{ day.cost_per_finished_kg|number_format(2, ',', ' ') }} dh</strong>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="card border-0 shadow-sm mt-4">
+    <div class="card-header bg-white border-0 pb-0">
+        <h2 class="h5 mb-1">Base de calcul</h2>
+        <p class="text-secondary small mb-0">Charges actives appliquees a la production detectee.</p>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-6 col-lg-3">
+                <div class="small text-secondary">Jours actifs</div>
+                <div class="h5 mb-0">{{ totals.active_days }}</div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="small text-secondary">Lots actifs</div>
+                <div class="h5 mb-0">{{ totals.lots }}</div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="small text-secondary">Kg traites</div>
+                <div class="h5 mb-0">{{ totals.prepared|number_format(0, ',', ' ') }} kg</div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="small text-secondary">Cout total</div>
+                <div class="h5 mb-0">{{ totals.charges|number_format(0, ',', ' ') }} dh</div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

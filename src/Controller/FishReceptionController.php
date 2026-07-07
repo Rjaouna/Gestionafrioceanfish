@@ -20,6 +20,7 @@ use App\Security\Voter\ModuleAccessVoter;
 use App\Service\FactoryUnitService;
 use App\Service\FishReception\FishReceptionExcelFormService;
 use App\Service\FishReception\FishReceptionService;
+use App\Service\FishReception\FishReceptionStatisticsService;
 use App\Service\JsonResponder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -42,6 +43,7 @@ final class FishReceptionController extends AbstractController
         private readonly FishReceptionService $receptionService,
         private readonly FactoryUnitService $factoryUnitService,
         private readonly FishReceptionExcelFormService $excelFormService,
+        private readonly FishReceptionStatisticsService $statisticsService,
         private readonly CsrfTokenManagerInterface $csrfTokenManager,
         private readonly JsonResponder $jsonResponder,
         private readonly Environment $twig,
@@ -66,6 +68,18 @@ final class FishReceptionController extends AbstractController
             'stage_config' => $this->stageConfig('reception'),
             'refresh_url' => $this->generateUrl('app_fish_reception_search'),
             'clear_url' => $this->generateUrl('app_fish_reception_index'),
+        ]);
+    }
+
+    #[Route('/statistiques', name: 'app_fish_reception_statistics', methods: ['GET'])]
+    public function statistics(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'receptions');
+
+        return $this->render('fish_reception/statistics.html.twig', [
+            'statistics' => $this->statisticsService->build($this->currentUser(), [
+                'dateTo' => $request->query->get('dateTo'),
+            ]),
         ]);
     }
 

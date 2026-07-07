@@ -128,6 +128,34 @@ class FishReceptionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** @return list<FishReception> */
+    public function findStatisticsBetween(\DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        $fromDay = $from->setTime(0, 0);
+        $toDay = $to->setTime(0, 0);
+
+        return $this->createQueryBuilder('r')
+            ->select('DISTINCT r', 'storageMovement')
+            ->leftJoin('r.storageMovements', 'storageMovement')
+            ->andWhere('r.isDeleted = false')
+            ->andWhere('(
+                storageMovement.movementDate BETWEEN :fromDay AND :toDay
+                OR r.dateDebutTraitement BETWEEN :fromDay AND :toDay
+                OR r.dateEntreeTunnel BETWEEN :fromDay AND :toDay
+                OR r.dateSortieTunnel BETWEEN :fromDay AND :toDay
+                OR r.dateEntreeStockage BETWEEN :fromDay AND :toDay
+                OR r.dateConditionnement BETWEEN :fromDay AND :toDay
+                OR r.dateRemiseEnChambre BETWEEN :fromDay AND :toDay
+                OR r.expeditionDateDepart BETWEEN :fromDay AND :toDay
+            )')
+            ->setParameter('fromDay', $fromDay)
+            ->setParameter('toDay', $toDay)
+            ->orderBy('r.dateReception', 'ASC')
+            ->addOrderBy('r.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     /** @return list<string> */
     public function distinctValues(string $field): array
     {
