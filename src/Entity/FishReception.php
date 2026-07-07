@@ -1805,6 +1805,37 @@ class FishReception
         return $this->storageMovements;
     }
 
+    /** @return list<FishReceptionStorageMovement> */
+    public function getTreatmentExitMovements(): array
+    {
+        $movements = [];
+        foreach ($this->storageMovements as $movement) {
+            if ($movement->getStorageStage() === FishReceptionStorageMovement::STAGE_INITIAL
+                && $movement->getMovementType() === FishReceptionStorageMovement::TYPE_INITIAL_EXIT
+            ) {
+                $movements[] = $movement;
+            }
+        }
+
+        return $movements;
+    }
+
+    public function getTreatmentExitCount(): int
+    {
+        return count($this->getTreatmentExitMovements());
+    }
+
+    /** @return list<array{movement: FishReceptionStorageMovement, product: ?float, waste: ?float, loss: ?float}> */
+    public function getTreatmentExitRows(): array
+    {
+        return array_map(fn (FishReceptionStorageMovement $movement): array => [
+            'movement' => $movement,
+            'product' => $this->extractKgFromMovementNote($movement->getNote(), 'PF'),
+            'waste' => $this->extractKgFromMovementNote($movement->getNote(), 'dechets'),
+            'loss' => $this->extractKgFromMovementNote($movement->getNote(), 'pertes'),
+        ], $this->getTreatmentExitMovements());
+    }
+
     public function addStorageMovement(FishReceptionStorageMovement $storageMovement): static
     {
         if (!$this->storageMovements->contains($storageMovement)) {
@@ -2211,6 +2242,20 @@ class FishReception
         }
 
         return $total;
+    }
+
+    private function extractKgFromMovementNote(?string $note, string $label): ?float
+    {
+        if ($note === null || $note === '') {
+            return null;
+        }
+
+        $pattern = sprintf('/%s\s+([0-9]+(?:[\\.,][0-9]+)?)\s*kg/i', preg_quote($label, '/'));
+        if (!preg_match($pattern, $note, $matches)) {
+            return null;
+        }
+
+        return (float) str_replace(',', '.', $matches[1]);
     }
 
     private function combineDateAndTime(?\DateTimeImmutable $date, ?\DateTimeImmutable $time): ?\DateTimeImmutable

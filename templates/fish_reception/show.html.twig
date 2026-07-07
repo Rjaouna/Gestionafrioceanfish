@@ -42,10 +42,11 @@
 {% set storedRate = item.quantiteCongeleeValue > 0 ? (item.quantiteStockeeValue / item.quantiteCongeleeValue * 100) : 0 %}
 {% set packagedRate = item.quantiteStockeeValue > 0 ? (item.quantiteConditionneeValue / item.quantiteStockeeValue * 100) : 0 %}
 {% set shippedRate = item.quantiteExpediableValue > 0 ? (item.quantiteTotaleExpedieeValue / item.quantiteExpediableValue * 100) : 0 %}
+{% set treatmentStepDetail = item.treatmentExitCount > 1 ? item.treatmentExitCount ~ ' sorties / ' ~ ui.kg(item.quantiteTotalePreparee) : ui.kg(item.quantiteTotalePreparee) %}
 {% set workflow = [
     {label: 'Reception', icon: 'bi-clipboard2-check', done: item.receivedAt or item.statut != 'brouillon', detail: item.receivedAt ? item.receivedAt|date('d/m H:i') : item.statutLabel},
     {label: 'Stock initial', icon: 'bi-inboxes', done: item.quantiteStockInitialEntreeValue > 0.001, detail: ui.kg(item.quantiteStockInitialEntreeValue)},
-    {label: 'Traitement', icon: 'bi-arrow-repeat', done: item.quantiteTotalePrepareeValue > 0.001, detail: ui.kg(item.quantiteTotalePreparee)},
+    {label: 'Traitement', icon: 'bi-arrow-repeat', done: item.quantiteTotalePrepareeValue > 0.001, detail: treatmentStepDetail},
     {label: 'Bilan traitement', icon: 'bi-snow', done: item.totalSortieTraitementValue > 0.001, detail: ui.kg(item.totalSortieTraitementValue)},
     {label: 'Cristallisation', icon: 'bi-box-seam', done: item.quantiteStockeeValue > 0.001, detail: ui.kg(item.quantiteStockee)},
     {label: 'Emballage + chambre', icon: 'bi-box-arrow-in-down', done: item.quantiteRemiseEnChambreValue > 0.001, detail: ui.kg(item.quantiteExpediableValue)},
@@ -306,6 +307,35 @@
                     {{ ui.row('Reste a stocker initial', ui.kg(item.quantiteDisponibleReceptionValue), 'text-warning') }}
                     {{ ui.row('Reste a classer', ui.kg(item.quantiteDisponibleTraitementValue), 'text-warning') }}
                 </div>
+                {% if item.treatmentExitRows|length > 0 %}
+                    <div class="table-responsive mt-3">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Date sortie</th>
+                                    <th class="text-end">Sortie traitement</th>
+                                    <th class="text-end">Produit fini</th>
+                                    <th class="text-end">Dechets</th>
+                                    <th class="text-end">Pertes</th>
+                                    <th>Note</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for row in item.treatmentExitRows %}
+                                {% set movement = row.movement %}
+                                <tr>
+                                    <td class="text-nowrap">{{ ui.date(movement.movementDate) }} {{ ui.time(movement.movementTime) }}</td>
+                                    <td class="text-end fw-semibold text-primary">{{ ui.kg(movement.absoluteQuantityKgValue) }}</td>
+                                    <td class="text-end">{{ row.product is not null ? ui.kg(row.product) : '-' }}</td>
+                                    <td class="text-end">{{ row.waste is not null ? ui.kg(row.waste) : '-' }}</td>
+                                    <td class="text-end">{{ row.loss is not null ? ui.kg(row.loss) : '-' }}</td>
+                                    <td class="small text-secondary">{{ movement.note ?: '-' }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
             </section>
 
             <section class="reception-panel">
@@ -444,7 +474,7 @@
                 <div class="reception-timeline">
                     <div class="{{ item.quantiteStockInitialEntreeValue > 0.001 ? 'done' : '' }}"><span></span><strong>Stockage initial</strong><small>{{ ui.kg(item.quantiteStockInitialEntreeValue) }} stockes avant traitement</small></div>
                     <div class="{{ item.receivedAt ? 'done' : '' }}"><span></span><strong>Reception validée</strong><small>{{ ui.datetime(item.receivedAt) }}{% if item.receivedBy %} par {{ item.receivedBy.displayName }}{% endif %}</small></div>
-                    <div class="{{ item.treatmentStartedAt ? 'done' : '' }}"><span></span><strong>Traitement lancé</strong><small>{{ ui.datetime(item.treatmentStartedAt) }}{% if item.treatmentStartedBy %} par {{ item.treatmentStartedBy.displayName }}{% endif %}</small></div>
+                    <div class="{{ item.treatmentStartedAt ? 'done' : '' }}"><span></span><strong>Traitement lancé</strong><small>{{ treatmentStepDetail }}{% if item.treatmentStartedAt %} depuis {{ ui.datetime(item.treatmentStartedAt) }}{% endif %}{% if item.treatmentStartedBy %} par {{ item.treatmentStartedBy.displayName }}{% endif %}</small></div>
                     <div class="{{ item.storedAt ? 'done' : '' }}"><span></span><strong>Cristallisation validee</strong><small>{{ ui.datetime(item.storedAt) }}{% if item.storedBy %} par {{ item.storedBy.displayName }}{% endif %}</small></div>
                     <div class="{{ item.remiseEnChambreAt ? 'done' : '' }}"><span></span><strong>Emballage + chambre valide</strong><small>{{ ui.datetime(item.remiseEnChambreAt) }}{% if item.remiseEnChambreBy %} par {{ item.remiseEnChambreBy.displayName }}{% endif %}</small></div>
                     <div class="{{ item.expeditedAt ? 'done' : '' }}"><span></span><strong>Expedition validee</strong><small>{{ ui.datetime(item.expeditedAt) }}{% if item.expeditedBy %} par {{ item.expeditedBy.displayName }}{% endif %}</small></div>
