@@ -90,6 +90,7 @@
                 <th>Matricule</th>
                 <th class="text-end">Nettoyage</th>
                 <th class="text-end">Mise en caisse</th>
+                <th class="text-end">Total gagne</th>
             </tr>
             </thead>
             <tbody>
@@ -121,10 +122,13 @@
                             {{ row.boxingKg|number_format(2, ',', ' ') }} kg
                         </span>
                     </td>
+                    <td class="text-end text-nowrap fw-bold text-success-emphasis">
+                        {{ row.earnedAmount|number_format(2, ',', ' ') }} MAD
+                    </td>
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="4" class="text-center text-secondary py-5">Aucun pointage sur cette periode.</td>
+                    <td colspan="5" class="text-center text-secondary py-5">Aucun pointage sur cette periode.</td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -134,6 +138,7 @@
                     <th colspan="2">Totaux</th>
                     <th class="text-end">{{ totals.cleaningKg|number_format(2, ',', ' ') }} kg</th>
                     <th class="text-end">{{ totals.boxingKg|number_format(2, ',', ' ') }} kg</th>
+                    <th class="text-end text-success-emphasis">{{ totals.earnedAmount|number_format(2, ',', ' ') }} MAD</th>
                 </tr>
                 </tfoot>
             {% endif %}

@@ -118,6 +118,7 @@ class InterimAttendanceRepository extends ServiceEntityRepository
                 COALESCE(SUM(a.totalHours), 0) AS hours,
                 COALESCE(SUM(CASE WHEN a.mode = :taskMode AND a.taskType = :cleaningType THEN a.taskQuantity * 10 ELSE 0 END), 0) AS cleaningKg,
                 COALESCE(SUM(CASE WHEN a.mode = :taskMode AND a.taskType = :boxingType THEN a.taskQuantity ELSE 0 END), 0) AS boxingKg,
+                COALESCE(SUM(CASE WHEN a.mode = :taskMode THEN a.totalAmount ELSE 0 END), 0) AS earnedAmount,
                 COUNT(a.id) AS lineCount
             ')
             ->innerJoin('a.worker', 'w')

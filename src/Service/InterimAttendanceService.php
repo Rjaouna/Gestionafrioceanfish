@@ -196,11 +196,13 @@ final readonly class InterimAttendanceService
             'cleaningKg' => 0.0,
             'boxingKg' => 0.0,
             'taskKg' => 0.0,
+            'earnedAmount' => 0.0,
         ];
 
         foreach ($this->attendanceRepository->journalByWorker($dateFrom, $dateTo) as $row) {
             $cleaningKg = (float) ($row['cleaningKg'] ?? 0);
             $boxingKg = (float) ($row['boxingKg'] ?? 0);
+            $earnedAmount = (float) ($row['earnedAmount'] ?? 0);
             $hours = (float) ($row['hours'] ?? 0);
             $lineCount = (int) ($row['lineCount'] ?? 0);
 
@@ -212,6 +214,7 @@ final readonly class InterimAttendanceService
                 'cleaningKg' => $cleaningKg,
                 'boxingKg' => $boxingKg,
                 'taskKg' => $cleaningKg + $boxingKg,
+                'earnedAmount' => $earnedAmount,
                 'lineCount' => $lineCount,
             ];
 
@@ -221,6 +224,7 @@ final readonly class InterimAttendanceService
             $totals['cleaningKg'] += $cleaningKg;
             $totals['boxingKg'] += $boxingKg;
             $totals['taskKg'] += $cleaningKg + $boxingKg;
+            $totals['earnedAmount'] += $earnedAmount;
         }
 
         $rows = $this->withJournalPerformanceLevels($rows, 'cleaningKg', 'cleaningPerformance');
