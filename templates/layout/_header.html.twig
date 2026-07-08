@@ -1,6 +1,13 @@
 <header class="navbar navbar-dark bg-primary sticky-top flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand app-brand me-0 px-3 py-3 fw-semibold" href="{{ path('app_dashboard') }}">
-        AFRIOCEAN FISH
+    <a class="navbar-brand app-brand me-0 px-3 py-2" href="{{ path('app_dashboard') }}" aria-label="AFRIOCEAN FISH">
+        <img
+            class="app-brand-logo"
+            src="{{ asset('images/logo-afriocean-fish.svg') }}"
+            alt="AFRIOCEAN FISH"
+            width="136"
+            height="36"
+            style="display:block;width:8.5rem;max-width:100%;height:auto;"
+        >
     </a>
     <button class="navbar-toggler d-lg-none me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar" aria-label="Ouvrir le menu">
         <span class="navbar-toggler-icon"></span>

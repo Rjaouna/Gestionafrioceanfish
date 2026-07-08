@@ -62,6 +62,8 @@
             width: 190px;
             height: auto;
             display: block;
+            padding: 8px 10px;
+            background: #142b68;
         }
 
         .company {
@@ -241,6 +243,10 @@
         }
 
         @media print {
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
             body {
                 background: #fff;
             }

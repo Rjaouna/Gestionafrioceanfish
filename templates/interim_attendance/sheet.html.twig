@@ -67,6 +67,8 @@
             width: 185px;
             height: auto;
             display: block;
+            padding: 8px 10px;
+            background: #142b68;
         }
         .company {
             text-align: right;
@@ -204,6 +206,10 @@
             font-weight: 700;
         }
         @media print {
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
             body { background: #fff; }
             .screen-actions { display: none; }
             .page { width: auto; min-height: auto; margin: 0; padding: 0; }
