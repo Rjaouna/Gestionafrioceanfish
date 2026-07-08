@@ -85,7 +85,7 @@ final class InjectJulyFishReceptionsCommand extends Command
             'Dates interpretees : receptions 27/29/30 juin '.$year.', productions Anchois du 01/07 au 07/07/'.$year.'.',
             'Maquereau : cree uniquement en reception, sans workflow valide.',
             'Anchois 2000/3000 : workflow simule avec stockage initial, sorties traitement, tunnel 1, cristallisation et emballage partiel de 700 kg.',
-            'Hypothese retenue : production quotidienne 600 kg, dernier jour 604 kg ; REC-0003 traitee a 2000 kg, REC-0004 traitee a 2204 kg, reste REC-0004 796 kg.',
+            'Hypothese retenue : production les jours ouvrables uniquement, dimanche 05/07 sans production ; REC-0003 traitee a 2000 kg, REC-0004 traitee a 1604 kg, reste REC-0004 1396 kg.',
         ]);
 
         if (!$force) {
@@ -184,9 +184,9 @@ final class InjectJulyFishReceptionsCommand extends Command
         $anchois1Finished = 1014.000;
         $anchois1Waste = 686.667;
         $anchois1Loss = round($anchois1Prepared - $anchois1Finished - $anchois1Waste, 3);
-        $anchois2Prepared = 2204.000;
-        $anchois2Finished = 1214.000;
-        $anchois2Waste = 667.333;
+        $anchois2Prepared = 1604.000;
+        $anchois2Finished = 884.000;
+        $anchois2Waste = 487.333;
         $anchois2Loss = round($anchois2Prepared - $anchois2Finished - $anchois2Waste, 3);
         $packagedGross = 700.000;
         $packagingLoss = 28.000;
@@ -483,17 +483,6 @@ final class InjectJulyFishReceptionsCommand extends Command
                         'type' => FishReceptionStorageMovement::TYPE_INITIAL_EXIT,
                         'location' => $chambre2,
                         'quantity' => -600,
-                        'date' => sprintf('%d-07-05', $year),
-                        'time' => '08:00',
-                        'temperatureChamber' => -18,
-                        'temperatureProduct' => 0,
-                        'note' => 'Traitement 600 kg : PF 330 kg, dechets 180 kg, pertes 90 kg. Dechets estimes faute de pesee detaillee pour le 05/07.',
-                    ],
-                    [
-                        'stage' => FishReceptionStorageMovement::STAGE_INITIAL,
-                        'type' => FishReceptionStorageMovement::TYPE_INITIAL_EXIT,
-                        'location' => $chambre2,
-                        'quantity' => -600,
                         'date' => sprintf('%d-07-06', $year),
                         'time' => '08:00',
                         'temperatureChamber' => -18,
@@ -512,8 +501,8 @@ final class InjectJulyFishReceptionsCommand extends Command
                         'note' => 'Traitement 604 kg : PF 338 kg, dechets 205 kg, pertes 61 kg.',
                     ],
                 ],
-                'resume' => 'Anchois 3000 kg : workflow simule, reste MP calcule 796 kg.',
-                'observations' => 'Reception terrain du 30 : Anchois 3000 kg BL, 3000 kg reel, recu congele puis stocke en Chambre negative 2. Simulation traitement : 04/07 400 kg, 05/07 600 kg, 06/07 600 kg, 07/07 604 kg. Totaux : prepare 2204 kg, produit fini 1214 kg, dechets 667.333 kg, pertes 322.667 kg. Le 05/07 utilise une estimation de dechets car aucune pesee detaillee n a ete fournie pour ce jour. Tunnel 1 entre 45 min et 1h15 par production, temperature tunnel simulee -28 deg C, eau -2 deg C, coeur produit 0 deg C. Stock MP restant calcule : 796 kg.',
+                'resume' => 'Anchois 3000 kg : workflow simule, reste MP calcule 1396 kg.',
+                'observations' => 'Reception terrain du 30 : Anchois 3000 kg BL, 3000 kg reel, recu congele puis stocke en Chambre negative 2. Simulation traitement : 04/07 400 kg, 06/07 600 kg, 07/07 604 kg. Dimanche 05/07 sans production. Totaux : prepare 1604 kg, produit fini 884 kg, dechets 487.333 kg, pertes 232.667 kg. Tunnel 1 entre 45 min et 1h15 par production, temperature tunnel simulee -28 deg C, eau -2 deg C, coeur produit 0 deg C. Stock MP restant calcule : 1396 kg.',
             ]),
         ];
     }
