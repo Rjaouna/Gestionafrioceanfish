@@ -169,6 +169,12 @@
             gap: 3px;
             align-items: center;
         }
+        .write-box-grid {
+            display: grid;
+            grid-template-columns: repeat(10, minmax(28px, 1fr));
+            gap: 4px;
+            align-items: center;
+        }
         .mini-box {
             display: block;
             width: 14px;
@@ -177,9 +183,12 @@
             border: 1.4px solid #0f172a;
             background: #fff;
         }
-        .write-line {
-            min-height: 16px;
-            border-bottom: 1px solid #94a3b8;
+        .write-box {
+            display: block;
+            min-width: 28px;
+            height: 20px;
+            border: 1.2px solid #0f172a;
+            background: #fff;
         }
         .footer {
             display: grid;
@@ -235,16 +244,12 @@
 
         <section class="legend-strip">
             <div class="legend-card">
-                <strong>Presence</strong>
-                Cocher uniquement les personnes presentes sur la demi-journee.
-            </div>
-            <div class="legend-card">
                 <strong>Nettoyage</strong>
                 10 cases par personne. 1 case = 1 caisse nettoyee.
             </div>
             <div class="legend-card">
                 <strong>Classement / mise en caisse</strong>
-                10 cases par personne. 1 case = 2 kg classes ou mis en caisse.
+                Cases larges pour noter le poids de chaque caisse, ex. 1.50 kg.
             </div>
         </section>
 
@@ -253,14 +258,9 @@
             <tr>
                 <th style="width: 3%;" class="text-center">N</th>
                 <th style="width: 9%;">Matricule</th>
-                <th style="width: 21%;">Nom et prenom</th>
-                <th style="width: 5%;" class="text-center">Matin</th>
-                <th style="width: 5%;" class="text-center">Apres-midi</th>
-                <th style="width: 18%;" class="text-center">Nettoyage - 10 cases</th>
-                <th style="width: 18%;" class="text-center">Classement caisse - 10 cases x 2 kg</th>
-                <th style="width: 7%;" class="text-center">Total caisses</th>
-                <th style="width: 7%;" class="text-center">Total kg</th>
-                <th style="width: 7%;">Observation</th>
+                <th style="width: 24%;">Nom et prenom</th>
+                <th style="width: 22%;" class="text-center">Nettoyage - 10 cases</th>
+                <th style="width: 42%;" class="text-center">Mise en caisse - poids par caisse</th>
             </tr>
             </thead>
             <tbody>
@@ -269,21 +269,16 @@
                     <td class="text-center">{{ loop.index }}</td>
                     <td>{{ worker.registrationNumber ?: '-' }}</td>
                     <td><strong>{{ worker.fullName ?: '-' }}</strong></td>
-                    <td class="text-center">&#9633;</td>
-                    <td class="text-center">&#9633;</td>
                     <td>
                         <div class="check-grid">
                             {% for i in 1..10 %}<span class="mini-box"></span>{% endfor %}
                         </div>
                     </td>
                     <td>
-                        <div class="check-grid">
-                            {% for i in 1..10 %}<span class="mini-box"></span>{% endfor %}
+                        <div class="write-box-grid">
+                            {% for i in 1..10 %}<span class="write-box"></span>{% endfor %}
                         </div>
                     </td>
-                    <td><div class="write-line"></div></td>
-                    <td><div class="write-line"></div></td>
-                    <td><div class="write-line"></div></td>
                 </tr>
             {% else %}
                 {% for i in 1..18 %}
@@ -291,21 +286,16 @@
                         <td class="text-center">{{ i }}</td>
                         <td class="line">.</td>
                         <td class="line">.</td>
-                        <td class="text-center">&#9633;</td>
-                        <td class="text-center">&#9633;</td>
                         <td>
                             <div class="check-grid">
                                 {% for j in 1..10 %}<span class="mini-box"></span>{% endfor %}
                             </div>
                         </td>
                         <td>
-                            <div class="check-grid">
-                                {% for j in 1..10 %}<span class="mini-box"></span>{% endfor %}
+                            <div class="write-box-grid">
+                                {% for j in 1..10 %}<span class="write-box"></span>{% endfor %}
                             </div>
                         </td>
-                        <td><div class="write-line"></div></td>
-                        <td><div class="write-line"></div></td>
-                        <td><div class="write-line"></div></td>
                     </tr>
                 {% endfor %}
             {% endfor %}
