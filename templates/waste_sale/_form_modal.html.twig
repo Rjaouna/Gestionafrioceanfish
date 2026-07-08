@@ -1,0 +1,46 @@
+{% set current_sale = sale|default(form.vars.data) %}
+{{ form_start(form, {attr: {'data-ajax-form': 'true', 'data-waste-sale-form': 'true'}}) }}
+    <div class="modal-header border-0 pb-0">
+        <div>
+            <h2 class="modal-title h5">{{ title }}</h2>
+            <p class="text-secondary small mb-0">
+                {% if current_sale and current_sale.reference %}
+                    Reference {{ current_sale.reference }}
+                {% else %}
+                    La reference sera generee automatiquement.
+                {% endif %}
+            </p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-12 col-md-6">{{ form_row(form.saleDate) }}</div>
+            <div class="col-12 col-md-6">{{ form_row(form.paymentMethod) }}</div>
+            <div class="col-12">
+                {{ form_row(form.buyerName) }}
+                <datalist id="waste-sale-buyer-suggestions">
+                    {% for buyer in buyer_choices|default([]) %}
+                        <option value="{{ buyer }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="col-12 col-md-6">{{ form_row(form.weightKg) }}</div>
+            <div class="col-12 col-md-6">{{ form_row(form.unitPrice) }}</div>
+            <div class="col-12">
+                <div class="border rounded-3 p-3 bg-light d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <span class="text-secondary">Total calcule</span>
+                    <strong class="h4 mb-0" data-waste-sale-total>{{ (current_sale ? current_sale.totalAmountValue : 0)|number_format(2, ',', ' ') }} dh</strong>
+                </div>
+            </div>
+            <div class="col-12">{{ form_row(form.notes) }}</div>
+        </div>
+        {{ form_rest(form) }}
+    </div>
+    <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check2 me-2"></i>{{ submit_label }}
+        </button>
+    </div>
+{{ form_end(form) }}

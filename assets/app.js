@@ -818,6 +818,23 @@ function initializeExpenseForms(root = document) {
     });
 }
 
+function syncWasteSaleTotal(form) {
+    if (!form) return;
+
+    const weightInput = form.querySelector('[data-waste-sale-weight]');
+    const unitPriceInput = form.querySelector('[data-waste-sale-unit-price]');
+    const totalElement = form.querySelector('[data-waste-sale-total]');
+    if (!weightInput || !unitPriceInput || !totalElement) return;
+
+    const weight = coutNumber(weightInput.value);
+    const unitPrice = coutNumber(unitPriceInput.value || '0.60') || 0.60;
+    totalElement.textContent = `${coutFormat(Math.max(0, weight) * Math.max(0, unitPrice))} dh`;
+}
+
+function initializeWasteSaleForms(root = document) {
+    root.querySelectorAll('[data-waste-sale-form]').forEach((form) => syncWasteSaleTotal(form));
+}
+
 function syncSmartChoice(control) {
     const wrapper = control.closest('[data-smart-choice], [data-reception-smart-choice]');
     const select = wrapper?.querySelector('[data-smart-choice-select], [data-reception-smart-select]');
@@ -3592,6 +3609,7 @@ function initializePageBehaviors() {
     if (targetSelector) openNavigationModal(targetSelector);
     initializeMaintenanceSmartForms();
     initializeExpenseForms();
+    initializeWasteSaleForms();
     initializeReceptionSmartChoices();
     initializeFishReceptionCostForms();
     initializeStageQuantityAvailabilityForms();
@@ -4105,6 +4123,7 @@ document.addEventListener('click', async (event) => {
             content.innerHTML = await response.text();
             initializeMaintenanceSmartForms(content);
             initializeExpenseForms(content);
+            initializeWasteSaleForms(content);
             initializeReceptionSmartChoices(content);
             initializeFishReceptionCostForms(content);
             initializeStageQuantityAvailabilityForms(content);
@@ -4213,6 +4232,12 @@ document.addEventListener('input', (event) => {
     const expenseAmountInput = event.target.closest('[data-expense-amount-ht], [data-expense-vat-rate]');
     if (expenseAmountInput) {
         syncExpenseTotals(expenseAmountInput.closest('[data-expense-form]'));
+        return;
+    }
+
+    const wasteSaleAmountInput = event.target.closest('[data-waste-sale-weight], [data-waste-sale-unit-price]');
+    if (wasteSaleAmountInput) {
+        syncWasteSaleTotal(wasteSaleAmountInput.closest('[data-waste-sale-form]'));
         return;
     }
 

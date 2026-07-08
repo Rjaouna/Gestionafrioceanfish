@@ -1,0 +1,65 @@
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center gap-3">
+        <div>
+            <h2 class="h5 mb-1">Dernieres ventes</h2>
+            <p class="text-secondary small mb-0">Poids, acheteur, paiement et montant calcule.</p>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+            <tr>
+                <th>Date</th>
+                <th>Reference</th>
+                <th>Acheteur</th>
+                <th class="text-end">Poids</th>
+                <th class="text-end">Prix/kg</th>
+                <th class="text-end">Total</th>
+                <th>Paiement</th>
+                <th class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for sale in sales %}
+                <tr>
+                    <td class="text-nowrap">{{ sale.saleDate ? sale.saleDate|date('d/m/Y') : '-' }}</td>
+                    <td class="fw-semibold">{{ sale.reference }}</td>
+                    <td>
+                        <div class="fw-semibold">{{ sale.buyerName }}</div>
+                        {% if sale.notes %}
+                            <div class="small text-secondary text-truncate" style="max-width: 220px;">{{ sale.notes }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="text-end text-nowrap">{{ sale.weightKgValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</td>
+                    <td class="text-end text-nowrap">{{ sale.unitPriceValue|number_format(2, ',', ' ') }} dh</td>
+                    <td class="text-end text-nowrap fw-bold">{{ sale.totalAmountValue|number_format(2, ',', ' ') }} dh</td>
+                    <td><span class="badge {{ sale.paymentMethodBadgeClass }}">{{ sale.paymentMethodLabel }}</span></td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" title="Modifier" aria-label="Modifier" data-remote-modal="{{ path('app_waste_sale_form', {id: sale.id}) }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_waste_sale_delete', {id: sale.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_waste_sale_' ~ sale.id) }}" data-confirm-message="Supprimer cette vente de dechets ?">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-secondary py-5">Aucune vente de dechets trouvee.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if pagination.pages > 1 %}
+        <div class="card-footer bg-white border-0 d-flex justify-content-center gap-2">
+            {% set query = filters|merge({page: pagination.page - 1}) %}
+            <a class="btn btn-outline-secondary btn-sm {{ pagination.page <= 1 ? 'disabled' : '' }}" href="{{ path('app_waste_sale_index', query) }}"><i class="bi bi-chevron-left"></i></a>
+            <span class="btn btn-light btn-sm disabled">Page {{ pagination.page }} / {{ pagination.pages }}</span>
+            {% set query = filters|merge({page: pagination.page + 1}) %}
+            <a class="btn btn-outline-secondary btn-sm {{ pagination.page >= pagination.pages ? 'disabled' : '' }}" href="{{ path('app_waste_sale_index', query) }}"><i class="bi bi-chevron-right"></i></a>
+        </div>
+    {% endif %}
+</div>

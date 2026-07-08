@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ventes dechets{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Ventes dechets</h1>
+        <p class="text-secondary mb-0">{{ pagination.total }} vente{{ pagination.total > 1 ? 's' : '' }} trouvee{{ pagination.total > 1 ? 's' : '' }}. Tarif par defaut : 0,60 dh/kg.</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createWasteSaleModal">
+        <i class="bi bi-plus-circle me-2"></i>Nouvelle vente
+    </button>
+</div>
+
+{% include 'waste_sale/_stats.html.twig' with {stats: stats} %}
+
+<form class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-lg-3">
+                <label class="form-label" for="wasteSaleSearch">Recherche</label>
+                <input id="wasteSaleSearch" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Reference, acheteur, note...">
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="wasteSaleDateFrom">Du</label>
+                <input id="wasteSaleDateFrom" class="form-control" type="date" name="dateFrom" value="{{ filters.dateFrom }}">
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="wasteSaleDateTo">Au</label>
+                <input id="wasteSaleDateTo" class="form-control" type="date" name="dateTo" value="{{ filters.dateTo }}">
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="wasteSaleBuyerFilter">Acheteur</label>
+                <select id="wasteSaleBuyerFilter" class="form-select" name="buyerName">
+                    <option value="">Tous</option>
+                    {% for buyer in buyer_choices %}
+                        <option value="{{ buyer }}" {{ filters.buyerName == buyer ? 'selected' : '' }}>{{ buyer }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="wasteSalePaymentFilter">Paiement</label>
+                <select id="wasteSalePaymentFilter" class="form-select" name="paymentMethod">
+                    <option value="">Tous</option>
+                    {% for value, label in payment_methods %}
+                        <option value="{{ value }}" {{ filters.paymentMethod == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-lg-1 d-grid">
+                <button class="btn btn-primary" type="submit" title="Filtrer">
+                    <i class="bi bi-funnel"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-7">
+        {% include 'waste_sale/_grid.html.twig' with {sales: sales, pagination: pagination, filters: filters} %}
+    </div>
+    <div class="col-12 col-xl-5">
+        {% include 'waste_sale/_breakdown.html.twig' with {stats: stats} %}
+    </div>
+</div>
+
+<div class="modal fade" id="createWasteSaleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            {% include 'waste_sale/_form_modal.html.twig' with {
+                form: create_form,
+                sale: null,
+                title: 'Nouvelle vente dechets',
+                submit_label: 'Enregistrer',
+                buyer_choices: buyer_choices
+            } %}
+        </div>
+    </div>
+</div>
+{% endblock %}

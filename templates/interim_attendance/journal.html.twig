@@ -74,6 +74,14 @@
 </div>
 
 <div class="card border-0 shadow-sm">
+    {% if rows|length > 0 %}
+        <div class="card-header bg-white border-0 d-flex flex-wrap align-items-center justify-content-end gap-2 pt-3 px-3">
+            <span class="small text-secondary me-1">Niveau sur la periode :</span>
+            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Meilleur</span>
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Moyen</span>
+            <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">Plus faible</span>
+        </div>
+    {% endif %}
     <div class="table-responsive">
         <table class="table align-middle mb-0">
             <thead class="table-light">
@@ -89,8 +97,30 @@
                 <tr>
                     <td class="fw-semibold">{{ row.fullName ?: '-' }}</td>
                     <td>{{ row.registrationNumber ?: '-' }}</td>
-                    <td class="text-end text-nowrap">{{ row.cleaningKg|number_format(2, ',', ' ') }} kg</td>
-                    <td class="text-end text-nowrap">{{ row.boxingKg|number_format(2, ',', ' ') }} kg</td>
+                    <td class="text-end text-nowrap">
+                        {% set cleaningClass = row.cleaningPerformance == 'high'
+                            ? 'bg-success-subtle text-success-emphasis border-success-subtle'
+                            : (row.cleaningPerformance == 'medium'
+                                ? 'bg-warning-subtle text-warning-emphasis border-warning-subtle'
+                                : (row.cleaningPerformance == 'low'
+                                    ? 'bg-danger-subtle text-danger-emphasis border-danger-subtle'
+                                    : 'bg-light text-secondary border-light-subtle')) %}
+                        <span class="badge border {{ cleaningClass }} px-3 py-2">
+                            {{ row.cleaningKg|number_format(2, ',', ' ') }} kg
+                        </span>
+                    </td>
+                    <td class="text-end text-nowrap">
+                        {% set boxingClass = row.boxingPerformance == 'high'
+                            ? 'bg-success-subtle text-success-emphasis border-success-subtle'
+                            : (row.boxingPerformance == 'medium'
+                                ? 'bg-warning-subtle text-warning-emphasis border-warning-subtle'
+                                : (row.boxingPerformance == 'low'
+                                    ? 'bg-danger-subtle text-danger-emphasis border-danger-subtle'
+                                    : 'bg-light text-secondary border-light-subtle')) %}
+                        <span class="badge border {{ boxingClass }} px-3 py-2">
+                            {{ row.boxingKg|number_format(2, ',', ' ') }} kg
+                        </span>
+                    </td>
                 </tr>
             {% else %}
                 <tr>

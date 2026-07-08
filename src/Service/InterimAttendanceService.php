@@ -223,6 +223,9 @@ final readonly class InterimAttendanceService
             $totals['taskKg'] += $cleaningKg + $boxingKg;
         }
 
+        $rows = $this->withJournalPerformanceLevels($rows, 'cleaningKg', 'cleaningPerformance');
+        $rows = $this->withJournalPerformanceLevels($rows, 'boxingKg', 'boxingPerformance');
+
         return [
             'filters' => $filters,
             'dateFrom' => $dateFrom,
@@ -233,6 +236,45 @@ final readonly class InterimAttendanceService
                 ? $dateFrom->format('d/m/Y')
                 : sprintf('%s au %s', $dateFrom->format('d/m/Y'), $dateTo->format('d/m/Y')),
         ];
+    }
+
+    /**
+     * Classifies distinct positive values into three relative performance tiers.
+     *
+     * @param list<array<string, int|float|string>> $rows
+     *
+     * @return list<array<string, int|float|string>>
+     */
+    private function withJournalPerformanceLevels(array $rows, string $valueKey, string $levelKey): array
+    {
+        $values = [];
+        foreach ($rows as $row) {
+            $value = (float) ($row[$valueKey] ?? 0);
+            if ($value > 0) {
+                $values[(string) $value] = $value;
+            }
+        }
+
+        rsort($values, SORT_NUMERIC);
+        $lastIndex = count($values) - 1;
+        $levels = [];
+
+        foreach ($values as $index => $value) {
+            $position = $lastIndex > 0 ? $index / $lastIndex : 0.0;
+            $levels[(string) $value] = match (true) {
+                $position <= 1 / 3 => 'high',
+                $position <= 2 / 3 => 'medium',
+                default => 'low',
+            };
+        }
+
+        foreach ($rows as &$row) {
+            $value = (float) ($row[$valueKey] ?? 0);
+            $row[$levelKey] = $value > 0 ? ($levels[(string) $value] ?? 'medium') : 'none';
+        }
+        unset($row);
+
+        return $rows;
     }
 
     /** @return array{filters: array<string, string>, attendanceDate: \DateTimeImmutable, workers: list<InterimWorker>, generatedAt: \DateTimeImmutable} */
