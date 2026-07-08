@@ -58,6 +58,16 @@ final class ConsumableStockController extends AbstractController
         ]);
     }
 
+    #[Route('/bon-commande', name: 'app_inventory_consumable_stock_purchase_order', methods: ['GET'])]
+    public function purchaseOrder(): Response
+    {
+        $this->denyAccessUnlessGranted(InventoryVoter::ACCESS);
+
+        return $this->render('inventory/consumable_stock/purchase_order.html.twig', [
+            'order' => $this->stockService->purchaseOrder($this->currentUser()),
+        ]);
+    }
+
     #[Route('/nouveau', name: 'app_inventory_consumable_stock_new', methods: ['GET'])]
     public function new(): Response
     {

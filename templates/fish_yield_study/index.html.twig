@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Etudes rendement poisson{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Etudes rendement poisson</h1>
+        <p class="text-secondary mb-0" data-ajax-count-region="fishYieldStudyGrid">{{ pagination.total }} etude{{ pagination.total > 1 ? 's' : '' }} visible{{ pagination.total > 1 ? 's' : '' }}.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_fish_yield_study_print_blank') }}?auto=1" target="_blank" rel="noopener">
+            <i class="bi bi-printer me-2"></i>Formulaire operateur
+        </a>
+        {% if is_granted('FISH_YIELD_STUDY_CREATE') %}
+            <a class="btn btn-primary" href="{{ path('app_fish_yield_study_new') }}">
+                <i class="bi bi-plus-circle me-2"></i>Nouvelle etude
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{% include 'fish_yield_study/_filters.html.twig' with {
+    filters: filters,
+    filter_choices: filter_choices
+} %}
+
+<div
+    data-ajax-region="fishYieldStudyGrid"
+    data-refresh-url="{{ path('app_fish_yield_study_search') }}"
+    data-refresh-form="#fishYieldStudyFilters"
+>
+    {% include 'fish_yield_study/_grid.html.twig' with {items: items, pagination: pagination} %}
+</div>
+{% endblock %}

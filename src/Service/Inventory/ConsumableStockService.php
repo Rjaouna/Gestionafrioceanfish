@@ -47,6 +47,65 @@ final readonly class ConsumableStockService
         ];
     }
 
+    /** @return array{reference: string, generatedAt: \DateTimeImmutable, generatedBy: string, items: list<array<string, mixed>>, supplierGroups: array<string, array{supplier: string, phone: ?string, items: list<array<string, mixed>>}>, totalLines: int, totalQuantity: float} */
+    public function purchaseOrder(User $actor): array
+    {
+        $this->denyUnlessAccess($actor);
+
+        $generatedAt = new \DateTimeImmutable();
+        $items = [];
+        $supplierGroups = [];
+        $totalQuantity = 0.0;
+
+        foreach ($this->itemRepository->itemsBelowMinimum() as $item) {
+            $quantityToOrder = max(0.0, $item->getMinimumQuantityValue() - $item->getQuantityValue());
+            if ($quantityToOrder <= 0.0) {
+                continue;
+            }
+
+            $supplier = trim((string) ($item->getPreferredSupplier() ?: 'Fournisseur a renseigner'));
+            $row = [
+                'reference' => $item->getReference(),
+                'name' => $item->getName(),
+                'category' => $item->getCategoryLabel(),
+                'unit' => $item->getUnitLabel(),
+                'currentQuantity' => $item->getQuantityValue(),
+                'minimumQuantity' => $item->getMinimumQuantityValue(),
+                'quantityToOrder' => $quantityToOrder,
+                'storageLocation' => $item->getStorageLocation(),
+                'supplier' => $supplier,
+                'supplierPhone' => $item->getSupplierPhone(),
+            ];
+
+            $items[] = $row;
+            $totalQuantity += $quantityToOrder;
+
+            $supplierKey = mb_strtolower($supplier);
+            if (!isset($supplierGroups[$supplierKey])) {
+                $supplierGroups[$supplierKey] = [
+                    'supplier' => $supplier,
+                    'phone' => $item->getSupplierPhone(),
+                    'items' => [],
+                ];
+            }
+
+            $supplierGroups[$supplierKey]['items'][] = $row;
+            if ($supplierGroups[$supplierKey]['phone'] === null && $item->getSupplierPhone() !== null) {
+                $supplierGroups[$supplierKey]['phone'] = $item->getSupplierPhone();
+            }
+        }
+
+        return [
+            'reference' => 'BC-CONS-'.$generatedAt->format('Ymd-His'),
+            'generatedAt' => $generatedAt,
+            'generatedBy' => $actor->getDisplayName(),
+            'items' => $items,
+            'supplierGroups' => $supplierGroups,
+            'totalLines' => count($items),
+            'totalQuantity' => $totalQuantity,
+        ];
+    }
+
     /** @return array{categories: list<string>, statuses: array<string, string>} */
     public function filterChoices(User $actor): array
     {

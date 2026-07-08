@@ -8,13 +8,18 @@ use App\Entity\InterimWorker;
 use App\Entity\User;
 use App\Repository\InterimAttendanceRateRepository;
 use App\Repository\InterimAttendanceRepository;
+use App\Repository\InterimWorkerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class InterimAttendanceService
 {
+    private const DEFAULT_CLEANING_RATE = 25.00;
+    private const DEFAULT_BOXING_RATE = 2.00;
+
     public function __construct(
         private InterimAttendanceRepository $attendanceRepository,
         private InterimAttendanceRateRepository $rateRepository,
+        private InterimWorkerRepository $workerRepository,
         private EntityManagerInterface $entityManager,
     ) {
     }
@@ -70,6 +75,9 @@ final readonly class InterimAttendanceService
                     'firstDate' => null,
                     'lastDate' => null,
                     'averageRate' => 0.0,
+                    'hourlyAmount' => 0.0,
+                    'taskAmount' => 0.0,
+                    'taskKg' => 0.0,
                 ];
             }
 
@@ -81,16 +89,24 @@ final readonly class InterimAttendanceService
                     'count' => 0,
                     'hours' => 0.0,
                     'amount' => 0.0,
+                    'taskKg' => 0.0,
                     'workers' => [],
                 ];
             }
 
             $hours = $item->getTotalHoursValue();
             $amount = $item->getTotalAmountValue();
+            $taskKg = $item->getMode() === InterimAttendance::MODE_TASK ? $item->getTaskWeightKgValue() : 0.0;
             $workerSummaries[$workerKey]['count']++;
             $workerSummaries[$workerKey]['hours'] += $hours;
             $workerSummaries[$workerKey]['amount'] += $amount;
+            $workerSummaries[$workerKey]['taskKg'] += $taskKg;
             $workerSummaries[$workerKey][$item->getMode() === InterimAttendance::MODE_TASK ? 'taskCount' : 'hourlyCount']++;
+            if ($item->getMode() === InterimAttendance::MODE_TASK) {
+                $workerSummaries[$workerKey]['taskAmount'] += $amount;
+            } else {
+                $workerSummaries[$workerKey]['hourlyAmount'] += $amount;
+            }
 
             if ($item->isMorningPresent() && $item->isAfternoonPresent()) {
                 $workerSummaries[$workerKey]['fullDays']++;
@@ -114,11 +130,12 @@ final readonly class InterimAttendanceService
             $dailySummaries[$dateKey]['count']++;
             $dailySummaries[$dateKey]['hours'] += $hours;
             $dailySummaries[$dateKey]['amount'] += $amount;
+            $dailySummaries[$dateKey]['taskKg'] += $taskKg;
             $dailySummaries[$dateKey]['workers'][$workerKey] = true;
         }
 
         foreach ($workerSummaries as &$summary) {
-            $summary['averageRate'] = $summary['hours'] > 0 ? $summary['amount'] / $summary['hours'] : 0.0;
+            $summary['averageRate'] = $summary['hours'] > 0 ? $summary['hourlyAmount'] / $summary['hours'] : 0.0;
         }
         unset($summary);
 
@@ -142,7 +159,10 @@ final readonly class InterimAttendanceService
         $totals += [
             'workers' => count($workerSummaries),
             'days' => count($dailySummaries),
-            'averageRate' => ($totals['hours'] ?? 0) > 0 ? ((float) $totals['amount'] / (float) $totals['hours']) : 0.0,
+            'taskKg' => array_sum(array_map(static fn (array $row): float => (float) $row['taskKg'], $workerSummaries)),
+            'taskAmount' => array_sum(array_map(static fn (array $row): float => (float) $row['taskAmount'], $workerSummaries)),
+            'hourlyAmount' => array_sum(array_map(static fn (array $row): float => (float) $row['hourlyAmount'], $workerSummaries)),
+            'averageRate' => ($totals['hours'] ?? 0) > 0 ? (array_sum(array_map(static fn (array $row): float => (float) $row['hourlyAmount'], $workerSummaries)) / (float) $totals['hours']) : 0.0,
             'maxWorkerAmount' => $workerSummaries !== [] ? max(array_map(static fn (array $row): float => (float) $row['amount'], $workerSummaries)) : 0.0,
         ];
 
@@ -152,6 +172,82 @@ final readonly class InterimAttendanceService
             'workerSummaries' => $workerSummaries,
             'dailySummaries' => $dailySummaries,
             'items' => $items,
+        ];
+    }
+
+    /** @return array{filters: array<string, string>, dateFrom: \DateTimeImmutable, dateTo: \DateTimeImmutable, rows: list<array<string, int|float|string>>, totals: array<string, int|float>, periodLabel: string} */
+    public function journal(array $filters = []): array
+    {
+        $filters = $this->normalizeJournalFilters($filters);
+        $dateFrom = new \DateTimeImmutable($filters['dateFrom']);
+        $dateTo = new \DateTimeImmutable($filters['dateTo']);
+
+        if ($dateTo < $dateFrom) {
+            [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
+            $filters['dateFrom'] = $dateFrom->format('Y-m-d');
+            $filters['dateTo'] = $dateTo->format('Y-m-d');
+        }
+
+        $rows = [];
+        $totals = [
+            'workers' => 0,
+            'lines' => 0,
+            'hours' => 0.0,
+            'cleaningKg' => 0.0,
+            'boxingKg' => 0.0,
+            'taskKg' => 0.0,
+        ];
+
+        foreach ($this->attendanceRepository->journalByWorker($dateFrom, $dateTo) as $row) {
+            $cleaningKg = (float) ($row['cleaningKg'] ?? 0);
+            $boxingKg = (float) ($row['boxingKg'] ?? 0);
+            $hours = (float) ($row['hours'] ?? 0);
+            $lineCount = (int) ($row['lineCount'] ?? 0);
+
+            $rows[] = [
+                'workerId' => (int) $row['workerId'],
+                'fullName' => trim((string) ($row['lastName'] ?? '').' '.(string) ($row['firstName'] ?? '')),
+                'registrationNumber' => (string) ($row['registrationNumber'] ?? ''),
+                'hours' => $hours,
+                'cleaningKg' => $cleaningKg,
+                'boxingKg' => $boxingKg,
+                'taskKg' => $cleaningKg + $boxingKg,
+                'lineCount' => $lineCount,
+            ];
+
+            $totals['workers']++;
+            $totals['lines'] += $lineCount;
+            $totals['hours'] += $hours;
+            $totals['cleaningKg'] += $cleaningKg;
+            $totals['boxingKg'] += $boxingKg;
+            $totals['taskKg'] += $cleaningKg + $boxingKg;
+        }
+
+        return [
+            'filters' => $filters,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'rows' => $rows,
+            'totals' => $totals,
+            'periodLabel' => $dateFrom->format('d/m/Y') === $dateTo->format('d/m/Y')
+                ? $dateFrom->format('d/m/Y')
+                : sprintf('%s au %s', $dateFrom->format('d/m/Y'), $dateTo->format('d/m/Y')),
+        ];
+    }
+
+    /** @return array{filters: array<string, string>, attendanceDate: \DateTimeImmutable, workers: list<InterimWorker>, generatedAt: \DateTimeImmutable} */
+    public function attendanceSheet(array $filters = []): array
+    {
+        $date = trim((string) ($filters['date'] ?? ''));
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $date = (new \DateTimeImmutable('today'))->format('Y-m-d');
+        }
+
+        return [
+            'filters' => ['date' => $date],
+            'attendanceDate' => new \DateTimeImmutable($date),
+            'workers' => $this->workerRepository->findForAttendanceSheet(),
+            'generatedAt' => new \DateTimeImmutable(),
         ];
     }
 
@@ -168,6 +264,18 @@ final readonly class InterimAttendanceService
             ->setMode(InterimAttendance::MODE_HOURLY)
             ->setAttendanceDate($date)
             ->setHourlyRate($this->defaultHourlyRate());
+    }
+
+    public function taskDraft(InterimWorker $worker, ?\DateTimeImmutable $date = null): InterimAttendance
+    {
+        $date ??= new \DateTimeImmutable('today');
+
+        return (new InterimAttendance())
+            ->setWorker($worker)
+            ->setMode(InterimAttendance::MODE_TASK)
+            ->setAttendanceDate($date)
+            ->setTaskType(InterimAttendance::TASK_CLEANING_ANCHOVY)
+            ->setTaskQuantity(1);
     }
 
     public function saveHourly(InterimWorker $worker, InterimAttendance $attendance, User $actor): InterimAttendance
@@ -200,16 +308,46 @@ final readonly class InterimAttendanceService
         return $attendance;
     }
 
-    /** @return array{items: list<InterimAttendance>, totals: array{hours: float, amount: float, count: int}, month: string} */
+    public function saveTask(InterimWorker $worker, InterimAttendance $attendance, User $actor): InterimAttendance
+    {
+        $attendance
+            ->setWorker($worker)
+            ->setMode(InterimAttendance::MODE_TASK)
+            ->setMorningPresent(false)
+            ->setMorningStart(null)
+            ->setMorningEnd(null)
+            ->setAfternoonPresent(false)
+            ->setAfternoonStart(null)
+            ->setAfternoonEnd(null)
+            ->setHourlyRate(0);
+
+        $this->calculateTask($attendance);
+
+        if (!$attendance->getAttendanceDate() instanceof \DateTimeImmutable) {
+            throw new \DomainException('Date de pointage invalide.');
+        }
+
+        $attendance->setCreatedBy($actor);
+        $this->entityManager->persist($attendance);
+        $this->entityManager->flush();
+
+        return $attendance;
+    }
+
+    /** @return array{items: list<InterimAttendance>, totals: array{hours: float, amount: float, count: int, taskKg: float}, month: string} */
     public function workerMonth(InterimWorker $worker, ?string $month = null): array
     {
         $monthDate = $this->monthFromString($month);
         $items = $this->attendanceRepository->findForWorkerMonth($worker, $monthDate);
         $hours = 0.0;
         $amount = 0.0;
+        $taskKg = 0.0;
         foreach ($items as $item) {
             $hours += $item->getTotalHoursValue();
             $amount += $item->getTotalAmountValue();
+            if ($item->getMode() === InterimAttendance::MODE_TASK) {
+                $taskKg += $item->getTaskWeightKgValue();
+            }
         }
 
         return [
@@ -218,9 +356,77 @@ final readonly class InterimAttendanceService
                 'hours' => $hours,
                 'amount' => $amount,
                 'count' => count($items),
+                'taskKg' => $taskKg,
             ],
             'month' => $monthDate->format('Y-m'),
         ];
+    }
+
+    /** @return array{date: \DateTimeImmutable, items: list<InterimAttendance>, rates: array<string, float>, cleaning: array<string, int|float>, boxing: array<string, int|float>, hourly: array<string, int|float>, totals: array<string, int|float>} */
+    public function workerDaySummary(InterimWorker $worker, ?\DateTimeImmutable $date = null): array
+    {
+        $date ??= new \DateTimeImmutable('today');
+        $items = $this->attendanceRepository->findForWorkerDate($worker, $date);
+        $summary = [
+            'date' => $date,
+            'items' => $items,
+            'rates' => [
+                'cleaning' => $this->defaultTaskRate(InterimAttendanceRate::CODE_TASK_CLEANING),
+                'boxing' => $this->defaultTaskRate(InterimAttendanceRate::CODE_TASK_BOXING),
+            ],
+            'cleaning' => [
+                'lines' => 0,
+                'caisses' => 0.0,
+                'kg' => 0.0,
+                'amount' => 0.0,
+            ],
+            'boxing' => [
+                'lines' => 0,
+                'kg' => 0.0,
+                'amount' => 0.0,
+            ],
+            'hourly' => [
+                'lines' => 0,
+                'hours' => 0.0,
+                'amount' => 0.0,
+            ],
+            'totals' => [
+                'lines' => 0,
+                'taskKg' => 0.0,
+                'hours' => 0.0,
+                'amount' => 0.0,
+            ],
+        ];
+
+        foreach ($items as $item) {
+            $amount = $item->getTotalAmountValue();
+            $summary['totals']['lines']++;
+            $summary['totals']['amount'] += $amount;
+
+            if ($item->getMode() !== InterimAttendance::MODE_TASK) {
+                $summary['hourly']['lines']++;
+                $summary['hourly']['hours'] += $item->getTotalHoursValue();
+                $summary['hourly']['amount'] += $amount;
+                $summary['totals']['hours'] += $item->getTotalHoursValue();
+
+                continue;
+            }
+
+            if ($item->getTaskType() === InterimAttendance::TASK_CLEANING_ANCHOVY) {
+                $summary['cleaning']['lines']++;
+                $summary['cleaning']['caisses'] += $item->getTaskQuantityValue();
+                $summary['cleaning']['kg'] += $item->getTaskWeightKgValue();
+                $summary['cleaning']['amount'] += $amount;
+            } elseif ($item->getTaskType() === InterimAttendance::TASK_BOXING_FILETS) {
+                $summary['boxing']['lines']++;
+                $summary['boxing']['kg'] += $item->getTaskWeightKgValue();
+                $summary['boxing']['amount'] += $amount;
+            }
+
+            $summary['totals']['taskKg'] += $item->getTaskWeightKgValue();
+        }
+
+        return $summary;
     }
 
     /** @return list<InterimAttendanceRate> */
@@ -245,6 +451,18 @@ final readonly class InterimAttendanceService
         return $rate instanceof InterimAttendanceRate && $rate->isActive() ? $rate->getAmountValue() : 0.0;
     }
 
+    public function defaultTaskRate(string $code): float
+    {
+        $this->ensureDefaultRates();
+        $rate = $this->rateRepository->findOneBy(['code' => $code]);
+
+        return $rate instanceof InterimAttendanceRate && $rate->isActive() ? $rate->getAmountValue() : match ($code) {
+            InterimAttendanceRate::CODE_TASK_CLEANING => self::DEFAULT_CLEANING_RATE,
+            InterimAttendanceRate::CODE_TASK_BOXING => self::DEFAULT_BOXING_RATE,
+            default => 0.0,
+        };
+    }
+
     private function calculateHourly(InterimAttendance $attendance): void
     {
         if (!$attendance->isMorningPresent()) {
@@ -261,6 +479,40 @@ final readonly class InterimAttendanceService
         $attendance
             ->setTotalHours(round($hours, 2))
             ->setTotalAmount(round($hours * $attendance->getHourlyRateValue(), 2));
+    }
+
+    private function calculateTask(InterimAttendance $attendance): void
+    {
+        $quantity = $attendance->getTaskQuantityValue();
+        if ($quantity <= 0) {
+            throw new \DomainException('Renseignez une quantite superieure a zero pour la tache.');
+        }
+
+        if ($attendance->getTaskType() === InterimAttendance::TASK_CLEANING_ANCHOVY) {
+            $rate = $this->defaultTaskRate(InterimAttendanceRate::CODE_TASK_CLEANING);
+            $weightKg = $quantity * InterimAttendance::CLEANING_BOX_WEIGHT_KG;
+            $amount = ($weightKg / InterimAttendance::CLEANING_RATE_WEIGHT_KG) * $rate;
+            $attendance
+                ->setTaskUnit('30 kg')
+                ->setTaskUnitPrice($rate)
+                ->setTotalHours(0)
+                ->setTotalAmount(round($amount, 2));
+
+            return;
+        }
+
+        if ($attendance->getTaskType() === InterimAttendance::TASK_BOXING_FILETS) {
+            $rate = $this->defaultTaskRate(InterimAttendanceRate::CODE_TASK_BOXING);
+            $attendance
+                ->setTaskUnit('kg')
+                ->setTaskUnitPrice($rate)
+                ->setTotalHours(0)
+                ->setTotalAmount(round($quantity * $rate, 2));
+
+            return;
+        }
+
+        throw new \DomainException('Selectionnez un type de tache valide.');
     }
 
     private function segmentHours(bool $present, ?\DateTimeImmutable $start, ?\DateTimeImmutable $end, string $label): float
@@ -301,13 +553,31 @@ final readonly class InterimAttendanceService
     {
         $defaults = [
             InterimAttendanceRate::CODE_HOURLY_DEFAULT => ['Taux horaire par defaut', InterimAttendance::MODE_HOURLY, 'heure', '0.00'],
-            InterimAttendanceRate::CODE_TASK_CLEANING => ['Tache nettoyage', InterimAttendance::MODE_TASK, 'nettoyage', '0.00'],
-            InterimAttendanceRate::CODE_TASK_BOXING => ['Tache mise en caisse', InterimAttendance::MODE_TASK, 'caisse', '0.00'],
+            InterimAttendanceRate::CODE_TASK_CLEANING => ['Nettoyage anchois', InterimAttendance::MODE_TASK, '30 kg', (string) self::DEFAULT_CLEANING_RATE],
+            InterimAttendanceRate::CODE_TASK_BOXING => ['Mise en caisse filets', InterimAttendance::MODE_TASK, 'kg', (string) self::DEFAULT_BOXING_RATE],
         ];
 
-        $created = false;
+        $changed = false;
         foreach ($defaults as $code => [$label, $mode, $unit, $amount]) {
-            if ($this->rateRepository->findOneBy(['code' => $code]) instanceof InterimAttendanceRate) {
+            $existing = $this->rateRepository->findOneBy(['code' => $code]);
+            if ($existing instanceof InterimAttendanceRate) {
+                if ($existing->getLabel() !== $label) {
+                    $existing->setLabel($label);
+                    $changed = true;
+                }
+                if ($existing->getMode() !== $mode) {
+                    $existing->setMode($mode);
+                    $changed = true;
+                }
+                if ($existing->getUnitLabel() !== $unit) {
+                    $existing->setUnitLabel($unit);
+                    $changed = true;
+                }
+                if ($existing->getAmountValue() <= 0.0 && (float) $amount > 0.0) {
+                    $existing->setAmount($amount);
+                    $changed = true;
+                }
+
                 continue;
             }
 
@@ -319,10 +589,10 @@ final readonly class InterimAttendanceService
                 ->setAmount($amount)
                 ->setActive(true);
             $this->entityManager->persist($rate);
-            $created = true;
+            $changed = true;
         }
 
-        if ($created) {
+        if ($changed) {
             $this->entityManager->flush();
         }
     }
@@ -344,6 +614,24 @@ final readonly class InterimAttendanceService
         foreach (['dateFrom', 'dateTo'] as $key) {
             if ($normalized[$key] !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $normalized[$key])) {
                 $normalized[$key] = '';
+            }
+        }
+
+        return $normalized;
+    }
+
+    /** @return array<string, string> */
+    private function normalizeJournalFilters(array $filters): array
+    {
+        $today = (new \DateTimeImmutable('today'))->format('Y-m-d');
+        $normalized = [
+            'dateFrom' => trim((string) ($filters['dateFrom'] ?? $today)),
+            'dateTo' => trim((string) ($filters['dateTo'] ?? $today)),
+        ];
+
+        foreach (['dateFrom', 'dateTo'] as $key) {
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $normalized[$key])) {
+                $normalized[$key] = $today;
             }
         }
 

@@ -1934,55 +1934,6 @@ function syncInterimAttendanceHourlyForm(form) {
     }
 }
 
-function syncInterimAttendanceTaskForm(form) {
-    const type = form.querySelector('[data-attendance-task-type]')?.value || '';
-    const quantity = attendanceNumber(form.querySelector('[data-attendance-task-quantity]')?.value);
-    const cleaningRate = attendanceNumber(form.dataset.cleaningRate || '25');
-    const boxingRate = attendanceNumber(form.dataset.boxingRate || '2');
-    const cleaningBoxKg = attendanceNumber(form.dataset.cleaningBoxKg || '10');
-    const cleaningRateKg = attendanceNumber(form.dataset.cleaningRateKg || '30');
-    const quantityInput = form.querySelector('[data-attendance-task-quantity]');
-    const quantityLabel = form.querySelector('[data-attendance-task-quantity-label]');
-    const help = form.querySelector('[data-attendance-task-help]');
-    const weightTarget = form.querySelector('[data-attendance-task-kg]');
-    const rateTarget = form.querySelector('[data-attendance-task-rate]');
-    const totalTarget = form.querySelector('[data-attendance-task-total]');
-
-    let weightKg = 0;
-    let amount = 0;
-    let rateLabel = '0 MAD';
-
-    if (type === 'cleaning_anchovy') {
-        weightKg = quantity * cleaningBoxKg;
-        amount = cleaningRateKg > 0 ? (weightKg / cleaningRateKg) * cleaningRate : 0;
-        rateLabel = `${cleaningRate.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD / ${cleaningRateKg.toLocaleString('fr-FR', {maximumFractionDigits: 0})} kg`;
-        if (quantityLabel) quantityLabel.textContent = 'Nombre de caisses';
-        if (quantityInput) quantityInput.placeholder = 'Ex. 3 caisses';
-        if (help) help.textContent = `1 caisse = ${cleaningBoxKg.toLocaleString('fr-FR', {maximumFractionDigits: 0})} kg. Tarif nettoyage : ${cleaningRate.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD / ${cleaningRateKg.toLocaleString('fr-FR', {maximumFractionDigits: 0})} kg.`;
-    } else if (type === 'boxing_filets') {
-        weightKg = quantity;
-        amount = quantity * boxingRate;
-        rateLabel = `${boxingRate.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD / kg`;
-        if (quantityLabel) quantityLabel.textContent = 'Kg mis en caisse';
-        if (quantityInput) quantityInput.placeholder = 'Ex. 120 kg';
-        if (help) help.textContent = `Tarif mise en caisse : ${boxingRate.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD / kg.`;
-    } else {
-        if (quantityLabel) quantityLabel.textContent = 'Quantite';
-        if (quantityInput) quantityInput.placeholder = 'Quantite';
-        if (help) help.textContent = 'Selectionnez une tache.';
-    }
-
-    if (weightTarget) {
-        weightTarget.textContent = `${weightKg.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} kg`;
-    }
-    if (rateTarget) {
-        rateTarget.textContent = rateLabel;
-    }
-    if (totalTarget) {
-        totalTarget.textContent = `${amount.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD`;
-    }
-}
-
 function initializeInterimAttendanceForms(root = document) {
     root.querySelectorAll('[data-interim-attendance-hourly-form]').forEach((form) => {
         syncInterimAttendanceHourlyForm(form);
@@ -1994,18 +1945,6 @@ function initializeInterimAttendanceForms(root = document) {
             input.addEventListener('change', () => syncInterimAttendanceHourlyForm(form));
         });
         form.addEventListener('submit', () => syncInterimAttendanceHourlyForm(form));
-    });
-
-    root.querySelectorAll('[data-interim-attendance-task-form]').forEach((form) => {
-        syncInterimAttendanceTaskForm(form);
-        if (form.dataset.interimAttendanceTaskInitialized === 'true') return;
-        form.dataset.interimAttendanceTaskInitialized = 'true';
-
-        form.querySelectorAll('input, select').forEach((input) => {
-            input.addEventListener('input', () => syncInterimAttendanceTaskForm(form));
-            input.addEventListener('change', () => syncInterimAttendanceTaskForm(form));
-        });
-        form.addEventListener('submit', () => syncInterimAttendanceTaskForm(form));
     });
 }
 

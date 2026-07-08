@@ -1,0 +1,200 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ title }}</h1>
+        <p class="text-secondary mb-0">Echantillon client, taux eau, rendement filet et estimation conteneur.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_fish_yield_study_index') }}">
+            <i class="bi bi-arrow-left me-2"></i>Retour
+        </a>
+        <a class="btn btn-outline-secondary" href="{{ path('app_fish_yield_study_print_blank') }}?auto=1" target="_blank" rel="noopener">
+            <i class="bi bi-printer me-2"></i>Formulaire operateur
+        </a>
+    </div>
+</div>
+
+{{ form_start(form, {attr: {'data-fish-yield-study-form': 'true'}}) }}
+    <div class="row g-4 align-items-start">
+        <div class="col-12 col-xl-8">
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Identification</h2>
+                    <p class="text-secondary small mb-0">Client, operateur et espece analysee.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.studyDate) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.reference) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.clientName) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.operatorName) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.speciesName) }}</div>
+                        <div class="col-12 col-md-4 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                {{ form_widget(form.hasMixedFish, {attr: {class: 'form-check-input', 'data-fish-yield-mixed-toggle': 'true'}}) }}
+                                {{ form_label(form.hasMixedFish, null, {label_attr: {class: 'form-check-label'}}) }}
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6" data-fish-yield-mixed-section>
+                            {{ form_row(form.mixedFishName) }}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Echantillon caisse</h2>
+                    <p class="text-secondary small mb-0">Poids avant/apres decongelation et moule pieces/kg.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.rawBoxWeight) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.thawedBoxWeight) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.piecesPerKg) }}</div>
+                    </div>
+                    <div class="fish-yield-live-grid mt-3">
+                        <div class="fish-yield-live-pill">
+                            <span>Eau retiree</span>
+                            <strong><span data-fish-yield-output="waterWeight">0</span> kg</strong>
+                        </div>
+                        <div class="fish-yield-live-pill">
+                            <span>Taux eau</span>
+                            <strong><span data-fish-yield-output="waterRate">0</span> %</strong>
+                        </div>
+                        <div class="fish-yield-live-pill">
+                            <span>Poids net decongele</span>
+                            <strong><span data-fish-yield-output="thawedWeight">0</span> kg</strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Travail en filet</h2>
+                    <p class="text-secondary small mb-0">Produit fini, dechets, pertes et controle d ecart.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.finishedProductWeight) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.wasteWeight) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.lossWeight) }}</div>
+                    </div>
+                    <div class="fish-yield-live-grid mt-3">
+                        <div class="fish-yield-live-pill">
+                            <span>Total sortie</span>
+                            <strong><span data-fish-yield-output="totalOutput">0</span> kg</strong>
+                        </div>
+                        <div class="fish-yield-live-pill">
+                            <span>Ecart</span>
+                            <strong><span data-fish-yield-output="processGap">0</span> kg</strong>
+                        </div>
+                        <div class="fish-yield-live-pill">
+                            <span>Rendement filet</span>
+                            <strong><span data-fish-yield-output="yieldRate">0</span> %</strong>
+                        </div>
+                        <div class="fish-yield-live-pill">
+                            <span>Taux dechets</span>
+                            <strong><span data-fish-yield-output="wasteRate">0</span> %</strong>
+                        </div>
+                        <div class="fish-yield-live-pill">
+                            <span>Taux pertes</span>
+                            <strong><span data-fish-yield-output="lossRate">0</span> %</strong>
+                        </div>
+                    </div>
+                    <div class="alert alert-secondary small mb-0 mt-3" data-fish-yield-diagnostic>
+                        Renseignez les poids pour analyser l essai.
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Estimation conteneur</h2>
+                    <p class="text-secondary small mb-0">Projection automatique a partir des ratios mesures sur la caisse.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.containerWeight) }}</div>
+                    </div>
+                    <div class="fish-yield-live-grid mt-3">
+                        <div class="fish-yield-live-pill">
+                            <span>Eau estimee</span>
+                            <strong><span data-fish-yield-output="containerWater">0</span> kg</strong>
+                        </div>
+                        <div class="fish-yield-live-pill">
+                            <span>Poids decongele</span>
+                            <strong><span data-fish-yield-output="containerThawed">0</span> kg</strong>
+                        </div>
+                        <div class="fish-yield-live-pill fish-yield-live-pill-success">
+                            <span>Produit fini estime</span>
+                            <strong><span data-fish-yield-output="containerFinished">0</span> kg</strong>
+                        </div>
+                        <div class="fish-yield-live-pill">
+                            <span>Dechets estimes</span>
+                            <strong><span data-fish-yield-output="containerWaste">0</span> kg</strong>
+                        </div>
+                        <div class="fish-yield-live-pill">
+                            <span>Pertes estimees</span>
+                            <strong><span data-fish-yield-output="containerLoss">0</span> kg</strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm">
+                <div class="card-body">
+                    {{ form_row(form.observations) }}
+                </div>
+            </section>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow-sm position-sticky" style="top: 1rem;">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Synthese</h2>
+                    <p class="text-secondary small mb-0">Calculs instantanes avant enregistrement.</p>
+                </div>
+                <div class="card-body">
+                    <div class="dashboard-kpi-card dashboard-kpi-card-success mb-3">
+                        <div class="dashboard-kpi-head">
+                            <div>
+                                <span class="dashboard-kpi-title">Produit fini conteneur</span>
+                                <div class="dashboard-kpi-value"><span data-fish-yield-output="containerFinished">0</span> kg</div>
+                            </div>
+                            <span class="dashboard-kpi-icon"><i class="bi bi-box-seam"></i></span>
+                        </div>
+                    </div>
+                    <div class="dashboard-kpi-card dashboard-kpi-card-info mb-3">
+                        <div class="dashboard-kpi-head">
+                            <div>
+                                <span class="dashboard-kpi-title">Rendement filet</span>
+                                <div class="dashboard-kpi-value"><span data-fish-yield-output="yieldRate">0</span> %</div>
+                            </div>
+                            <span class="dashboard-kpi-icon"><i class="bi bi-percent"></i></span>
+                        </div>
+                    </div>
+                    <div class="dashboard-kpi-card dashboard-kpi-card-warning mb-3">
+                        <div class="dashboard-kpi-head">
+                            <div>
+                                <span class="dashboard-kpi-title">Taux eau</span>
+                                <div class="dashboard-kpi-value"><span data-fish-yield-output="waterRate">0</span> %</div>
+                            </div>
+                            <span class="dashboard-kpi-icon"><i class="bi bi-droplet"></i></span>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-check2-circle me-2"></i>{{ submit_label }}
+                        </button>
+                        {% if item.id %}
+                            <a class="btn btn-outline-secondary" href="{{ path('app_fish_yield_study_view', {id: item.id}) }}">
+                                Voir la fiche
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{{ form_end(form) }}

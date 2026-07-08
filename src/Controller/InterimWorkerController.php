@@ -11,6 +11,7 @@ use App\Form\InterimWorkerStatusActionType;
 use App\Form\InterimWorkerType;
 use App\Security\Voter\InterimWorkerVoter;
 use App\Security\Voter\ModuleAccessVoter;
+use App\Service\InterimAttendanceService;
 use App\Service\InterimWorkerService;
 use App\Service\InterimWorkerStorageService;
 use App\Service\JsonResponder;
@@ -30,6 +31,7 @@ final class InterimWorkerController extends AbstractController
 {
     public function __construct(
         private readonly InterimWorkerService $workerService,
+        private readonly InterimAttendanceService $attendanceService,
         private readonly InterimWorkerStorageService $storage,
         private readonly JsonResponder $jsonResponder,
     ) {
@@ -104,15 +106,20 @@ final class InterimWorkerController extends AbstractController
     public function view(InterimWorker $worker, Request $request): Response
     {
         $this->denyAccessUnlessGranted(InterimWorkerVoter::VIEW, $worker);
+        $attendanceDaySummary = $this->isGranted(ModuleAccessVoter::ACCESS, 'pointage-personnel')
+            ? $this->attendanceService->workerDaySummary($worker)
+            : null;
 
         if (!$request->isXmlHttpRequest()) {
             return $this->render('interim_worker/show.html.twig', [
                 'worker' => $worker,
+                'attendance_day_summary' => $attendanceDaySummary,
             ]);
         }
 
         return $this->render('interim_worker/_details_modal.html.twig', [
             'worker' => $worker,
+            'attendance_day_summary' => $attendanceDaySummary,
         ]);
     }
 

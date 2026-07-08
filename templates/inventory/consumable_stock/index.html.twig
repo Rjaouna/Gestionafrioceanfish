@@ -8,9 +8,14 @@
         <h1 class="h3 mb-1">Stock consommables</h1>
         <p class="text-secondary mb-0">Gants, bavettes, savon, produits d'hygiene et consommables du quotidien.</p>
     </div>
-    <button type="button" class="btn btn-primary" data-remote-modal="{{ path('app_inventory_consumable_stock_new') }}">
-        <i class="bi bi-plus-circle me-2"></i>Nouveau produit
-    </button>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-primary" href="{{ path('app_inventory_consumable_stock_purchase_order') }}" target="_blank" rel="noopener">
+            <i class="bi bi-file-earmark-text me-2"></i>Bon de commande
+        </a>
+        <button type="button" class="btn btn-primary" data-remote-modal="{{ path('app_inventory_consumable_stock_new') }}">
+            <i class="bi bi-plus-circle me-2"></i>Nouveau produit
+        </button>
+    </div>
 </div>
 
 <div class="row g-3 mb-4">

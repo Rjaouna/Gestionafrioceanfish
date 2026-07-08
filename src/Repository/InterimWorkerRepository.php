@@ -71,6 +71,21 @@ class InterimWorkerRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /** @return list<InterimWorker> */
+    public function findForAttendanceSheet(): array
+    {
+        return $this->createQueryBuilder('w')
+            ->andWhere('w.isDeleted = false')
+            ->andWhere('w.isActive = true')
+            ->andWhere('w.status = :activeStatus')
+            ->setParameter('activeStatus', InterimWorker::STATUS_ACTIVE)
+            ->orderBy('w.lastName', 'ASC')
+            ->addOrderBy('w.firstName', 'ASC')
+            ->addOrderBy('w.registrationNumber', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     /** @param array<string, mixed> $filters */
     private function buildVisibleQuery(array $filters): QueryBuilder
     {

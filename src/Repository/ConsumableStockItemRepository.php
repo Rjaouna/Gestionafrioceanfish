@@ -91,6 +91,22 @@ class ConsumableStockItemRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** @return list<ConsumableStockItem> */
+    public function itemsBelowMinimum(): array
+    {
+        return $this->createQueryBuilder('i')
+            ->leftJoin('i.createdBy', 'creator')
+            ->addSelect('creator')
+            ->andWhere('i.isActive = true')
+            ->andWhere('i.minimumQuantity > 0')
+            ->andWhere('i.quantity < i.minimumQuantity')
+            ->orderBy('i.preferredSupplier', 'ASC')
+            ->addOrderBy('i.category', 'ASC')
+            ->addOrderBy('i.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     /** @return list<array{label: string, value: int}> */
     public function groupByCategory(): array
     {

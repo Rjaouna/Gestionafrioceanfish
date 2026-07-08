@@ -8,6 +8,7 @@ use App\Entity\InterimWorker;
 use App\Entity\User;
 use App\Form\InterimAttendanceHourlyType;
 use App\Form\InterimAttendanceRateType;
+use App\Form\InterimAttendanceTaskType;
 use App\Security\Voter\InterimWorkerVoter;
 use App\Security\Voter\ModuleAccessVoter;
 use App\Service\InterimAttendanceService;
@@ -51,6 +52,35 @@ final class InterimAttendanceController extends AbstractController
         $data = $this->attendanceService->details($this->filtersFromRequest($request));
 
         return $this->render('interim_attendance/details.html.twig', $data);
+    }
+
+    #[Route('/journal', name: 'app_interim_attendance_journal', methods: ['GET'])]
+    public function journal(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'pointage-personnel');
+
+        return $this->render('interim_attendance/journal.html.twig', $this->attendanceService->journal($this->journalFiltersFromRequest($request)));
+    }
+
+    #[Route('/journal/pdf', name: 'app_interim_attendance_journal_pdf', methods: ['GET'])]
+    public function journalPdf(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'pointage-personnel');
+        $data = $this->attendanceService->journal($this->journalFiltersFromRequest($request));
+        $data['generated_at'] = new \DateTimeImmutable();
+        $data['generated_by'] = $this->currentUser()->getDisplayName();
+
+        return $this->render('interim_attendance/journal_pdf.html.twig', $data);
+    }
+
+    #[Route('/feuille-pointage', name: 'app_interim_attendance_sheet', methods: ['GET'])]
+    public function sheet(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'pointage-personnel');
+        $data = $this->attendanceService->attendanceSheet($this->sheetFiltersFromRequest($request));
+        $data['generated_by'] = $this->currentUser()->getDisplayName();
+
+        return $this->render('interim_attendance/sheet.html.twig', $data);
     }
 
     #[Route('/recherche', name: 'app_interim_attendance_search', methods: ['GET'])]
@@ -116,6 +146,41 @@ final class InterimAttendanceController extends AbstractController
         return $this->jsonResponder->success('Pointage horaire enregistre.', ['reload' => true]);
     }
 
+    #[Route('/interimaires/{id}/tache/formulaire', name: 'app_interim_attendance_task_form', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function taskForm(InterimWorker $worker, Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'pointage-personnel');
+        $this->denyAccessUnlessGranted(InterimWorkerVoter::EDIT, $worker);
+        $attendance = $this->attendanceService->taskDraft($worker, $this->dateQuery($request));
+
+        return $this->render('interim_attendance/_task_form_modal.html.twig', [
+            'worker' => $worker,
+            'attendance' => $attendance,
+            'form' => $this->buildTaskForm($worker, $attendance),
+        ]);
+    }
+
+    #[Route('/interimaires/{id}/tache', name: 'app_interim_attendance_task_save', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function saveTask(InterimWorker $worker, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'pointage-personnel');
+        $this->denyAccessUnlessGranted(InterimWorkerVoter::EDIT, $worker);
+        $attendance = $this->attendanceService->taskDraft($worker);
+        $form = $this->buildTaskForm($worker, $attendance);
+        $form->handleRequest($request);
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            return $this->jsonResponder->invalidForm($form);
+        }
+
+        try {
+            $this->attendanceService->saveTask($worker, $attendance, $this->currentUser());
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
+
+        return $this->jsonResponder->success('Pointage a la tache enregistre.', ['reload' => true]);
+    }
+
     #[Route('/interimaires/{id}/historique', name: 'app_interim_attendance_worker_history', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function workerHistory(InterimWorker $worker, Request $request): Response
     {
@@ -179,6 +244,20 @@ final class InterimAttendanceController extends AbstractController
         ]);
     }
 
+    private function buildTaskForm(InterimWorker $worker, InterimAttendance $attendance): FormInterface
+    {
+        return $this->createForm(InterimAttendanceTaskType::class, $attendance, [
+            'action' => $this->generateUrl('app_interim_attendance_task_save', ['id' => $worker->getId()]),
+            'attr' => [
+                'data-interim-attendance-task-form' => 'true',
+                'data-cleaning-rate' => (string) $this->attendanceService->defaultTaskRate(InterimAttendanceRate::CODE_TASK_CLEANING),
+                'data-boxing-rate' => (string) $this->attendanceService->defaultTaskRate(InterimAttendanceRate::CODE_TASK_BOXING),
+                'data-cleaning-box-kg' => (string) InterimAttendance::CLEANING_BOX_WEIGHT_KG,
+                'data-cleaning-rate-kg' => (string) InterimAttendance::CLEANING_RATE_WEIGHT_KG,
+            ],
+        ]);
+    }
+
     private function buildRateForm(InterimAttendanceRate $rate): FormInterface
     {
         return $this->createForm(InterimAttendanceRateType::class, $rate, [
@@ -197,6 +276,25 @@ final class InterimAttendanceController extends AbstractController
             'mode' => trim((string) $request->query->get('mode', '')),
             'dateFrom' => trim((string) $request->query->get('dateFrom', $defaultFrom)),
             'dateTo' => trim((string) $request->query->get('dateTo', $defaultTo)),
+        ];
+    }
+
+    /** @return array<string, string> */
+    private function journalFiltersFromRequest(Request $request): array
+    {
+        $today = (new \DateTimeImmutable('today'))->format('Y-m-d');
+
+        return [
+            'dateFrom' => trim((string) $request->query->get('dateFrom', $today)),
+            'dateTo' => trim((string) $request->query->get('dateTo', $today)),
+        ];
+    }
+
+    /** @return array<string, string> */
+    private function sheetFiltersFromRequest(Request $request): array
+    {
+        return [
+            'date' => trim((string) $request->query->get('date', (new \DateTimeImmutable('today'))->format('Y-m-d'))),
         ];
     }
 

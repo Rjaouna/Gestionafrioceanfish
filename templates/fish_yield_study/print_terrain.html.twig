@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Formulaire etude rendement poisson</title>
+    <style>
+        @page { size: A4; margin: 12mm; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            color: #0f172a;
+            background: #f8fafc;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+        }
+        .print-actions {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            z-index: 10;
+            display: flex;
+            gap: 8px;
+        }
+        .print-actions button {
+            border: 1px solid #142d63;
+            border-radius: 6px;
+            background: #142d63;
+            color: #fff;
+            padding: 8px 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 12mm;
+            background: #fff;
+        }
+        .brand {
+            background: #142d63;
+            color: #fff;
+            padding: 14px 18px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+        }
+        .header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            align-items: end;
+            padding: 18px 0 14px;
+            border-bottom: 2px solid #142d63;
+        }
+        h1 {
+            margin: 0 0 6px;
+            color: #142d63;
+            font-size: 21px;
+            line-height: 1.2;
+        }
+        .subtitle, .meta { color: #475569; line-height: 1.5; }
+        .meta { text-align: right; white-space: nowrap; }
+        .print-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .summary-card {
+            min-height: 72px;
+            border: 1px solid #dbe4ee;
+            border-radius: 8px;
+            padding: 9px 10px;
+            background: #f8fafc;
+        }
+        .summary-card span {
+            display: block;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .summary-card strong {
+            display: block;
+            margin-top: 6px;
+            color: #0f172a;
+            font-size: 19px;
+            line-height: 1.1;
+        }
+        .summary-card small {
+            display: block;
+            margin-top: 5px;
+            color: #475569;
+            line-height: 1.25;
+        }
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .chart-card {
+            display: grid;
+            grid-template-columns: 116px 1fr;
+            gap: 12px;
+            align-items: center;
+            min-height: 132px;
+            border: 1px solid #dbe4ee;
+            border-radius: 10px;
+            padding: 10px;
+            background: #fff;
+        }
+        .pie {
+            width: 112px;
+            height: 112px;
+            border-radius: 50%;
+            border: 1px solid #e2e8f0;
+            box-shadow: inset 0 0 0 26px #fff;
+        }
+        .chart-title {
+            margin: 0 0 8px;
+            color: #142d63;
+            font-size: 13px;
+            font-weight: 800;
+        }
+        .legend {
+            display: grid;
+            gap: 5px;
+        }
+        .legend-row {
+            display: grid;
+            grid-template-columns: 10px 1fr auto;
+            gap: 7px;
+            align-items: center;
+            color: #334155;
+            font-size: 11px;
+        }
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .dot-pf { background: #10b981; }
+        .dot-waste { background: #f59e0b; }
+        .dot-loss { background: #ef4444; }
+        .dot-water { background: #38bdf8; }
+        .dot-thawed { background: #10b981; }
+        table {
+            width: 100%;
+            margin-top: 16px;
+            border-collapse: collapse;
+            page-break-inside: auto;
+        }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+        th {
+            background: #142d63;
+            color: #fff;
+            border: 1px solid #142d63;
+            padding: 9px 10px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        td {
+            height: 37px;
+            border: 1px solid #1e293b;
+            padding: 8px 10px;
+            vertical-align: middle;
+        }
+        td:first-child {
+            width: 46%;
+            background: #f8fafc;
+            font-weight: 700;
+        }
+        td:last-child {
+            width: 54%;
+            font-size: 14px;
+        }
+        .required { color: #dc2626; font-weight: 800; }
+        .footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-top: 30px;
+        }
+        .signature-label {
+            margin-bottom: 28px;
+            font-weight: 700;
+            color: #334155;
+        }
+        .signature-line {
+            border-bottom: 1px solid #111827;
+            height: 24px;
+        }
+        @media print {
+            body { background: #fff; }
+            .print-actions { display: none; }
+            .page { width: auto; min-height: auto; margin: 0; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-actions">
+        <button type="button" onclick="window.print()">Imprimer</button>
+    </div>
+    <main class="page">
+        <div class="brand">AFRIOCEAN FISH</div>
+        <header class="header">
+            <div>
+                <h1>Formulaire etude rendement poisson</h1>
+                <div class="subtitle">
+                    {% if item %}
+                        {{ item.reference }} - {{ item.clientName ?: 'Client non renseigne' }} - {{ item.speciesName }}
+                    {% else %}
+                        Essai client sur caisse echantillon
+                    {% endif %}
+                </div>
+            </div>
+            <div class="meta">
+                <div>Genere le {{ generated_at|date('d/m/Y H:i') }}</div>
+                <div>{{ generated_by }}</div>
+            </div>
+        </header>
+
+        {% if item %}
+            {% set total_rejects = item.wasteWeightValue + item.lossWeightValue %}
+            {% set process_total = item.totalWorkedOutputValue > 0 ? item.totalWorkedOutputValue : item.thawedBoxWeightValue %}
+            {% set pf_rate = process_total > 0 ? (item.finishedProductWeightValue / process_total * 100) : 0 %}
+            {% set waste_rate = process_total > 0 ? (item.wasteWeightValue / process_total * 100) : 0 %}
+            {% set loss_rate = process_total > 0 ? (item.lossWeightValue / process_total * 100) : 0 %}
+            {% set pf_end = pf_rate %}
+            {% set waste_end = pf_rate + waste_rate %}
+            {% set water_rate = item.rawBoxWeightValue > 0 ? item.waterRate : 0 %}
+            {% set thawed_rate = item.rawBoxWeightValue > 0 ? (item.thawedBoxWeightValue / item.rawBoxWeightValue * 100) : 0 %}
+
+            <section class="print-summary">
+                <div class="summary-card">
+                    <span>Taux eau</span>
+                    <strong>{{ item.waterRate|number_format(2, ',', ' ') }} %</strong>
+                    <small>{{ item.waterWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg sur echantillon</small>
+                </div>
+                <div class="summary-card">
+                    <span>Rendement filet</span>
+                    <strong>{{ item.yieldRate|number_format(2, ',', ' ') }} %</strong>
+                    <small>{{ item.finishedProductWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg PF</small>
+                </div>
+                <div class="summary-card">
+                    <span>Dechets + pertes</span>
+                    <strong>{{ total_rejects|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong>
+                    <small>{{ process_total > 0 ? ((total_rejects / process_total * 100)|number_format(2, ',', ' ') ~ ' % sortie') : 'Non calcule' }}</small>
+                </div>
+                <div class="summary-card">
+                    <span>Diagnostic</span>
+                    <strong>{{ item.diagnosticLabel }}</strong>
+                    <small>Ecart process : {{ item.processGapValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</small>
+                </div>
+            </section>
+
+            <section class="charts">
+                <div class="chart-card">
+                    <div class="pie" style="background: conic-gradient(#38bdf8 0 {{ water_rate|number_format(2, '.', '') }}%, #10b981 {{ water_rate|number_format(2, '.', '') }}% 100%);"></div>
+                    <div>
+                        <h2 class="chart-title">Apres decongelation</h2>
+                        <div class="legend">
+                            <div class="legend-row"><span class="legend-dot dot-water"></span><span>Eau retiree</span><strong>{{ item.waterWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div>
+                            <div class="legend-row"><span class="legend-dot dot-thawed"></span><span>Poids decongele</span><strong>{{ item.thawedBoxWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div>
+                            <div class="legend-row"><span></span><span>Taux eau</span><strong>{{ water_rate|number_format(2, ',', ' ') }} %</strong></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="pie" style="background: conic-gradient(#10b981 0 {{ pf_end|number_format(2, '.', '') }}%, #f59e0b {{ pf_end|number_format(2, '.', '') }}% {{ waste_end|number_format(2, '.', '') }}%, #ef4444 {{ waste_end|number_format(2, '.', '') }}% 100%);"></div>
+                    <div>
+                        <h2 class="chart-title">Travail en filet</h2>
+                        <div class="legend">
+                            <div class="legend-row"><span class="legend-dot dot-pf"></span><span>Produit fini</span><strong>{{ item.finishedProductWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div>
+                            <div class="legend-row"><span class="legend-dot dot-waste"></span><span>Dechets</span><strong>{{ item.wasteWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div>
+                            <div class="legend-row"><span class="legend-dot dot-loss"></span><span>Pertes</span><strong>{{ item.lossWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        {% endif %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Information a relever</th>
+                    <th>Valeur</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for field in fields %}
+                    <tr>
+                        <td>
+                            {{ field.label }}
+                            {% if field.required %}
+                                <span class="required">*</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ field.value }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <section class="footer">
+            <div>
+                <div class="signature-label">Operateur</div>
+                <div class="signature-line"></div>
+            </div>
+            <div>
+                <div class="signature-label">Responsable</div>
+                <div class="signature-line"></div>
+            </div>
+        </section>
+    </main>
+    <script>
+        window.addEventListener('load', function () {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('auto') === '1') {
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

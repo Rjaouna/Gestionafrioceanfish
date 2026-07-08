@@ -1,0 +1,54 @@
+{{ form_start(form, {attr: form.vars.attr|merge({'data-ajax-form': 'true'})}) }}
+    <div class="modal-header">
+        <div>
+            <h2 class="modal-title fs-5">Pointage a la tache</h2>
+            <p class="text-secondary small mb-0">{{ worker.fullName }} - {{ worker.registrationNumber }}</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-info small">
+            <i class="bi bi-info-circle me-2"></i>Vous pouvez saisir plusieurs taches le meme jour pour la meme personne.
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-4">{{ form_row(form.attendanceDate) }}</div>
+            <div class="col-md-4">{{ form_row(form.taskType) }}</div>
+            <div class="col-md-4">
+                <label class="form-label" for="{{ form.taskQuantity.vars.id }}" data-attendance-task-quantity-label>Nombre de caisses</label>
+                {{ form_widget(form.taskQuantity) }}
+                {{ form_errors(form.taskQuantity) }}
+                <div class="form-text" data-attendance-task-help>1 caisse = 10 kg. Tarif nettoyage : 25 MAD / 30 kg.</div>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+            <div class="col-md-4">
+                <div class="border rounded-3 p-3 bg-light h-100">
+                    <div class="small text-secondary">Poids calcule</div>
+                    <strong data-attendance-task-kg>0 kg</strong>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border rounded-3 p-3 bg-light h-100">
+                    <div class="small text-secondary">Tarif applique</div>
+                    <strong data-attendance-task-rate>0 MAD</strong>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border rounded-3 p-3 bg-success-subtle h-100">
+                    <div class="small text-success-emphasis">Montant a payer</div>
+                    <strong class="text-success-emphasis" data-attendance-task-total>0 MAD</strong>
+                </div>
+            </div>
+            <div class="col-12">{{ form_row(form.comment) }}</div>
+        </div>
+        {{ form_rest(form) }}
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>Enregistrer
+        </button>
+    </div>
+{{ form_end(form) }}

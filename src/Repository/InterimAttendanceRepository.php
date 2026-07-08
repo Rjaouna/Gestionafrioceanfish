@@ -58,8 +58,11 @@ class InterimAttendanceRepository extends ServiceEntityRepository
     public function totals(array $filters = []): array
     {
         $row = $this->buildSearchQuery($filters)
-            ->select('COALESCE(SUM(a.totalHours), 0) AS hours, COALESCE(SUM(a.totalAmount), 0) AS amount, COUNT(DISTINCT a.id) AS countRows')
+            ->select('COALESCE(SUM(a.totalHours), 0) AS hours, COALESCE(SUM(a.totalAmount), 0) AS amount, COUNT(DISTINCT a.id) AS countRows, COALESCE(SUM(CASE WHEN a.mode = :taskMode AND a.taskType = :cleaningType THEN a.taskQuantity * 10 WHEN a.mode = :taskMode AND a.taskType = :boxingType THEN a.taskQuantity ELSE 0 END), 0) AS taskKg')
             ->resetDQLPart('orderBy')
+            ->setParameter('taskMode', InterimAttendance::MODE_TASK)
+            ->setParameter('cleaningType', InterimAttendance::TASK_CLEANING_ANCHOVY)
+            ->setParameter('boxingType', InterimAttendance::TASK_BOXING_FILETS)
             ->getQuery()
             ->getSingleResult();
 
@@ -67,6 +70,7 @@ class InterimAttendanceRepository extends ServiceEntityRepository
             'hours' => (float) ($row['hours'] ?? 0),
             'amount' => (float) ($row['amount'] ?? 0),
             'count' => (int) ($row['countRows'] ?? 0),
+            'taskKg' => (float) ($row['taskKg'] ?? 0),
         ];
     }
 
@@ -86,6 +90,49 @@ class InterimAttendanceRepository extends ServiceEntityRepository
             ->addOrderBy('a.id', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    /** @return list<InterimAttendance> */
+    public function findForWorkerDate(InterimWorker $worker, \DateTimeImmutable $date): array
+    {
+        return $this->createQueryBuilder('a')
+            ->andWhere('a.worker = :worker')
+            ->andWhere('a.attendanceDate = :date')
+            ->setParameter('worker', $worker)
+            ->setParameter('date', $date)
+            ->orderBy('a.mode', 'ASC')
+            ->addOrderBy('a.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function journalByWorker(\DateTimeImmutable $dateFrom, \DateTimeImmutable $dateTo): array
+    {
+        return $this->createQueryBuilder('a')
+            ->select('
+                w.id AS workerId,
+                w.lastName AS lastName,
+                w.firstName AS firstName,
+                w.registrationNumber AS registrationNumber,
+                COALESCE(SUM(a.totalHours), 0) AS hours,
+                COALESCE(SUM(CASE WHEN a.mode = :taskMode AND a.taskType = :cleaningType THEN a.taskQuantity * 10 ELSE 0 END), 0) AS cleaningKg,
+                COALESCE(SUM(CASE WHEN a.mode = :taskMode AND a.taskType = :boxingType THEN a.taskQuantity ELSE 0 END), 0) AS boxingKg,
+                COUNT(a.id) AS lineCount
+            ')
+            ->innerJoin('a.worker', 'w')
+            ->andWhere('w.isDeleted = false')
+            ->andWhere('a.attendanceDate BETWEEN :dateFrom AND :dateTo')
+            ->setParameter('dateFrom', $dateFrom)
+            ->setParameter('dateTo', $dateTo)
+            ->setParameter('taskMode', InterimAttendance::MODE_TASK)
+            ->setParameter('cleaningType', InterimAttendance::TASK_CLEANING_ANCHOVY)
+            ->setParameter('boxingType', InterimAttendance::TASK_BOXING_FILETS)
+            ->groupBy('w.id, w.lastName, w.firstName, w.registrationNumber')
+            ->orderBy('w.lastName', 'ASC')
+            ->addOrderBy('w.firstName', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
     }
 
     /** @param array<string, mixed> $filters */

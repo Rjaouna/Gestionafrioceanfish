@@ -1,0 +1,46 @@
+<form id="fishYieldStudyFilters" class="card border-0 shadow-sm mb-4" method="get" action="{{ path('app_fish_yield_study_index') }}" data-ajax-filter-form data-ajax-filter-region="fishYieldStudyGrid">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-lg-3">
+                <label class="form-label" for="fishYieldSearch">Recherche</label>
+                <input id="fishYieldSearch" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Reference, client, espece...">
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label" for="fishYieldDateFrom">Du</label>
+                <input id="fishYieldDateFrom" class="form-control" type="date" name="dateFrom" value="{{ filters.dateFrom }}">
+            </div>
+            <div class="col-6 col-lg-2">
+                <label class="form-label" for="fishYieldDateTo">Au</label>
+                <input id="fishYieldDateTo" class="form-control" type="date" name="dateTo" value="{{ filters.dateTo }}">
+            </div>
+            <div class="col-12 col-lg-2">
+                <label class="form-label" for="fishYieldClient">Client</label>
+                <select id="fishYieldClient" class="form-select" name="clientName">
+                    <option value="">Tous</option>
+                    {% for client in filter_choices.clients %}
+                        <option value="{{ client }}" {{ filters.clientName == client ? 'selected' : '' }}>{{ client }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-lg-2">
+                <label class="form-label" for="fishYieldSpecies">Espece</label>
+                <select id="fishYieldSpecies" class="form-select" name="speciesName">
+                    <option value="">Toutes</option>
+                    {% for species in filter_choices.species %}
+                        <option value="{{ species }}" {{ filters.speciesName == species ? 'selected' : '' }}>{{ species }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-lg-1 d-flex gap-2">
+                <button class="btn btn-primary flex-fill" type="submit" title="Filtrer">
+                    <i class="bi bi-search"></i>
+                </button>
+                <a class="btn btn-outline-secondary" href="{{ path('app_fish_yield_study_index') }}" title="Reinitialiser">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
+        </div>
+        <input type="hidden" name="sort" value="{{ filters.sort }}">
+        <input type="hidden" name="direction" value="{{ filters.direction }}">
+    </div>
+</form>

@@ -14,6 +14,9 @@
         <a class="btn btn-outline-secondary" href="{{ path('app_interim_attendance_index') }}">
             <i class="bi bi-calendar-check me-2"></i>Pointage
         </a>
+        <a class="btn btn-outline-secondary" href="{{ path('app_interim_attendance_journal') }}">
+            <i class="bi bi-file-earmark-pdf me-2"></i>Export journal
+        </a>
         <a class="btn btn-outline-secondary" href="{{ path('app_interim_payment_index') }}">
             <i class="bi bi-wallet2 me-2"></i>Paiements
         </a>
@@ -87,8 +90,8 @@
     <div class="col-6 col-lg-2">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="small text-secondary">Pointages</div>
-                <div class="h4 mb-0">{{ totals.count }}</div>
+                <div class="small text-secondary">Taches</div>
+                <div class="h4 mb-0">{{ totals.taskKg|default(0)|number_format(2, ',', ' ') }} kg</div>
             </div>
         </div>
     </div>
@@ -103,7 +106,7 @@
     <div class="col-6 col-lg-2">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="small text-secondary">Moyenne / h</div>
+                <div class="small text-secondary">Moyenne horaire</div>
                 <div class="h4 mb-0">{{ totals.averageRate|number_format(2, ',', ' ') }}</div>
             </div>
         </div>
@@ -142,6 +145,7 @@
                                 <div class="small text-secondary">{{ worker.registrationNumber }}{% if worker.position %} - {{ worker.position }}{% endif %}</div>
                                 <div class="mt-1">
                                     <span class="badge {{ worker.statusBadgeClass }}">{{ worker.statusLabel }}</span>
+                                    {% if row.taskKg|default(0) > 0 %}<span class="badge text-bg-warning">{{ row.taskKg|number_format(2, ',', ' ') }} kg tache</span>{% endif %}
                                     {% if row.halfDays > 0 %}<span class="badge text-bg-warning">{{ row.halfDays }} demi-jour</span>{% endif %}
                                     {% if row.absentDays > 0 %}<span class="badge text-bg-danger">{{ row.absentDays }} absent</span>{% endif %}
                                 </div>
@@ -188,7 +192,9 @@
                             </div>
                             <div class="text-end">
                                 <div class="fw-semibold">{{ day.amount|number_format(2, ',', ' ') }} MAD</div>
-                                <div class="small text-secondary">{{ day.hours|number_format(2, ',', ' ') }} h</div>
+                                <div class="small text-secondary">
+                                    {{ day.hours|number_format(2, ',', ' ') }} h{% if day.taskKg|default(0) > 0 %} - {{ day.taskKg|number_format(2, ',', ' ') }} kg{% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -213,7 +219,13 @@
                             </div>
                             <div class="text-end">
                                 <div class="fw-semibold">{{ item.totalAmountValue|number_format(2, ',', ' ') }} MAD</div>
-                                <div class="small text-secondary">{{ item.totalHoursValue|number_format(2, ',', ' ') }} h</div>
+                                <div class="small text-secondary">
+                                    {% if item.mode == 'task' %}
+                                        {{ item.taskWeightKgValue|number_format(2, ',', ' ') }} kg
+                                    {% else %}
+                                        {{ item.totalHoursValue|number_format(2, ',', ' ') }} h
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>

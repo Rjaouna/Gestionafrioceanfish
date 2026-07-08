@@ -67,17 +67,21 @@ final class InterimWorkerType extends AbstractType
             ])
             ->add('address', TextareaType::class, [
                 'label' => 'Adresse',
-                'required' => true,
+                'required' => false,
                 'attr' => ['rows' => 2, 'placeholder' => 'Adresse complete', 'maxlength' => 255],
             ])
             ->add('position', ChoiceType::class, [
                 'label' => 'Poste',
-                'placeholder' => 'Choisir un poste',
+                'required' => false,
+                'placeholder' => 'Non renseigne',
                 'choices' => array_combine($positionChoices, $positionChoices),
+                'empty_data' => null,
             ])
             ->add('workerType', ChoiceType::class, [
                 'label' => 'Profil',
+                'required' => false,
                 'choices' => array_flip(InterimWorker::TYPE_LABELS),
+                'empty_data' => InterimWorker::TYPE_OTHER,
                 'help' => 'Sélectionnez Étudiant(e) pour les personnes prévues uniquement pendant les vacances.',
             ])
             ->add('registrationNumber', TextType::class, [
@@ -88,6 +92,7 @@ final class InterimWorkerType extends AbstractType
                 'help' => 'Laissez vide pour generer le matricule automatiquement.',
             ])
             ->add('phone', TextType::class, [
+                'required' => false,
                 'label' => 'Téléphone',
                 'attr' => [
                     'placeholder' => '06..., 07..., +212... ou +33...',
@@ -98,7 +103,7 @@ final class InterimWorkerType extends AbstractType
             ])
             ->add('birthDate', DateType::class, [
                 'label' => 'Date de naissance',
-                'required' => true,
+                'required' => false,
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
                 'attr' => [
@@ -108,7 +113,7 @@ final class InterimWorkerType extends AbstractType
             ])
             ->add('birthPlace', TextType::class, [
                 'label' => 'Lieu de naissance',
-                'required' => true,
+                'required' => false,
                 'attr' => ['maxlength' => 100],
             ])
             ->add('cin', TextType::class, [
@@ -158,8 +163,10 @@ final class InterimWorkerType extends AbstractType
             ])
             ->add('familySituation', ChoiceType::class, [
                 'label' => 'Situation familiale',
+                'required' => false,
                 'choices' => array_flip(InterimWorker::FAMILY_LABELS),
                 'expanded' => true,
+                'empty_data' => InterimWorker::FAMILY_SINGLE,
             ])
             ->add('childrenCount', IntegerType::class, [
                 'label' => 'Nombre d’enfants',
@@ -168,6 +175,7 @@ final class InterimWorkerType extends AbstractType
                 'attr' => ['min' => 0, 'max' => 20, 'data-interim-children-count' => 'true'],
             ])
             ->add('hireDate', DateType::class, [
+                'required' => false,
                 'label' => 'Date d’embauche',
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
@@ -215,7 +223,9 @@ final class InterimWorkerType extends AbstractType
             ])
             ->add('status', ChoiceType::class, [
                 'label' => 'Statut',
+                'required' => false,
                 'choices' => array_flip(InterimWorker::STATUS_LABELS),
+                'empty_data' => InterimWorker::STATUS_ACTIVE,
                 'help' => 'Pour une fin de mission ou un statut A ne pas rappeler, utilisez les boutons d action afin de saisir le motif et la date.',
             ])
             ->add('documents', FileType::class, [

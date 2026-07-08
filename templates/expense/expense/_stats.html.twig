@@ -1,14 +1,21 @@
-<div class="row g-3 mb-4">
+{% set filtered_total = stats.filtered_total|default(0) %}
+{% set category_total = 0 %}
+{% for category in stats.categories|default([]) %}
+    {% set category_total = category_total + category.total %}
+{% endfor %}
+
+<div class="row g-3 mb-4" data-expense-stats>
     <div class="col-12 col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between gap-3">
                     <div>
-                        <div class="text-secondary small">Dépenses du mois</div>
-                        <div class="h4 mb-0">{{ stats.month_total|number_format(2, ',', ' ') }} dh</div>
+                        <div class="text-secondary small">Total selection</div>
+                        <div class="h4 mb-0">{{ filtered_total|number_format(2, ',', ' ') }} dh</div>
+                        <div class="small text-secondary mt-1">Hors depenses annulees</div>
                     </div>
                     <span class="rounded-3 bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center fs-4 module-mark">
-                        <i class="bi bi-calendar2-month"></i>
+                        <i class="bi bi-calendar-range"></i>
                     </span>
                 </div>
             </div>
@@ -19,11 +26,12 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between gap-3">
                     <div>
-                        <div class="text-secondary small">En attente</div>
-                        <div class="h4 mb-0">{{ stats.pending_count }}</div>
+                        <div class="text-secondary small">Depenses trouvees</div>
+                        <div class="h4 mb-0">{{ stats.filtered_count|default(0) }}</div>
+                        <div class="small text-secondary mt-1">Selon les filtres actifs</div>
                     </div>
-                    <span class="rounded-3 bg-warning-subtle text-warning d-inline-flex align-items-center justify-content-center fs-4 module-mark">
-                        <i class="bi bi-hourglass-split"></i>
+                    <span class="rounded-3 bg-info-subtle text-info d-inline-flex align-items-center justify-content-center fs-4 module-mark">
+                        <i class="bi bi-receipt"></i>
                     </span>
                 </div>
             </div>
@@ -34,8 +42,9 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between gap-3">
                     <div>
-                        <div class="text-secondary small">Total payé</div>
-                        <div class="h4 mb-0">{{ stats.paid_total|number_format(2, ',', ' ') }} dh</div>
+                        <div class="text-secondary small">Total paye</div>
+                        <div class="h4 mb-0">{{ stats.filtered_paid_total|default(0)|number_format(2, ',', ' ') }} dh</div>
+                        <div class="small text-secondary mt-1">Dans la selection</div>
                     </div>
                     <span class="rounded-3 bg-success-subtle text-success d-inline-flex align-items-center justify-content-center fs-4 module-mark">
                         <i class="bi bi-check2-circle"></i>
@@ -47,14 +56,32 @@
     <div class="col-12 col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="d-flex justify-content-between gap-3">
+                <div class="d-flex justify-content-between gap-3 mb-3">
                     <div>
-                        <div class="text-secondary small">Validées / refusées</div>
-                        <div class="h4 mb-0">{{ stats.validated_count }} / {{ stats.refused_count }}</div>
+                        <div class="text-secondary small">Par categorie</div>
+                        <div class="h4 mb-0">{{ stats.filtered_average|default(0)|number_format(2, ',', ' ') }} dh</div>
+                        <div class="small text-secondary mt-1">Moyenne par depense</div>
                     </div>
-                    <span class="rounded-3 bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center fs-4 module-mark">
-                        <i class="bi bi-clipboard-check"></i>
+                    <span class="rounded-3 bg-warning-subtle text-warning d-inline-flex align-items-center justify-content-center fs-4 module-mark">
+                        <i class="bi bi-tags"></i>
                     </span>
+                </div>
+                <div class="d-grid gap-2">
+                    {% for category in stats.categories|default([])|slice(0, 3) %}
+                        {% set total = category.total + 0 %}
+                        {% set percent = category_total > 0 ? (total / category_total * 100) : 0 %}
+                        <div>
+                            <div class="d-flex justify-content-between gap-2 small">
+                                <span class="text-truncate">{{ category.label }}</span>
+                                <strong class="text-nowrap">{{ total|number_format(2, ',', ' ') }} dh</strong>
+                            </div>
+                            <div class="progress expense-category-progress mt-1" role="progressbar" aria-label="{{ category.label }}" aria-valuenow="{{ percent|round(0, 'floor') }}" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar" style="width: {{ percent|round(2, 'floor') }}%"></div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="small text-secondary">Aucune depense sur cette selection.</div>
+                    {% endfor %}
                 </div>
             </div>
         </div>

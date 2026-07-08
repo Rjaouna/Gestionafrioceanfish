@@ -65,6 +65,120 @@
         </div>
     </div>
 
+    {% set day_summary = attendance_day_summary|default(null) %}
+    {% if day_summary %}
+        <hr class="my-4">
+        <section class="border rounded-3 bg-light p-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+                <div>
+                    <h3 class="h6 mb-1">Pointage du jour</h3>
+                    <div class="small text-secondary">{{ day_summary.date|date('d/m/Y') }}</div>
+                </div>
+                <span class="badge text-bg-light border">{{ day_summary.totals.lines }} ligne{{ day_summary.totals.lines > 1 ? 's' : '' }}</span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="border rounded-3 bg-white p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                            <strong>Nettoyage anchois</strong>
+                            <span class="badge text-bg-warning">{{ day_summary.cleaning.lines }} saisie{{ day_summary.cleaning.lines > 1 ? 's' : '' }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-secondary">Caisses</span>
+                            <span class="fw-semibold">{{ day_summary.cleaning.caisses|number_format(0, ',', ' ') }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-secondary">Poids</span>
+                            <span class="fw-semibold">{{ day_summary.cleaning.kg|number_format(2, ',', ' ') }} kg</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-secondary">Tarif</span>
+                            <span class="fw-semibold">{{ day_summary.rates.cleaning|number_format(2, ',', ' ') }} MAD / 30 kg</span>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-secondary">Montant</span>
+                            <span class="fw-bold">{{ day_summary.cleaning.amount|number_format(2, ',', ' ') }} MAD</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded-3 bg-white p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                            <strong>Mise en caisse</strong>
+                            <span class="badge text-bg-info">{{ day_summary.boxing.lines }} saisie{{ day_summary.boxing.lines > 1 ? 's' : '' }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-secondary">Poids</span>
+                            <span class="fw-semibold">{{ day_summary.boxing.kg|number_format(2, ',', ' ') }} kg</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-secondary">Tarif</span>
+                            <span class="fw-semibold">{{ day_summary.rates.boxing|number_format(2, ',', ' ') }} MAD / kg</span>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-secondary">Montant</span>
+                            <span class="fw-bold">{{ day_summary.boxing.amount|number_format(2, ',', ' ') }} MAD</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="border rounded-3 bg-white p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                            <strong>Total journee</strong>
+                            <span class="badge text-bg-success">{{ day_summary.totals.amount|number_format(2, ',', ' ') }} MAD</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-secondary">Poids taches</span>
+                            <span class="fw-semibold">{{ day_summary.totals.taskKg|number_format(2, ',', ' ') }} kg</span>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span class="text-secondary">Heures</span>
+                            <span class="fw-semibold">{{ day_summary.totals.hours|number_format(2, ',', ' ') }} h</span>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-secondary">Total paie</span>
+                            <span class="fw-bold">{{ day_summary.totals.amount|number_format(2, ',', ' ') }} MAD</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if day_summary.items|length > 0 %}
+                <div class="table-responsive mt-3">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Detail</th>
+                            <th class="text-end">Heures / kg</th>
+                            <th class="text-end">Montant</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in day_summary.items %}
+                            <tr>
+                                <td>{{ item.presenceLabel }}</td>
+                                <td class="small text-secondary">{{ item.timeRangeLabel }}</td>
+                                <td class="text-end text-nowrap">
+                                    {% if item.mode == 'task' %}
+                                        {{ item.taskWeightKgValue|number_format(2, ',', ' ') }} kg
+                                    {% else %}
+                                        {{ item.totalHoursValue|number_format(2, ',', ' ') }} h
+                                    {% endif %}
+                                </td>
+                                <td class="text-end fw-semibold text-nowrap">{{ item.totalAmountValue|number_format(2, ',', ' ') }} MAD</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="small text-secondary mt-3">Aucun pointage saisi pour cette journee.</div>
+            {% endif %}
+        </section>
+    {% endif %}
+
     <hr class="my-4">
     <h3 class="h6">Observations du responsable</h3>
     <p class="mb-4 text-break">{{ worker.managerObservations ?: 'Aucune observation.' }}</p>

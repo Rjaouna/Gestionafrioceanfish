@@ -3224,41 +3224,6 @@ code {
     white-space: nowrap;
 }
 
-.fish-yield-live-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 0.65rem;
-}
-
-.fish-yield-live-pill {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    min-height: 2.55rem;
-    padding: 0.58rem 0.7rem;
-    border: 1px solid var(--bs-border-color);
-    border-radius: 0.45rem;
-    background: #f8fafc;
-    color: var(--bs-secondary-color);
-    font-size: 0.82rem;
-}
-
-.fish-yield-live-pill strong {
-    color: var(--bs-emphasis-color);
-    font-size: 0.9rem;
-    white-space: nowrap;
-}
-
-.fish-yield-live-pill-success {
-    border-color: rgba(33, 166, 122, 0.28);
-    background: rgba(33, 166, 122, 0.08);
-}
-
-.fish-yield-live-pill-success strong {
-    color: #087f5b;
-}
-
 .cout-norm-badge {
     line-height: 1.2;
     text-align: right;

@@ -1,0 +1,97 @@
+{% if items|length > 0 %}
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Reference</th>
+                    <th>Client</th>
+                    <th>Espece</th>
+                    <th class="text-end">MP caisse</th>
+                    <th class="text-end">Taux eau</th>
+                    <th class="text-end">PF filet</th>
+                    <th class="text-end">Rendement</th>
+                    <th class="text-end">PF conteneur</th>
+                    <th>Etat</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td class="text-nowrap">{{ item.studyDate ? item.studyDate|date('d/m/Y') : '-' }}</td>
+                        <td>
+                            <a class="fw-semibold text-decoration-none" href="{{ path('app_fish_yield_study_view', {id: item.id}) }}">
+                                {{ item.reference }}
+                            </a>
+                            {% if item.operatorName %}
+                                <div class="small text-secondary">{{ item.operatorName }}</div>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.clientName ?: '-' }}</td>
+                        <td>
+                            <div>{{ item.speciesName }}</div>
+                            {% if item.hasMixedFish %}
+                                <span class="badge text-bg-warning">Melange : {{ item.mixedFishName ?: 'Oui' }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">{{ item.rawBoxWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</td>
+                        <td class="text-end">{{ item.waterRate|number_format(2, ',', ' ') }} %</td>
+                        <td class="text-end">{{ item.finishedProductWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</td>
+                        <td class="text-end">{{ item.yieldRate|number_format(2, ',', ' ') }} %</td>
+                        <td class="text-end">{{ item.containerFinishedEstimateValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</td>
+                        <td><span class="badge {{ item.diagnosticBadgeClass }}">{{ item.diagnosticLabel }}</span></td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                {% if is_granted('FISH_YIELD_STUDY_VIEW', item) %}
+                                    <a class="btn btn-outline-primary" href="{{ path('app_fish_yield_study_view', {id: item.id}) }}" title="Voir" aria-label="Voir">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                {% endif %}
+                                {% if is_granted('FISH_YIELD_STUDY_EDIT', item) %}
+                                    <a class="btn btn-outline-primary" href="{{ path('app_fish_yield_study_edit', {id: item.id}) }}" title="Modifier" aria-label="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                {% endif %}
+                                {% if is_granted('FISH_YIELD_STUDY_PRINT', item) %}
+                                    <a class="btn btn-outline-secondary" href="{{ path('app_fish_yield_study_print', {id: item.id}) }}?auto=1" target="_blank" rel="noopener" title="Imprimer" aria-label="Imprimer">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                {% endif %}
+                                {% if is_granted('FISH_YIELD_STUDY_DELETE', item) %}
+                                    <button class="btn btn-outline-danger" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_fish_yield_study_delete', {id: item.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_fish_yield_study_' ~ item.id) }}" data-confirm-message="Supprimer cette etude rendement poisson ?">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary fs-2 empty-state-mark">
+                <i class="bi bi-clipboard2-pulse"></i>
+            </span>
+            <h2 class="h5 mt-3">Aucune etude rendement</h2>
+            <p class="text-secondary mb-0">Ajoutez une etude ou ajustez les filtres.</p>
+        </div>
+    </div>
+{% endif %}
+
+{% if pagination.pages > 1 %}
+    <div class="d-flex justify-content-center gap-2 mt-4">
+        <a class="btn btn-outline-secondary btn-sm {{ pagination.page <= 1 ? 'disabled' : '' }}" href="#" data-ajax-region-page="fishYieldStudyGrid" data-page="{{ pagination.page - 1 }}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="btn btn-light btn-sm disabled">Page {{ pagination.page }} / {{ pagination.pages }}</span>
+        <a class="btn btn-outline-secondary btn-sm {{ pagination.page >= pagination.pages ? 'disabled' : '' }}" href="#" data-ajax-region-page="fishYieldStudyGrid" data-page="{{ pagination.page + 1 }}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+{% endif %}

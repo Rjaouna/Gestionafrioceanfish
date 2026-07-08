@@ -14,7 +14,7 @@
                 <i class="bi bi-tags me-2"></i>Catégories
             </a>
         {% endif %}
-        <a href="{{ path('app_expense_export_csv') }}" class="btn btn-outline-secondary">
+        <a href="{{ path('app_expense_export_csv', filters) }}" class="btn btn-outline-secondary" data-expense-export data-expense-export-base="{{ path('app_expense_export_csv') }}">
             <i class="bi bi-filetype-csv me-2"></i>Export CSV
         </a>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createExpenseModal">
@@ -23,7 +23,9 @@
     </div>
 </div>
 
-{% include 'expense/expense/_stats.html.twig' with {stats: stats} %}
+<div id="expenseStats">
+    {% include 'expense/expense/_stats.html.twig' with {stats: stats} %}
+</div>
 
 {% include 'expense/expense/_filters.html.twig' with {
     categories: categories,

@@ -17,12 +17,12 @@
             </button>
         </div>
         <div class="col-md-6">
-            <button class="btn btn-outline-secondary w-100 h-100 p-4 text-start" type="button" disabled>
-                <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-secondary-subtle text-secondary fs-4 mb-3" style="width: 3rem; height: 3rem;">
+            <button class="btn btn-outline-warning w-100 h-100 p-4 text-start" type="button" data-remote-modal="{{ path('app_interim_attendance_task_form', {id: worker.id}) }}">
+                <span class="d-inline-flex align-items-center justify-content-center rounded-3 bg-warning-subtle text-warning-emphasis fs-4 mb-3" style="width: 3rem; height: 3rem;">
                     <i class="bi bi-box-seam"></i>
                 </span>
                 <strong class="d-block">Pointage a la tache</strong>
-                <span class="small text-secondary">Nettoyage, mise en caisse et autres taches. Active dans la prochaine etape.</span>
+                <span class="small text-secondary">Nettoyage anchois, mise en caisse filets et calcul automatique.</span>
             </button>
         </div>
     </div>

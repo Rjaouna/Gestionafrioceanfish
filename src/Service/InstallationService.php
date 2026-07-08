@@ -32,6 +32,7 @@ final readonly class InstallationService
             ['Maintenance', 'maintenance', 'bi-tools', 'app_maintenance_intervenant_index', 'Intervenants, contrats et interventions de maintenance.'],
             ['Dépenses', 'expenses', 'bi-cash-coin', 'app_expense_index', 'Gestion financière des dépenses, justificatifs et validations.'],
             ['Cout de revient', 'cout-revient', 'bi-calculator', 'app_cout_revient_index', 'Calcul des couts de production, rendements et marges par lot.'],
+            ['Etudes rendement poisson', 'etudes-rendement-poisson', 'bi-clipboard2-pulse', 'app_fish_yield_study_index', 'Essais client sur caisse echantillon, taux eau, rendement filet et estimation conteneur.'],
             ['Composition usine', 'factory', 'bi-building-gear', 'app_factory_unit_index', 'Tunnels, chambres froides, zones de stockage et selections usine.'],
             ['Réceptions', 'receptions', 'bi-clipboard2-check', 'app_fish_reception_index', 'Réception poisson, traitement, emballage, congélation, stockage et expédition.'],
             ['Intérimaires', 'interimaires', 'bi-person-vcard', 'app_interim_worker_index', 'Fiches de poste, suivi RH et documents des intérimaires.'],

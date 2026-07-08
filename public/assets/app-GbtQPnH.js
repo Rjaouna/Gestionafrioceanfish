@@ -1934,55 +1934,6 @@ function syncInterimAttendanceHourlyForm(form) {
     }
 }
 
-function syncInterimAttendanceTaskForm(form) {
-    const type = form.querySelector('[data-attendance-task-type]')?.value || '';
-    const quantity = attendanceNumber(form.querySelector('[data-attendance-task-quantity]')?.value);
-    const cleaningRate = attendanceNumber(form.dataset.cleaningRate || '25');
-    const boxingRate = attendanceNumber(form.dataset.boxingRate || '2');
-    const cleaningBoxKg = attendanceNumber(form.dataset.cleaningBoxKg || '10');
-    const cleaningRateKg = attendanceNumber(form.dataset.cleaningRateKg || '30');
-    const quantityInput = form.querySelector('[data-attendance-task-quantity]');
-    const quantityLabel = form.querySelector('[data-attendance-task-quantity-label]');
-    const help = form.querySelector('[data-attendance-task-help]');
-    const weightTarget = form.querySelector('[data-attendance-task-kg]');
-    const rateTarget = form.querySelector('[data-attendance-task-rate]');
-    const totalTarget = form.querySelector('[data-attendance-task-total]');
-
-    let weightKg = 0;
-    let amount = 0;
-    let rateLabel = '0 MAD';
-
-    if (type === 'cleaning_anchovy') {
-        weightKg = quantity * cleaningBoxKg;
-        amount = cleaningRateKg > 0 ? (weightKg / cleaningRateKg) * cleaningRate : 0;
-        rateLabel = `${cleaningRate.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD / ${cleaningRateKg.toLocaleString('fr-FR', {maximumFractionDigits: 0})} kg`;
-        if (quantityLabel) quantityLabel.textContent = 'Nombre de caisses';
-        if (quantityInput) quantityInput.placeholder = 'Ex. 3 caisses';
-        if (help) help.textContent = `1 caisse = ${cleaningBoxKg.toLocaleString('fr-FR', {maximumFractionDigits: 0})} kg. Tarif nettoyage : ${cleaningRate.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD / ${cleaningRateKg.toLocaleString('fr-FR', {maximumFractionDigits: 0})} kg.`;
-    } else if (type === 'boxing_filets') {
-        weightKg = quantity;
-        amount = quantity * boxingRate;
-        rateLabel = `${boxingRate.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD / kg`;
-        if (quantityLabel) quantityLabel.textContent = 'Kg mis en caisse';
-        if (quantityInput) quantityInput.placeholder = 'Ex. 120 kg';
-        if (help) help.textContent = `Tarif mise en caisse : ${boxingRate.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD / kg.`;
-    } else {
-        if (quantityLabel) quantityLabel.textContent = 'Quantite';
-        if (quantityInput) quantityInput.placeholder = 'Quantite';
-        if (help) help.textContent = 'Selectionnez une tache.';
-    }
-
-    if (weightTarget) {
-        weightTarget.textContent = `${weightKg.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} kg`;
-    }
-    if (rateTarget) {
-        rateTarget.textContent = rateLabel;
-    }
-    if (totalTarget) {
-        totalTarget.textContent = `${amount.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2})} MAD`;
-    }
-}
-
 function initializeInterimAttendanceForms(root = document) {
     root.querySelectorAll('[data-interim-attendance-hourly-form]').forEach((form) => {
         syncInterimAttendanceHourlyForm(form);
@@ -1994,18 +1945,6 @@ function initializeInterimAttendanceForms(root = document) {
             input.addEventListener('change', () => syncInterimAttendanceHourlyForm(form));
         });
         form.addEventListener('submit', () => syncInterimAttendanceHourlyForm(form));
-    });
-
-    root.querySelectorAll('[data-interim-attendance-task-form]').forEach((form) => {
-        syncInterimAttendanceTaskForm(form);
-        if (form.dataset.interimAttendanceTaskInitialized === 'true') return;
-        form.dataset.interimAttendanceTaskInitialized = 'true';
-
-        form.querySelectorAll('input, select').forEach((input) => {
-            input.addEventListener('input', () => syncInterimAttendanceTaskForm(form));
-            input.addEventListener('change', () => syncInterimAttendanceTaskForm(form));
-        });
-        form.addEventListener('submit', () => syncInterimAttendanceTaskForm(form));
     });
 }
 
@@ -2467,131 +2406,6 @@ function initializeCoutRevientForms(root = document) {
             }
         });
         form.addEventListener('submit', () => syncCoutRevientForm(form));
-    });
-}
-
-function fishYieldField(form, name) {
-    return form.querySelector(`[data-fish-yield-field="${name}"]`);
-}
-
-function fishYieldValue(form, name) {
-    return coutNumber(fishYieldField(form, name)?.value);
-}
-
-function fishYieldRatio(sampleValue, rawWeight, containerWeight) {
-    if (rawWeight <= 0 || containerWeight <= 0) return 0;
-
-    return (sampleValue / rawWeight) * containerWeight;
-}
-
-function fishYieldDiagnostic(rawWeight, thawedWeight, totalOutput, processGap, waterRate, yieldRate, lossRate) {
-    if (rawWeight <= 0 || thawedWeight <= 0 || totalOutput <= 0) {
-        return {
-            className: 'alert-secondary',
-            message: 'Renseignez les poids pour analyser l essai.',
-        };
-    }
-
-    if (Math.abs(processGap) > 0.1) {
-        return {
-            className: 'alert-warning',
-            message: `A verifier : produit fini + dechets + pertes = ${coutFormatCompact(totalOutput)} kg, ecart ${coutFormatCompact(processGap)} kg avec le poids decongele.`,
-        };
-    }
-
-    if (waterRate > 20) {
-        return {
-            className: 'alert-danger',
-            message: `Taux eau eleve : ${coutFormatCompact(waterRate)} %. Verifiez la glace, l egouttage et la qualite de la matiere.`,
-        };
-    }
-
-    if (yieldRate >= 45 && yieldRate <= 60 && lossRate <= 10) {
-        return {
-            className: 'alert-success',
-            message: `Rendement correct : ${coutFormatCompact(yieldRate)} % de filet, pertes ${coutFormatCompact(lossRate)} %.`,
-        };
-    }
-
-    return {
-        className: 'alert-warning',
-        message: `Essai a surveiller : rendement ${coutFormatCompact(yieldRate)} %, taux eau ${coutFormatCompact(waterRate)} %.`,
-    };
-}
-
-function syncFishYieldStudyForm(form) {
-    form.querySelectorAll('[data-fish-yield-field]').forEach((input) => {
-        if (Number(input.value) < 0) input.value = '0';
-    });
-
-    const rawWeight = fishYieldValue(form, 'rawBoxWeight');
-    const thawedWeight = fishYieldValue(form, 'thawedBoxWeight');
-    const finishedWeight = fishYieldValue(form, 'finishedProductWeight');
-    const wasteWeight = fishYieldValue(form, 'wasteWeight');
-    const lossWeight = fishYieldValue(form, 'lossWeight');
-    const containerWeight = fishYieldValue(form, 'containerWeight');
-
-    const waterWeight = Math.max(0, rawWeight - thawedWeight);
-    const waterRate = rawWeight > 0 ? (waterWeight / rawWeight) * 100 : 0;
-    const totalOutput = finishedWeight + wasteWeight + lossWeight;
-    const processGap = thawedWeight - totalOutput;
-    const yieldRate = thawedWeight > 0 ? (finishedWeight / thawedWeight) * 100 : 0;
-    const wasteRate = thawedWeight > 0 ? (wasteWeight / thawedWeight) * 100 : 0;
-    const lossRate = thawedWeight > 0 ? (lossWeight / thawedWeight) * 100 : 0;
-
-    const outputs = {
-        waterWeight,
-        waterRate,
-        thawedWeight,
-        totalOutput,
-        processGap,
-        yieldRate,
-        wasteRate,
-        lossRate,
-        containerWater: fishYieldRatio(waterWeight, rawWeight, containerWeight),
-        containerThawed: fishYieldRatio(thawedWeight, rawWeight, containerWeight),
-        containerFinished: fishYieldRatio(finishedWeight, rawWeight, containerWeight),
-        containerWaste: fishYieldRatio(wasteWeight, rawWeight, containerWeight),
-        containerLoss: fishYieldRatio(lossWeight, rawWeight, containerWeight),
-    };
-
-    form.querySelectorAll('[data-fish-yield-output]').forEach((output) => {
-        const key = output.dataset.fishYieldOutput;
-        output.textContent = ['waterRate', 'yieldRate', 'wasteRate', 'lossRate'].includes(key)
-            ? coutFormat(outputs[key] ?? 0)
-            : coutFormatCompact(outputs[key] ?? 0);
-    });
-
-    const mixedToggle = form.querySelector('[data-fish-yield-mixed-toggle]');
-    form.querySelectorAll('[data-fish-yield-mixed-section]').forEach((section) => {
-        section.classList.toggle('d-none', !mixedToggle?.checked);
-        const mixedInput = section.querySelector('input, textarea, select');
-        if (mixedInput) {
-            mixedInput.disabled = !mixedToggle?.checked;
-            if (!mixedToggle?.checked) mixedInput.value = '';
-        }
-    });
-
-    const diagnostic = fishYieldDiagnostic(rawWeight, thawedWeight, totalOutput, processGap, waterRate, yieldRate, lossRate);
-    const diagnosticBox = form.querySelector('[data-fish-yield-diagnostic]');
-    if (diagnosticBox) {
-        diagnosticBox.className = `alert ${diagnostic.className} small mb-0 mt-3`;
-        diagnosticBox.textContent = diagnostic.message;
-    }
-}
-
-function initializeFishYieldStudyForms(root = document) {
-    root.querySelectorAll('[data-fish-yield-study-form]').forEach((form) => {
-        syncFishYieldStudyForm(form);
-        if (form.dataset.fishYieldInitialized === 'true') return;
-        form.dataset.fishYieldInitialized = 'true';
-        form.addEventListener('input', (event) => {
-            if (event.target.matches('input, textarea')) syncFishYieldStudyForm(form);
-        });
-        form.addEventListener('change', (event) => {
-            if (event.target.matches('input, select')) syncFishYieldStudyForm(form);
-        });
-        form.addEventListener('submit', () => syncFishYieldStudyForm(form));
     });
 }
 
@@ -3604,7 +3418,6 @@ function initializePageBehaviors() {
     initializeInterimWorkerForms();
     initializeInterimAttendanceForms();
     initializeCoutRevientForms();
-    initializeFishYieldStudyForms();
     initializeCoutRevientDashboard();
     initializeContactPhones();
     initializeChoiceTags();

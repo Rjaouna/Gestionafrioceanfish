@@ -7,8 +7,8 @@
                     <th>Date</th>
                     <th>Interimaire</th>
                     <th>Type</th>
-                    <th>Creneaux</th>
-                    <th class="text-end">Heures</th>
+                    <th>Detail</th>
+                    <th class="text-end">Heures / kg</th>
                     <th class="text-end">Taux</th>
                     <th class="text-end">Montant</th>
                 </tr>
@@ -26,8 +26,20 @@
                             <div>{{ item.presenceLabel }}</div>
                             <div class="small text-secondary">{{ item.timeRangeLabel }}</div>
                         </td>
-                        <td class="text-end text-nowrap">{{ item.totalHoursValue|number_format(2, ',', ' ') }} h</td>
-                        <td class="text-end text-nowrap">{{ item.hourlyRateValue|number_format(2, ',', ' ') }}</td>
+                        <td class="text-end text-nowrap">
+                            {% if item.mode == 'task' %}
+                                {{ item.taskWeightKgValue|number_format(2, ',', ' ') }} kg
+                            {% else %}
+                                {{ item.totalHoursValue|number_format(2, ',', ' ') }} h
+                            {% endif %}
+                        </td>
+                        <td class="text-end text-nowrap">
+                            {% if item.mode == 'task' %}
+                                {{ item.taskUnitPriceValue|number_format(2, ',', ' ') }} / {{ item.taskUnit ?: '-' }}
+                            {% else %}
+                                {{ item.hourlyRateValue|number_format(2, ',', ' ') }} / h
+                            {% endif %}
+                        </td>
                         <td class="text-end fw-semibold text-nowrap">{{ item.totalAmountValue|number_format(2, ',', ' ') }} MAD</td>
                     </tr>
                 {% endfor %}

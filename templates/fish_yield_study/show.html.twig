@@ -1,0 +1,136 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ item.reference }}{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <h1 class="h3 mb-0">{{ item.reference }}</h1>
+            <span class="badge {{ item.diagnosticBadgeClass }}">{{ item.diagnosticLabel }}</span>
+        </div>
+        <p class="text-secondary mb-0">{{ item.studyDate ? item.studyDate|date('d/m/Y') : '-' }} - {{ item.clientName ?: 'Client non renseigne' }} - {{ item.speciesName }}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_fish_yield_study_index') }}">
+            <i class="bi bi-arrow-left me-2"></i>Retour
+        </a>
+        <a class="btn btn-outline-secondary" href="{{ path('app_fish_yield_study_print', {id: item.id}) }}?auto=1" target="_blank" rel="noopener">
+            <i class="bi bi-printer me-2"></i>Imprimer
+        </a>
+        {% if is_granted('FISH_YIELD_STUDY_EDIT', item) %}
+            <a class="btn btn-primary" href="{{ path('app_fish_yield_study_edit', {id: item.id}) }}">
+                <i class="bi bi-pencil me-2"></i>Modifier
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{% set total_rejects = item.containerWeightValue > 0 ? item.containerWasteEstimateValue + item.containerLossEstimateValue : item.wasteWeightValue + item.lossWeightValue %}
+
+<div class="dashboard-kpi-strip mb-4">
+    <div class="dashboard-kpi-card dashboard-kpi-card-warning">
+        <div class="dashboard-kpi-head">
+            <div>
+                <span class="dashboard-kpi-title">Taux eau</span>
+                <div class="dashboard-kpi-value">{{ item.waterRate|number_format(2, ',', ' ') }} %</div>
+                <div class="dashboard-kpi-hint">{{ item.waterWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg eau</div>
+            </div>
+            <span class="dashboard-kpi-icon"><i class="bi bi-droplet"></i></span>
+        </div>
+    </div>
+    <div class="dashboard-kpi-card dashboard-kpi-card-success">
+        <div class="dashboard-kpi-head">
+            <div>
+                <span class="dashboard-kpi-title">Rendement filet</span>
+                <div class="dashboard-kpi-value">{{ item.yieldRate|number_format(2, ',', ' ') }} %</div>
+                <div class="dashboard-kpi-hint">{{ item.finishedProductWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg PF</div>
+            </div>
+            <span class="dashboard-kpi-icon"><i class="bi bi-percent"></i></span>
+        </div>
+    </div>
+    <div class="dashboard-kpi-card dashboard-kpi-card-info">
+        <div class="dashboard-kpi-head">
+            <div>
+                <span class="dashboard-kpi-title">PF conteneur</span>
+                <div class="dashboard-kpi-value">{{ item.containerFinishedEstimateValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>
+                <div class="dashboard-kpi-hint">sur {{ item.containerWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg MP</div>
+            </div>
+            <span class="dashboard-kpi-icon"><i class="bi bi-box-seam"></i></span>
+        </div>
+    </div>
+    <div class="dashboard-kpi-card dashboard-kpi-card-danger">
+        <div class="dashboard-kpi-head">
+            <div>
+                <span class="dashboard-kpi-title">Dechets + pertes</span>
+                <div class="dashboard-kpi-value">{{ total_rejects|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</div>
+                <div class="dashboard-kpi-hint">
+                    {% if item.containerWeightValue > 0 %}
+                        sur {{ item.containerWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg MP
+                    {% else %}
+                        echantillon
+                    {% endif %}
+                </div>
+            </div>
+            <span class="dashboard-kpi-icon"><i class="bi bi-exclamation-triangle"></i></span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h2 class="h5 mb-1">Echantillon caisse</h2>
+            </div>
+            <div class="card-body">
+                <div class="app-card-detail-line"><span class="app-card-detail-label">Poids matiere premiere</span><strong>{{ item.rawBoxWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div>
+                <div class="app-card-detail-line"><span class="app-card-detail-label">Poids apres decongelation</span><strong>{{ item.thawedBoxWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div>
+                <div class="app-card-detail-line"><span class="app-card-detail-label">Eau retiree</span><strong>{{ item.waterWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div>
+                <div class="app-card-detail-line"><span class="app-card-detail-label">Moule</span><strong>{{ item.piecesPerKgValue|number_format(2, ',', ' ') }} pieces/kg</strong></div>
+                <div class="app-card-detail-line"><span class="app-card-detail-label">Melange detecte</span><strong>{{ item.hasMixedFish ? (item.mixedFishName ?: 'Oui') : 'Non' }}</strong></div>
+            </div>
+        </section>
+    </div>
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h2 class="h5 mb-1">Travail en filet</h2>
+            </div>
+            <div class="card-body">
+                <div class="app-card-detail-line"><span class="app-card-detail-label">Produit fini filet</span><strong>{{ item.finishedProductWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div>
+                <div class="app-card-detail-line"><span class="app-card-detail-label">Dechets</span><strong>{{ item.wasteWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg - {{ item.wasteRate|number_format(2, ',', ' ') }} %</strong></div>
+                <div class="app-card-detail-line"><span class="app-card-detail-label">Pertes</span><strong>{{ item.lossWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg - {{ item.lossRate|number_format(2, ',', ' ') }} %</strong></div>
+                <div class="app-card-detail-line"><span class="app-card-detail-label">Total sortie</span><strong>{{ item.totalWorkedOutputValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div>
+                <div class="app-card-detail-line"><span class="app-card-detail-label">Ecart process</span><strong class="{{ item.processGapValue|abs > 0.1 ? 'text-danger' : 'text-success' }}">{{ item.processGapValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div>
+            </div>
+        </section>
+    </div>
+    <div class="col-12">
+        <section class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0">
+                <h2 class="h5 mb-1">Projection conteneur</h2>
+                <p class="text-secondary small mb-0">Calcul base sur les ratios mesures sur la caisse.</p>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6 col-lg"><div class="fish-yield-live-pill h-100"><span>Poids MP</span><strong>{{ item.containerWeightValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div></div>
+                    <div class="col-6 col-lg"><div class="fish-yield-live-pill h-100"><span>Eau</span><strong>{{ item.containerWaterEstimateValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div></div>
+                    <div class="col-6 col-lg"><div class="fish-yield-live-pill h-100"><span>Decongele</span><strong>{{ item.containerThawedEstimateValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div></div>
+                    <div class="col-6 col-lg"><div class="fish-yield-live-pill fish-yield-live-pill-success h-100"><span>PF filet</span><strong>{{ item.containerFinishedEstimateValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div></div>
+                    <div class="col-6 col-lg"><div class="fish-yield-live-pill h-100"><span>Dechets</span><strong>{{ item.containerWasteEstimateValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div></div>
+                    <div class="col-6 col-lg"><div class="fish-yield-live-pill h-100"><span>Pertes</span><strong>{{ item.containerLossEstimateValue|number_format(3, ',', ' ')|replace({',000': ''}) }} kg</strong></div></div>
+                </div>
+            </div>
+        </section>
+    </div>
+    {% if item.observations %}
+        <div class="col-12">
+            <section class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pb-0"><h2 class="h5 mb-1">Observations</h2></div>
+                <div class="card-body"><p class="mb-0">{{ item.observations|nl2br }}</p></div>
+            </section>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

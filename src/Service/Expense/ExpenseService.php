@@ -120,22 +120,32 @@ final readonly class ExpenseService
         return false;
     }
 
-    /** @return array<string, mixed> */
-    public function stats(User $actor): array
+    /**
+     * @param array<string, mixed> $filters
+     *
+     * @return array<string, mixed>
+     */
+    public function stats(User $actor, array $filters = []): array
     {
         if (!$this->access->canAccess($actor)) {
             throw new AccessDeniedException();
         }
 
         $admin = $this->access->isAdmin($actor);
+        $filteredTotal = $this->repository->sumVisible($actor, $admin, $filters);
+        $filteredCount = $this->repository->countVisible($actor, $admin, $filters);
 
         return [
+            'filtered_total' => $filteredTotal,
+            'filtered_count' => $filteredCount,
+            'filtered_average' => $filteredCount > 0 ? $filteredTotal / $filteredCount : 0,
+            'filtered_paid_total' => $this->repository->sumVisible($actor, $admin, array_merge($filters, ['status' => Expense::STATUS_PAID])),
             'month_total' => $this->repository->sumByStatus($actor, $admin, null, true),
             'pending_count' => $this->repository->countByStatus($actor, $admin, Expense::STATUS_PENDING),
             'paid_total' => $this->repository->sumByStatus($actor, $admin, Expense::STATUS_PAID),
             'refused_count' => $this->repository->countByStatus($actor, $admin, Expense::STATUS_REFUSED),
             'validated_count' => $this->repository->countByStatus($actor, $admin, Expense::STATUS_VALIDATED),
-            'categories' => $this->repository->totalsByCategory($actor, $admin),
+            'categories' => $this->repository->totalsByCategory($actor, $admin, $filters),
         ];
     }
 

@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bon de commande {{ order.reference }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 12mm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: #0f172a;
+            background: #eef4f8;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12px;
+        }
+
+        .print-actions {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            z-index: 10;
+            display: flex;
+            gap: 8px;
+        }
+
+        .print-actions button {
+            border: 1px solid #142b68;
+            border-radius: 6px;
+            background: #142b68;
+            color: #fff;
+            padding: 8px 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 12mm;
+            background: #fff;
+        }
+
+        .topbar {
+            display: grid;
+            grid-template-columns: 190px 1fr;
+            gap: 18px;
+            align-items: center;
+            padding-bottom: 14px;
+            border-bottom: 3px solid #142b68;
+        }
+
+        .logo {
+            width: 190px;
+            height: auto;
+            display: block;
+        }
+
+        .company {
+            text-align: right;
+            color: #334155;
+            line-height: 1.45;
+        }
+
+        .company strong {
+            display: block;
+            color: #142b68;
+            font-size: 17px;
+            letter-spacing: 0.08em;
+        }
+
+        .title-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 18px;
+            align-items: start;
+            margin: 20px 0 16px;
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            color: #142b68;
+            font-size: 24px;
+            line-height: 1.15;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .doc-meta {
+            min-width: 235px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .doc-meta div {
+            display: grid;
+            grid-template-columns: 90px 1fr;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .doc-meta div:last-child {
+            border-bottom: 0;
+        }
+
+        .doc-meta span,
+        .doc-meta strong {
+            padding: 8px 10px;
+        }
+
+        .doc-meta span {
+            color: #64748b;
+            background: #f8fafc;
+            font-weight: 700;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .summary-card {
+            border: 1px solid #dbe4ee;
+            border-radius: 8px;
+            padding: 10px 12px;
+            background: #f8fafc;
+        }
+
+        .summary-card span {
+            display: block;
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .summary-card strong {
+            display: block;
+            margin-top: 4px;
+            color: #0f172a;
+            font-size: 18px;
+        }
+
+        .supplier-block {
+            margin-top: 16px;
+            page-break-inside: avoid;
+        }
+
+        .supplier-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            padding: 9px 11px;
+            border: 1px solid #142b68;
+            background: #142b68;
+            color: #fff;
+            font-weight: 800;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            page-break-inside: auto;
+        }
+
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+
+        th {
+            padding: 8px 7px;
+            border: 1px solid #94a3b8;
+            background: #eaf1f8;
+            color: #142b68;
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        td {
+            padding: 8px 7px;
+            border: 1px solid #cbd5e1;
+            vertical-align: top;
+        }
+
+        .text-end {
+            text-align: right;
+        }
+
+        .muted {
+            color: #64748b;
+        }
+
+        .empty {
+            margin-top: 24px;
+            padding: 28px;
+            border: 1px dashed #94a3b8;
+            border-radius: 10px;
+            color: #475569;
+            text-align: center;
+        }
+
+        .footer {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+            margin-top: 30px;
+        }
+
+        .signature {
+            min-height: 76px;
+            padding-top: 8px;
+            border-top: 1px solid #0f172a;
+            color: #334155;
+            font-weight: 700;
+        }
+
+        .note {
+            margin-top: 16px;
+            padding: 10px 12px;
+            border-left: 4px solid #142b68;
+            background: #f8fafc;
+            color: #475569;
+            line-height: 1.45;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+            }
+
+            .print-actions {
+                display: none;
+            }
+
+            .page {
+                width: auto;
+                min-height: auto;
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-actions">
+        <button type="button" onclick="window.print()">Imprimer / PDF</button>
+    </div>
+
+    <main class="page">
+        <header class="topbar">
+            <img class="logo" src="{{ asset('images/logo-afriocean-fish.svg') }}" alt="AFRIOCEAN FISH">
+            <div class="company">
+                <strong>AFRIOCEAN FISH</strong>
+                Gestion interne usine<br>
+                Stock consommables et hygiene<br>
+                Document genere depuis l'application
+            </div>
+        </header>
+
+        <section class="title-row">
+            <div>
+                <h1>Bon de commande consommables</h1>
+                <div class="subtitle">Reassort automatique pour atteindre les stocks minimums configures.</div>
+            </div>
+            <div class="doc-meta">
+                <div><span>Reference</span><strong>{{ order.reference }}</strong></div>
+                <div><span>Date</span><strong>{{ order.generatedAt|date('d/m/Y H:i') }}</strong></div>
+                <div><span>Prepare par</span><strong>{{ order.generatedBy }}</strong></div>
+            </div>
+        </section>
+
+        <section class="summary">
+            <div class="summary-card">
+                <span>Lignes a commander</span>
+                <strong>{{ order.totalLines }}</strong>
+            </div>
+            <div class="summary-card">
+                <span>Fournisseurs</span>
+                <strong>{{ order.supplierGroups|length }}</strong>
+            </div>
+            <div class="summary-card">
+                <span>Calcul</span>
+                <strong>Minimum - stock</strong>
+            </div>
+        </section>
+
+        {% if order.items is empty %}
+            <div class="empty">
+                Aucun consommable actif n'est sous son stock minimum. Aucun bon de commande n'est necessaire pour le moment.
+            </div>
+        {% else %}
+            {% for group in order.supplierGroups %}
+                <section class="supplier-block">
+                    <div class="supplier-head">
+                        <span>{{ group.supplier }}</span>
+                        <span>{{ group.phone ?: 'Telephone fournisseur non renseigne' }}</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 13%;">Reference</th>
+                                <th style="width: 24%;">Produit</th>
+                                <th style="width: 13%;">Categorie</th>
+                                <th style="width: 12%;" class="text-end">Stock</th>
+                                <th style="width: 12%;" class="text-end">Minimum</th>
+                                <th style="width: 13%;" class="text-end">A commander</th>
+                                <th style="width: 13%;">Prix / remarque</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in group.items %}
+                                <tr>
+                                    <td>{{ item.reference }}</td>
+                                    <td>
+                                        <strong>{{ item.name }}</strong>
+                                        {% if item.storageLocation %}
+                                            <div class="muted">{{ item.storageLocation }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item.category }}</td>
+                                    <td class="text-end">{{ item.currentQuantity|number_format(2, ',', ' ') }} {{ item.unit }}</td>
+                                    <td class="text-end">{{ item.minimumQuantity|number_format(2, ',', ' ') }} {{ item.unit }}</td>
+                                    <td class="text-end"><strong>{{ item.quantityToOrder|number_format(2, ',', ' ') }} {{ item.unit }}</strong></td>
+                                    <td></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+            {% endfor %}
+        {% endif %}
+
+        <div class="note">
+            Les quantites proposees correspondent a la difference entre le stock minimum et le stock courant au moment de la generation du document.
+        </div>
+
+        <section class="footer">
+            <div class="signature">Demandeur</div>
+            <div class="signature">Validation achat</div>
+            <div class="signature">Reception conforme</div>
+        </section>
+    </main>
+
+    <script>
+        window.addEventListener('load', function () {
+            if (new URLSearchParams(window.location.search).get('auto') === '1') {
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

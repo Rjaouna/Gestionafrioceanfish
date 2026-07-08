@@ -47,7 +47,7 @@ final class ExpenseController extends AbstractController
         return $this->render('expense/expense/index.html.twig', [
             'expenses' => $result['items'],
             'pagination' => $result,
-            'stats' => $this->expenseService->stats($this->currentUser()),
+            'stats' => $this->expenseService->stats($this->currentUser(), $filters),
             'categories' => $this->categoryService->activeCategories($this->currentUser()),
             'status_choices' => Expense::STATUS_LABELS,
             'payment_methods' => Expense::PAYMENT_METHOD_LABELS,
@@ -67,6 +67,9 @@ final class ExpenseController extends AbstractController
             'html' => $this->renderView('expense/expense/_expense_grid.html.twig', [
                 'expenses' => $result['items'],
                 'pagination' => $result,
+            ]),
+            'statsHtml' => $this->renderView('expense/expense/_stats.html.twig', [
+                'stats' => $this->expenseService->stats($this->currentUser(), $filters),
             ]),
             'count' => $result['total'],
             'page' => $result['page'],

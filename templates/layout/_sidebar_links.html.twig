@@ -46,7 +46,8 @@
             </div>
         </section>
     {% elseif module.slug == 'cout-revient' %}
-        <section class="sidebar-open-section {{ module_active ? 'active' : '' }}">
+        {% set cout_active = module_active or current_route starts with 'app_fish_yield_study' %}
+        <section class="sidebar-open-section {{ cout_active ? 'active' : '' }}">
             <div class="sidebar-open-body">
                 <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path('app_cout_revient_index') }}">
                     <i class="bi bi-calculator"></i>
@@ -67,6 +68,10 @@
                 <a class="sidebar-sub-link ps-4 {{ current_route == 'app_cout_revient_estimation' ? 'active' : '' }}" href="{{ path('app_cout_revient_estimation') }}">
                     <i class="bi bi-clipboard-data"></i>
                     <span>Estimation des couts</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_fish_yield_study' ? 'active' : '' }}" href="{{ path('app_fish_yield_study_index') }}">
+                    <i class="bi bi-clipboard2-pulse"></i>
+                    <span>Etudes rendement poisson</span>
                 </a>
             </div>
         </section>
@@ -144,10 +149,6 @@
                             <i class="bi bi-clipboard-data"></i>
                             <span>Details pointage</span>
                         </a>
-                        <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_interim_payment' ? 'active' : '' }}" href="{{ path('app_interim_payment_index') }}">
-                            <i class="bi bi-wallet2"></i>
-                            <span>Paiements</span>
-                        </a>
                     {% endif %}
                     <a
                         class="sidebar-sub-link ps-4"
@@ -172,6 +173,14 @@
                         <i class="bi bi-cash-coin"></i>
                         <span>Tarifs pointage</span>
                     </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route == 'app_interim_attendance_sheet' ? 'active' : '' }}" href="{{ path('app_interim_attendance_sheet') }}">
+                        <i class="bi bi-printer"></i>
+                        <span>Feuille de pointage</span>
+                    </a>
+                    <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_interim_attendance_journal' ? 'active' : '' }}" href="{{ path('app_interim_attendance_journal') }}">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                        <span>Export journal</span>
+                    </a>
                 {% endif %}
             </div>
         </section>
@@ -187,7 +196,7 @@
 {% set agenda_modules = modules|filter(module => module.slug == 'agenda') %}
 {% set inventory_modules = modules|filter(module => module.slug == 'inventory') %}
 {% set factory_modules = modules|filter(module => module.slug == 'factory') %}
-{% set business_modules = modules|filter(module => module.slug not in ['passwords', 'users', 'modules', 'agenda', 'inventory', 'factory']) %}
+{% set business_modules = modules|filter(module => module.slug not in ['passwords', 'users', 'modules', 'agenda', 'inventory', 'factory', 'etudes-rendement-poisson']) %}
 {% set can_manage_users = user_modules|length > 0 and is_granted('ROLE_ADMIN') %}
 {% set can_manage_modules = module_admin_modules|length > 0 and is_granted('ROLE_SUPER_ADMIN') %}
 {% set security_active = current_route starts with 'app_password' %}

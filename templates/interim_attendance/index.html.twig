@@ -12,6 +12,9 @@
         <a class="btn btn-outline-secondary" href="{{ path('app_interim_attendance_details') }}">
             <i class="bi bi-clipboard-data me-2"></i>Details pointage
         </a>
+        <a class="btn btn-outline-secondary" href="{{ path('app_interim_attendance_journal') }}">
+            <i class="bi bi-file-earmark-pdf me-2"></i>Export journal
+        </a>
         <a class="btn btn-outline-secondary" href="{{ path('app_interim_payment_index') }}">
             <i class="bi bi-wallet2 me-2"></i>Paiements
         </a>
@@ -38,6 +41,14 @@
             <div class="card-body">
                 <div class="small text-secondary">Heures</div>
                 <div class="h5 mb-0">{{ totals.hours|number_format(2, ',', ' ') }} h</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="small text-secondary">Taches</div>
+                <div class="h5 mb-0">{{ totals.taskKg|default(0)|number_format(2, ',', ' ') }} kg</div>
             </div>
         </div>
     </div>

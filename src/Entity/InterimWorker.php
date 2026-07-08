@@ -116,25 +116,21 @@ class InterimWorker
     private ?string $firstName = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
     private ?string $address = null;
 
     #[ORM\Column(length: 100)]
-    #[Assert\NotBlank]
     #[Assert\Length(max: 100)]
     private ?string $position = null;
 
     #[ORM\Column(length: 30, options: ['default' => self::TYPE_OTHER])]
-    #[Assert\NotBlank]
     private string $workerType = self::TYPE_OTHER;
 
     #[ORM\Column(length: 50)]
     #[Assert\Length(max: 50)]
     private ?string $registrationNumber = null;
 
-    #[ORM\Column(length: 20)]
-    #[Assert\NotBlank]
+    #[ORM\Column(length: 20, nullable: true)]
     #[Assert\Length(max: 20)]
     #[Assert\Regex(
         pattern: '/^(?:0[67]\d{8}|\+212[67]\d{8}|\+33[67]\d{8})$/',
@@ -143,12 +139,10 @@ class InterimWorker
     private ?string $phone = null;
 
     #[ORM\Column(type: 'date_immutable', nullable: true)]
-    #[Assert\NotNull]
     #[Assert\LessThanOrEqual('today', message: 'La date de naissance ne peut pas etre dans le futur.')]
     private ?\DateTimeImmutable $birthDate = null;
 
     #[ORM\Column(length: 100, nullable: true)]
-    #[Assert\NotBlank]
     #[Assert\Length(max: 100)]
     private ?string $birthPlace = null;
 
@@ -183,7 +177,6 @@ class InterimWorker
     private ?string $passportMrz = null;
 
     #[ORM\Column(length: 40)]
-    #[Assert\NotBlank]
     private string $familySituation = self::FAMILY_SINGLE;
 
     #[ORM\Column(options: ['default' => 0])]
@@ -191,7 +184,6 @@ class InterimWorker
     private int $childrenCount = 0;
 
     #[ORM\Column(type: 'date_immutable')]
-    #[Assert\NotNull]
     #[Assert\GreaterThanOrEqual(value: '-20 years', message: 'La date d embauche est trop ancienne.')]
     #[Assert\LessThanOrEqual(value: '+1 month', message: 'La date d embauche est trop eloignee dans le futur.')]
     private ?\DateTimeImmutable $hireDate = null;
@@ -237,7 +229,6 @@ class InterimWorker
     private ?string $internalComment = null;
 
     #[ORM\Column(length: 40)]
-    #[Assert\NotBlank]
     private string $status = self::STATUS_ACTIVE;
 
     #[ORM\Column(options: ['default' => true])]
@@ -324,9 +315,10 @@ class InterimWorker
         return $this->position;
     }
 
-    public function setPosition(string $position): static
+    public function setPosition(?string $position): static
     {
-        $this->position = trim($position);
+        $position = trim((string) $position);
+        $this->position = $position !== '' ? $position : 'Non renseigne';
 
         return $this;
     }
@@ -336,8 +328,13 @@ class InterimWorker
         return $this->workerType;
     }
 
-    public function setWorkerType(string $workerType): static
+    public function setWorkerType(?string $workerType): static
     {
+        $workerType = trim((string) $workerType);
+        if ($workerType === '') {
+            $workerType = self::TYPE_OTHER;
+        }
+
         if (!isset(self::TYPE_LABELS[$workerType])) {
             throw new \InvalidArgumentException('Profil intérimaire invalide.');
         }
@@ -375,10 +372,10 @@ class InterimWorker
         return $this->phone;
     }
 
-    public function setPhone(string $phone): static
+    public function setPhone(?string $phone): static
     {
-        $phone = trim($phone);
-        $this->phone = preg_replace('/[\s().-]+/', '', $phone) ?: $phone;
+        $phone = trim((string) $phone);
+        $this->phone = $phone !== '' ? (preg_replace('/[\s().-]+/', '', $phone) ?: $phone) : null;
 
         return $this;
     }
@@ -525,8 +522,13 @@ class InterimWorker
         return $this->familySituation;
     }
 
-    public function setFamilySituation(string $familySituation): static
+    public function setFamilySituation(?string $familySituation): static
     {
+        $familySituation = trim((string) $familySituation);
+        if ($familySituation === '') {
+            $familySituation = self::FAMILY_SINGLE;
+        }
+
         if (!isset(self::FAMILY_LABELS[$familySituation])) {
             throw new \InvalidArgumentException('Situation familiale invalide.');
         }
@@ -558,9 +560,9 @@ class InterimWorker
         return $this->hireDate;
     }
 
-    public function setHireDate(\DateTimeImmutable $hireDate): static
+    public function setHireDate(?\DateTimeImmutable $hireDate): static
     {
-        $this->hireDate = $hireDate;
+        $this->hireDate = $hireDate ?? new \DateTimeImmutable('today');
 
         return $this;
     }
@@ -721,8 +723,13 @@ class InterimWorker
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(?string $status): static
     {
+        $status = trim((string) $status);
+        if ($status === '') {
+            $status = self::STATUS_ACTIVE;
+        }
+
         if (!isset(self::STATUS_LABELS[$status])) {
             throw new \InvalidArgumentException('Statut intérimaire invalide.');
         }

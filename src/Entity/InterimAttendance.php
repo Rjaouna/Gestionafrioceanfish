@@ -20,6 +20,16 @@ class InterimAttendance
 
     public const MODE_HOURLY = 'hourly';
     public const MODE_TASK = 'task';
+    public const TASK_CLEANING_ANCHOVY = 'cleaning_anchovy';
+    public const TASK_BOXING_FILETS = 'boxing_filets';
+
+    public const CLEANING_BOX_WEIGHT_KG = 10.0;
+    public const CLEANING_RATE_WEIGHT_KG = 30.0;
+
+    public const TASK_LABELS = [
+        self::TASK_CLEANING_ANCHOVY => 'Nettoyage anchois',
+        self::TASK_BOXING_FILETS => 'Mise en caisse filets',
+    ];
 
     public const MODE_LABELS = [
         self::MODE_HOURLY => 'A l heure',
@@ -140,12 +150,19 @@ class InterimAttendance
     }
 
     public function getTaskType(): ?string { return $this->taskType; }
-    public function setTaskType(?string $taskType): static { $this->taskType = $this->nullableString($taskType); return $this; }
+    public function setTaskType(?string $taskType): static
+    {
+        $this->taskType = $this->nullableString($taskType);
+
+        return $this;
+    }
+    public function getTaskTypeLabel(): string { return self::TASK_LABELS[$this->taskType ?? ''] ?? ($this->taskType ?: '-'); }
 
     public function getTaskUnit(): ?string { return $this->taskUnit; }
     public function setTaskUnit(?string $taskUnit): static { $this->taskUnit = $this->nullableString($taskUnit); return $this; }
 
     public function getTaskQuantity(): ?string { return $this->taskQuantity; }
+    public function getTaskQuantityValue(): float { return (float) ($this->taskQuantity ?? 0); }
     public function setTaskQuantity(string|float|int|null $taskQuantity): static
     {
         $this->taskQuantity = $taskQuantity === null || trim((string) $taskQuantity) === '' ? null : number_format(max(0.0, (float) str_replace(',', '.', (string) $taskQuantity)), 3, '.', '');
@@ -154,6 +171,7 @@ class InterimAttendance
     }
 
     public function getTaskUnitPrice(): ?string { return $this->taskUnitPrice; }
+    public function getTaskUnitPriceValue(): float { return (float) ($this->taskUnitPrice ?? 0); }
     public function setTaskUnitPrice(string|float|int|null $taskUnitPrice): static
     {
         $this->taskUnitPrice = $taskUnitPrice === null || trim((string) $taskUnitPrice) === '' ? null : number_format(max(0.0, (float) str_replace(',', '.', (string) $taskUnitPrice)), 2, '.', '');
@@ -184,6 +202,10 @@ class InterimAttendance
 
     public function getPresenceLabel(): string
     {
+        if ($this->mode === self::MODE_TASK) {
+            return $this->getTaskTypeLabel();
+        }
+
         if ($this->morningPresent && $this->afternoonPresent) {
             return 'Journee complete';
         }
@@ -199,6 +221,10 @@ class InterimAttendance
 
     public function getTimeRangeLabel(): string
     {
+        if ($this->mode === self::MODE_TASK) {
+            return $this->getTaskDetailsLabel();
+        }
+
         $parts = [];
         if ($this->morningPresent) {
             $parts[] = sprintf('Matin %s-%s', $this->formatTime($this->morningStart), $this->formatTime($this->morningEnd));
@@ -212,6 +238,37 @@ class InterimAttendance
         }
 
         return implode(' | ', $parts);
+    }
+
+    public function getTaskWeightKgValue(): float
+    {
+        if ($this->taskType === self::TASK_CLEANING_ANCHOVY) {
+            return $this->getTaskQuantityValue() * self::CLEANING_BOX_WEIGHT_KG;
+        }
+
+        if ($this->taskType === self::TASK_BOXING_FILETS) {
+            return $this->getTaskQuantityValue();
+        }
+
+        return 0.0;
+    }
+
+    public function getTaskDetailsLabel(): string
+    {
+        if ($this->taskType === self::TASK_CLEANING_ANCHOVY) {
+            return sprintf(
+                '%s caisse%s - %s kg',
+                number_format($this->getTaskQuantityValue(), 0, ',', ' '),
+                $this->getTaskQuantityValue() > 1 ? 's' : '',
+                number_format($this->getTaskWeightKgValue(), 0, ',', ' '),
+            );
+        }
+
+        if ($this->taskType === self::TASK_BOXING_FILETS) {
+            return sprintf('%s kg', number_format($this->getTaskQuantityValue(), 3, ',', ' '));
+        }
+
+        return '-';
     }
 
     private function nullableString(?string $value): ?string
