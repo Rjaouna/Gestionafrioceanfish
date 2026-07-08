@@ -229,6 +229,7 @@ final readonly class InterimAttendanceService
 
         $rows = $this->withJournalPerformanceLevels($rows, 'cleaningKg', 'cleaningPerformance');
         $rows = $this->withJournalPerformanceLevels($rows, 'boxingKg', 'boxingPerformance');
+        $rows = $this->withJournalPerformanceLevels($rows, 'earnedAmount', 'earnedPerformance');
 
         return [
             'filters' => $filters,

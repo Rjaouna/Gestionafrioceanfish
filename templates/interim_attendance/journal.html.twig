@@ -122,8 +122,17 @@
                             {{ row.boxingKg|number_format(2, ',', ' ') }} kg
                         </span>
                     </td>
-                    <td class="text-end text-nowrap fw-bold text-success-emphasis">
-                        {{ row.earnedAmount|number_format(2, ',', ' ') }} MAD
+                    <td class="text-end text-nowrap">
+                        {% set earnedClass = row.earnedPerformance == 'high'
+                            ? 'bg-success-subtle text-success-emphasis border-success-subtle'
+                            : (row.earnedPerformance == 'medium'
+                                ? 'bg-warning-subtle text-warning-emphasis border-warning-subtle'
+                                : (row.earnedPerformance == 'low'
+                                    ? 'bg-danger-subtle text-danger-emphasis border-danger-subtle'
+                                    : 'bg-light text-secondary border-light-subtle')) %}
+                        <span class="badge border {{ earnedClass }} px-3 py-2">
+                            {{ row.earnedAmount|number_format(2, ',', ' ') }} MAD
+                        </span>
                     </td>
                 </tr>
             {% else %}
