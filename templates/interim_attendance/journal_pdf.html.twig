@@ -151,6 +151,48 @@
         }
         .text-end { text-align: right; }
         .text-nowrap { white-space: nowrap; }
+        .performance-badge {
+            display: inline-block;
+            min-width: 82px;
+            padding: 4px 8px;
+            border: 1px solid;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 700;
+        }
+        .performance-high {
+            color: #166534;
+            background: #dcfce7;
+            border-color: #86efac;
+        }
+        .performance-medium {
+            color: #92400e;
+            background: #fef3c7;
+            border-color: #fcd34d;
+        }
+        .performance-low {
+            color: #991b1b;
+            background: #fee2e2;
+            border-color: #fca5a5;
+        }
+        .performance-none {
+            color: #475569;
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        .performance-legend {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 6px;
+            margin: 0 0 8px;
+            color: #64748b;
+            font-size: 9px;
+        }
+        .performance-legend .performance-badge {
+            min-width: auto;
+            padding: 3px 7px;
+        }
         .empty {
             margin-top: 20px;
             padding: 28px;
@@ -173,6 +215,10 @@
             font-weight: 700;
         }
         @media print {
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
             body { background: #fff; }
             .print-actions { display: none; }
             .page { width: auto; min-height: auto; margin: 0; padding: 0; }
@@ -225,6 +271,12 @@
         {% if rows is empty %}
             <div class="empty">Aucun pointage saisi sur cette periode.</div>
         {% else %}
+            <div class="performance-legend">
+                <span>Niveau sur la periode :</span>
+                <span class="performance-badge performance-high">Meilleur</span>
+                <span class="performance-badge performance-medium">Moyen</span>
+                <span class="performance-badge performance-low">Plus faible</span>
+            </div>
             <table>
                 <thead>
                 <tr>
@@ -240,9 +292,21 @@
                     <tr>
                         <td><strong>{{ row.fullName ?: '-' }}</strong></td>
                         <td>{{ row.registrationNumber ?: '-' }}</td>
-                        <td class="text-end text-nowrap">{{ row.cleaningKg|number_format(2, ',', ' ') }} kg</td>
-                        <td class="text-end text-nowrap">{{ row.boxingKg|number_format(2, ',', ' ') }} kg</td>
-                        <td class="text-end text-nowrap"><strong>{{ row.earnedAmount|number_format(2, ',', ' ') }} MAD</strong></td>
+                        <td class="text-end text-nowrap">
+                            <span class="performance-badge performance-{{ row.cleaningPerformance }}">
+                                {{ row.cleaningKg|number_format(2, ',', ' ') }} kg
+                            </span>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <span class="performance-badge performance-{{ row.boxingPerformance }}">
+                                {{ row.boxingKg|number_format(2, ',', ' ') }} kg
+                            </span>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <span class="performance-badge performance-{{ row.earnedPerformance }}">
+                                {{ row.earnedAmount|number_format(2, ',', ' ') }} MAD
+                            </span>
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
