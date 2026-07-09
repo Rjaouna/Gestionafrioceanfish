@@ -1,0 +1,73 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ title }}</h1>
+        <p class="text-secondary mb-0">Renseignez les informations legales qui seront inserees dans le contrat.</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if contract.id %}
+            <a class="btn btn-outline-secondary" href="{{ path('app_generated_contract_show', {id: contract.id}) }}">
+                <i class="bi bi-eye me-2"></i>Apercu
+            </a>
+        {% endif %}
+        <a class="btn btn-outline-secondary" href="{{ path('app_generated_contract_index') }}">
+            <i class="bi bi-arrow-left me-2"></i>Retour
+        </a>
+    </div>
+</div>
+
+{{ form_start(form) }}
+    <section class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pb-0">
+            <h2 class="h5 mb-1">Contrat</h2>
+            <p class="text-secondary small mb-0">Date, campagne et lieu de signature.</p>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-4">{{ form_row(form.contractDate) }}</div>
+                <div class="col-12 col-md-4">{{ form_row(form.campaign) }}</div>
+                <div class="col-12 col-md-4">{{ form_row(form.signingCity) }}</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pb-0">
+            <h2 class="h5 mb-1">Client</h2>
+            <p class="text-secondary small mb-0">Identite de la societe beneficiaire du conditionnement.</p>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-4">{{ form_row(form.clientCompanyName) }}</div>
+                <div class="col-12 col-md-8">{{ form_row(form.clientAddress) }}</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pb-0">
+            <h2 class="h5 mb-1">Representant legal</h2>
+            <p class="text-secondary small mb-0">Personne qui represente le client dans le contrat.</p>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-4">{{ form_row(form.representativeTitle) }}</div>
+                <div class="col-12 col-md-4">{{ form_row(form.representativeName) }}</div>
+                <div class="col-12 col-md-4">{{ form_row(form.representativeIdNumber) }}</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            {{ form_row(form.internalNotes) }}
+            <div class="form-text">Cette note reste dans l application et ne sera pas imprimee.</div>
+        </div>
+    </section>
+
+    <div class="d-flex flex-wrap justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_generated_contract_index') }}">Annuler</a>
+        <button class="btn btn-primary" type="submit">
+            <i class="bi bi-check2-circle me-2"></i>{{ submit_label }}
+        </button>
+    </div>
+{{ form_end(form) }}

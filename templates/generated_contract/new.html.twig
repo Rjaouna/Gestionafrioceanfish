@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau contrat de conditionnement{% endblock %}
+
+{% block body %}
+{% include 'generated_contract/_form.html.twig' with {
+    form: form,
+    contract: contract,
+    title: title,
+    submit_label: submit_label
+} %}
+{% endblock %}

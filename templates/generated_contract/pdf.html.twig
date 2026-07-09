@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page { size: A4 portrait; margin: 0; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            color: #111827;
+            font-family: "DejaVu Sans", sans-serif;
+            font-size: 12.5pt;
+            line-height: 1.7;
+        }
+        .page {
+            position: relative;
+            width: 210mm;
+            height: 296.5mm;
+            overflow: hidden;
+            background: #fff;
+        }
+        .letterhead {
+            position: absolute;
+            top: 17mm;
+            left: 22mm;
+            width: 54mm;
+        }
+        .letterhead img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .contract-body {
+            margin: 0 22mm;
+            padding-top: 68mm;
+        }
+        h1 {
+            margin: 0 0 17mm;
+            color: #111;
+            font-size: 19pt;
+            line-height: 1.2;
+            text-align: center;
+            text-decoration: underline;
+            text-transform: uppercase;
+        }
+        p {
+            margin: 0 0 13mm;
+            text-align: justify;
+        }
+        strong {
+            font-weight: 700;
+        }
+        .date-line {
+            margin-top: -3mm;
+            margin-bottom: 14mm;
+            text-align: right;
+        }
+        .signatures {
+            width: 100%;
+            border-collapse: collapse;
+            page-break-inside: avoid;
+        }
+        .signatures td {
+            width: 50%;
+            padding: 0;
+            vertical-align: top;
+            font-size: 11.5pt;
+            font-weight: 700;
+        }
+        .signatures td:last-child {
+            text-align: right;
+        }
+        .signature-company {
+            display: block;
+            margin-top: 5mm;
+        }
+        .legal-footer {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            min-height: 20mm;
+            padding: 3.2mm 10mm 2.5mm;
+            color: #fff;
+            background: #233568;
+            font-size: 7.7pt;
+            line-height: 1.35;
+            text-align: center;
+        }
+        .legal-footer strong {
+            display: block;
+            margin-bottom: 0.8mm;
+            font-size: 8.5pt;
+        }
+    </style>
+</head>
+<body>
+<main class="page">
+    <header class="letterhead">
+        <img src="{{ logo_data_uri }}" alt="AFRIOCEAN FISH">
+    </header>
+
+    <section class="contract-body">
+        <h1>Contrat de conditionnement</h1>
+
+        <p>
+            Nous soussignons, société <strong>AFRIOCEAN FISH S.A.R.L</strong>,
+            agréée sous le numéro <strong>PP.7.0370.23</strong>, sise à
+            <strong>ZONE INDUSTRIELLE OULED SALEH LOT 28 SECTEUR 13 S OULED SALEH,
+            CASABLANCA, MAROC</strong>.
+        </p>
+
+        <p>
+            Attestons par la présente le conditionnement des produits de la pêche
+            pour la campagne <strong>{{ contract.campaign }}</strong>, en faveur de la société
+            <strong>{{ contract.clientCompanyName|upper }}</strong>, sise à
+            <strong>{{ contract.clientAddress|upper|nl2br }}</strong>, et représentée par
+            <strong>{{ contract.representativeTitle }} {{ contract.representativeName|upper }}
+            (CIN / pièce d’identité N&deg; : {{ contract.representativeIdNumber|upper }})</strong>.
+        </p>
+
+        <div class="date-line">
+            Fait à <strong>{{ contract.signingCity }}</strong>, le
+            <strong>{{ contract.contractDate|date('d/m/Y') }}</strong>.
+        </div>
+
+        <table class="signatures">
+            <tr>
+                <td>
+                    Signature et cachet
+                    <span class="signature-company">Société {{ contract.clientCompanyName|upper }}</span>
+                </td>
+                <td>
+                    Signature et cachet
+                    <span class="signature-company">Société AFRIOCEAN FISH</span>
+                </td>
+            </tr>
+        </table>
+    </section>
+
+    <footer class="legal-footer">
+        <strong>AFRIOCEAN FISH</strong>
+        Capital : 1.000.000,00 - Siège social : Zone Industrielle Ouled Salah L28 S13, Casablanca<br>
+        RC 489259 - ICE 002734940000004 - CNSS 2478836 - Taxe Professionnelle 72000267 - IF 48569929
+    </footer>
+</main>
+</body>
+</html>

@@ -29,7 +29,7 @@ final readonly class ModuleAccessService
 
         $modules = $this->moduleRepository->findActiveForUser($user);
         if ($this->securityAccess->isAdmin($user)) {
-            foreach (['passwords', 'cout-revient', 'pointage-personnel', 'etudes-rendement-poisson', 'ventes-dechets'] as $adminModuleSlug) {
+            foreach (['passwords', 'cout-revient', 'pointage-personnel', 'etudes-rendement-poisson', 'ventes-dechets', 'contracts'] as $adminModuleSlug) {
                 $adminModule = $this->moduleRepository->findOneBy(['slug' => $adminModuleSlug, 'isActive' => true]);
                 if ($adminModule && !in_array($adminModule, $modules, true)) {
                     $modules[] = $adminModule;

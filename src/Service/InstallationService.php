@@ -34,6 +34,7 @@ final readonly class InstallationService
             ['Cout de revient', 'cout-revient', 'bi-calculator', 'app_cout_revient_index', 'Calcul des couts de production, rendements et marges par lot.'],
             ['Etudes rendement poisson', 'etudes-rendement-poisson', 'bi-clipboard2-pulse', 'app_fish_yield_study_index', 'Essais client sur caisse echantillon, taux eau, rendement filet et estimation conteneur.'],
             ['Ventes dechets', 'ventes-dechets', 'bi-recycle', 'app_waste_sale_index', 'Suivi des ventes de dechets poisson, acheteurs, paiements et statistiques.'],
+            ['Contrats', 'contracts', 'bi-file-earmark-text', 'app_generated_contract_index', 'Creation, suivi et generation PDF des contrats clients.'],
             ['Composition usine', 'factory', 'bi-building-gear', 'app_factory_unit_index', 'Tunnels, chambres froides, zones de stockage et selections usine.'],
             ['Réceptions', 'receptions', 'bi-clipboard2-check', 'app_fish_reception_index', 'Réception poisson, traitement, emballage, congélation, stockage et expédition.'],
             ['Intérimaires', 'interimaires', 'bi-person-vcard', 'app_interim_worker_index', 'Fiches de poste, suivi RH et documents des intérimaires.'],
