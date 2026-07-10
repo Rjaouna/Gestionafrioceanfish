@@ -106,6 +106,22 @@ class InterimAttendanceRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** @return list<InterimAttendance> */
+    public function findForWorkerPeriod(InterimWorker $worker, \DateTimeImmutable $dateFrom, \DateTimeImmutable $dateTo): array
+    {
+        return $this->createQueryBuilder('a')
+            ->andWhere('a.worker = :worker')
+            ->andWhere('a.attendanceDate BETWEEN :dateFrom AND :dateTo')
+            ->setParameter('worker', $worker)
+            ->setParameter('dateFrom', $dateFrom)
+            ->setParameter('dateTo', $dateTo)
+            ->orderBy('a.attendanceDate', 'ASC')
+            ->addOrderBy('a.mode', 'ASC')
+            ->addOrderBy('a.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     /** @return list<array<string, mixed>> */
     public function journalByWorker(\DateTimeImmutable $dateFrom, \DateTimeImmutable $dateTo): array
     {

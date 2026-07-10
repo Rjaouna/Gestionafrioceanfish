@@ -1,0 +1,25 @@
+{{ form_start(form, {attr: {'data-ajax-form': 'true'}}) }}
+    <div class="modal-header border-0 pb-0">
+        <div>
+            <h2 class="modal-title h5">{{ title }}</h2>
+            <p class="text-secondary small mb-0">Ajoutez uniquement les sommes recues avant de payer les depenses.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-12 col-md-6">{{ form_row(form.movementDate) }}</div>
+            <div class="col-12 col-md-6">{{ form_row(form.paymentMethod) }}</div>
+            <div class="col-12 col-md-6">{{ form_row(form.amount) }}</div>
+            <div class="col-12 col-md-6">{{ form_row(form.sourceName) }}</div>
+            <div class="col-12">{{ form_row(form.notes) }}</div>
+        </div>
+        {{ form_rest(form) }}
+    </div>
+    <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check2 me-2"></i>{{ submit_label }}
+        </button>
+    </div>
+{{ form_end(form) }}

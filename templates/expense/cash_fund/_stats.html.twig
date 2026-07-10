@@ -1,0 +1,66 @@
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between gap-3">
+                    <div>
+                        <div class="text-secondary small">Solde cagnotte</div>
+                        <div class="h4 mb-0 {{ stats.balance|default(0) < 0 ? 'text-danger' : 'text-success' }}">{{ stats.balance|default(0)|number_format(2, ',', ' ') }} dh</div>
+                        <div class="small text-secondary mt-1">Disponible avant paiement</div>
+                    </div>
+                    <span class="rounded-3 bg-success-subtle text-success d-inline-flex align-items-center justify-content-center fs-4 module-mark">
+                        <i class="bi bi-wallet2"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between gap-3">
+                    <div>
+                        <div class="text-secondary small">Entrees selection</div>
+                        <div class="h4 mb-0">{{ stats.period_inflow|default(0)|number_format(2, ',', ' ') }} dh</div>
+                        <div class="small text-secondary mt-1">Alimentations et retours</div>
+                    </div>
+                    <span class="rounded-3 bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center fs-4 module-mark">
+                        <i class="bi bi-arrow-down-circle"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between gap-3">
+                    <div>
+                        <div class="text-secondary small">Sorties selection</div>
+                        <div class="h4 mb-0">{{ stats.period_outflow|default(0)|number_format(2, ',', ' ') }} dh</div>
+                        <div class="small text-secondary mt-1">Depenses marquees payees</div>
+                    </div>
+                    <span class="rounded-3 bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center fs-4 module-mark">
+                        <i class="bi bi-arrow-up-circle"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between gap-3">
+                    <div>
+                        <div class="text-secondary small">Mouvements</div>
+                        <div class="h4 mb-0">{{ stats.period_count|default(0) }}</div>
+                        <div class="small text-secondary mt-1">Selon les filtres</div>
+                    </div>
+                    <span class="rounded-3 bg-info-subtle text-info d-inline-flex align-items-center justify-content-center fs-4 module-mark">
+                        <i class="bi bi-list-check"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

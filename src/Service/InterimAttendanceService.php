@@ -409,6 +409,56 @@ final readonly class InterimAttendanceService
         ];
     }
 
+    /** @return array{filters: array<string, string>, worker: InterimWorker, dateFrom: \DateTimeImmutable, dateTo: \DateTimeImmutable, periodLabel: string, items: list<InterimAttendance>} */
+    public function journalDateCorrection(InterimWorker $worker, array $filters = []): array
+    {
+        $filters = $this->normalizeJournalFilters($filters);
+        $dateFrom = new \DateTimeImmutable($filters['dateFrom']);
+        $dateTo = new \DateTimeImmutable($filters['dateTo']);
+
+        if ($dateTo < $dateFrom) {
+            [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
+            $filters['dateFrom'] = $dateFrom->format('Y-m-d');
+            $filters['dateTo'] = $dateTo->format('Y-m-d');
+        }
+
+        return [
+            'filters' => $filters,
+            'worker' => $worker,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'periodLabel' => $dateFrom->format('d/m/Y') === $dateTo->format('d/m/Y')
+                ? $dateFrom->format('d/m/Y')
+                : sprintf('%s au %s', $dateFrom->format('d/m/Y'), $dateTo->format('d/m/Y')),
+            'items' => $this->attendanceRepository->findForWorkerPeriod($worker, $dateFrom, $dateTo),
+        ];
+    }
+
+    public function updateAttendanceDate(InterimAttendance $attendance, \DateTimeImmutable $newDate, User $actor): void
+    {
+        $today = new \DateTimeImmutable('today');
+        if ($newDate > $today) {
+            throw new \DomainException('La date de pointage ne peut pas etre dans le futur.');
+        }
+
+        $worker = $attendance->getWorker();
+        if (!$worker instanceof InterimWorker) {
+            throw new \DomainException('Interimaire introuvable pour ce pointage.');
+        }
+
+        if ($attendance->getMode() === InterimAttendance::MODE_HOURLY) {
+            $existing = $this->attendanceRepository->findHourlyForWorkerAndDate($worker, $newDate);
+            if ($existing instanceof InterimAttendance && $existing->getId() !== $attendance->getId()) {
+                throw new \DomainException('Ce jour contient deja un pointage horaire pour cet interimaire.');
+            }
+        }
+
+        $attendance
+            ->setAttendanceDate($newDate)
+            ->setUpdatedBy($actor);
+        $this->entityManager->flush();
+    }
+
     /** @return array{date: \DateTimeImmutable, items: list<InterimAttendance>, rates: array<string, float>, cleaning: array<string, int|float>, boxing: array<string, int|float>, hourly: array<string, int|float>, totals: array<string, int|float>} */
     public function workerDaySummary(InterimWorker $worker, ?\DateTimeImmutable $date = null): array
     {

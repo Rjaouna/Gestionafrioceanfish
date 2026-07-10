@@ -91,6 +91,7 @@
                 <th class="text-end">Nettoyage</th>
                 <th class="text-end">Mise en caisse</th>
                 <th class="text-end">Total gagne</th>
+                <th class="text-end">Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -134,10 +135,21 @@
                             {{ row.earnedAmount|number_format(2, ',', ' ') }} MAD
                         </span>
                     </td>
+                    <td class="text-end">
+                        <button
+                            class="btn btn-outline-primary btn-sm"
+                            type="button"
+                            title="Modifier la date de pointage"
+                            aria-label="Modifier la date de pointage"
+                            data-remote-modal="{{ path('app_interim_attendance_journal_date_modal', {id: row.workerId, dateFrom: filters.dateFrom, dateTo: filters.dateTo}) }}"
+                        >
+                            <i class="bi bi-calendar-event"></i>
+                        </button>
+                    </td>
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="5" class="text-center text-secondary py-5">Aucun pointage sur cette periode.</td>
+                    <td colspan="6" class="text-center text-secondary py-5">Aucun pointage sur cette periode.</td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -148,6 +160,7 @@
                     <th class="text-end">{{ totals.cleaningKg|number_format(2, ',', ' ') }} kg</th>
                     <th class="text-end">{{ totals.boxingKg|number_format(2, ',', ' ') }} kg</th>
                     <th class="text-end text-success-emphasis">{{ totals.earnedAmount|number_format(2, ',', ' ') }} MAD</th>
+                    <th></th>
                 </tr>
                 </tfoot>
             {% endif %}

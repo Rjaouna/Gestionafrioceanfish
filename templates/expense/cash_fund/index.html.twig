@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cagnotte depenses{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Cagnotte depenses</h1>
+        <p class="text-secondary mb-0">Alimentez la caisse remise par le patron. Les depenses sont deduites uniquement quand elles passent en statut paye.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ path('app_expense_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Depenses
+        </a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCashFundModal">
+            <i class="bi bi-plus-circle me-2"></i>Alimenter
+        </button>
+    </div>
+</div>
+
+{% include 'expense/cash_fund/_stats.html.twig' with {stats: stats} %}
+
+<form class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-lg-4">
+                <label class="form-label" for="cashFundSearch">Recherche</label>
+                <input id="cashFundSearch" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Reference, origine, depense, note...">
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="cashFundType">Type</label>
+                <select id="cashFundType" class="form-select" name="type">
+                    <option value="">Tous</option>
+                    {% for value, label in type_choices %}
+                        <option value="{{ value }}" {{ filters.type == value ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="cashFundDateFrom">Du</label>
+                <input id="cashFundDateFrom" class="form-control" type="date" name="dateFrom" value="{{ filters.dateFrom }}">
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="cashFundDateTo">Au</label>
+                <input id="cashFundDateTo" class="form-control" type="date" name="dateTo" value="{{ filters.dateTo }}">
+            </div>
+            <div class="col-12 col-md-6 col-lg-2 d-grid">
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-funnel me-2"></i>Filtrer
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% include 'expense/cash_fund/_grid.html.twig' with {transactions: transactions, pagination: pagination, filters: filters} %}
+
+<div class="modal fade" id="createCashFundModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            {% include 'expense/cash_fund/_form_modal.html.twig' with {
+                form: create_form,
+                title: 'Alimenter la cagnotte',
+                submit_label: 'Enregistrer'
+            } %}
+        </div>
+    </div>
+</div>
+{% endblock %}

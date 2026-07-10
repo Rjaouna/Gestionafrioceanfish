@@ -1,0 +1,60 @@
+<div class="modal-header">
+    <div>
+        <h2 class="modal-title fs-5">Modifier date de pointage</h2>
+        <p class="text-secondary small mb-0">{{ worker.fullName }} - {{ periodLabel }}</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+<div class="modal-body">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>Actuelle</th>
+                <th>Type</th>
+                <th>Detail</th>
+                <th class="text-end">Heures / kg</th>
+                <th>Nouvelle date</th>
+                <th class="text-end">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in items %}
+                <tr>
+                    <td class="text-nowrap">{{ item.attendanceDate ? item.attendanceDate|date('d/m/Y') : '-' }}</td>
+                    <td><span class="badge {{ item.mode == 'hourly' ? 'text-bg-primary' : 'text-bg-warning' }}">{{ item.modeLabel }}</span></td>
+                    <td>
+                        <div>{{ item.presenceLabel }}</div>
+                        <div class="small text-secondary">{{ item.timeRangeLabel }}</div>
+                    </td>
+                    <td class="text-end text-nowrap">
+                        {% if item.mode == 'task' %}
+                            {{ item.taskWeightKgValue|number_format(2, ',', ' ') }} kg
+                        {% else %}
+                            {{ item.totalHoursValue|number_format(2, ',', ' ') }} h
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form id="attendance-date-form-{{ item.id }}" method="post" action="{{ path('app_interim_attendance_update_date', {id: item.id}) }}" data-ajax-form="true">
+                            <input type="hidden" name="_token" value="{{ csrf_token('update_attendance_date_' ~ item.id) }}">
+                            <input class="form-control form-control-sm" type="date" name="attendanceDate" value="{{ item.attendanceDate ? item.attendanceDate|date('Y-m-d') : '' }}" max="{{ 'today'|date('Y-m-d') }}" required>
+                        </form>
+                    </td>
+                    <td class="text-end">
+                        <button class="btn btn-primary btn-sm" type="submit" form="attendance-date-form-{{ item.id }}">
+                            <i class="bi bi-check2 me-1"></i>Modifier
+                        </button>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-secondary py-4">Aucun pointage sur cette periode.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+</div>

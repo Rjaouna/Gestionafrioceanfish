@@ -18,6 +18,7 @@ final readonly class ExpenseService
         private ExpenseAccessService $access,
         private ExpenseCalculatorService $calculator,
         private ExpenseDocumentService $documentService,
+        private CashFundService $cashFundService,
         private TrashService $trashService,
     ) {
     }
@@ -105,6 +106,10 @@ final readonly class ExpenseService
     {
         if (!$this->access->canDelete($actor, $expense)) {
             throw new AccessDeniedException();
+        }
+
+        if ($expense->isPaid()) {
+            $this->cashFundService->reversePaidExpense($expense, $actor, 'Annulation automatique : depense supprimee ou deplacee dans la corbeille.');
         }
 
         if (!$this->access->isSuperAdmin($actor)) {

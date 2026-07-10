@@ -11,6 +11,7 @@ final readonly class ExpenseWorkflowService
 {
     public function __construct(
         private ExpenseAccessService $access,
+        private CashFundService $cashFundService,
         private EntityManagerInterface $entityManager,
     ) {
     }
@@ -71,6 +72,7 @@ final readonly class ExpenseWorkflowService
             ->setStatus(Expense::STATUS_PAID)
             ->setPaidAt(new \DateTimeImmutable())
             ->setPaidBy($actor);
+        $this->cashFundService->deductPaidExpense($expense, $actor);
         $this->entityManager->flush();
     }
 

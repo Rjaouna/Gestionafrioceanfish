@@ -9,6 +9,7 @@ use App\Form\ExpenseType;
 use App\Security\Voter\ExpenseVoter;
 use App\Security\Voter\ModuleAccessVoter;
 use App\Service\Expense\ExpenseCategoryService;
+use App\Service\Expense\CashFundService;
 use App\Service\Expense\ExpenseDocumentService;
 use App\Service\Expense\ExpenseService;
 use App\Service\Expense\ExpenseWorkflowService;
@@ -29,6 +30,7 @@ final class ExpenseController extends AbstractController
     public function __construct(
         private readonly ExpenseService $expenseService,
         private readonly ExpenseCategoryService $categoryService,
+        private readonly CashFundService $cashFundService,
         private readonly ExpenseDocumentService $documentService,
         private readonly ExpenseWorkflowService $workflow,
         private readonly JsonResponder $jsonResponder,
@@ -48,6 +50,7 @@ final class ExpenseController extends AbstractController
             'expenses' => $result['items'],
             'pagination' => $result,
             'stats' => $this->expenseService->stats($this->currentUser(), $filters),
+            'cash_fund_stats' => $this->isGranted('ROLE_ADMIN') ? $this->cashFundService->stats() : null,
             'categories' => $this->categoryService->activeCategories($this->currentUser()),
             'status_choices' => Expense::STATUS_LABELS,
             'payment_methods' => Expense::PAYMENT_METHOD_LABELS,
@@ -70,6 +73,7 @@ final class ExpenseController extends AbstractController
             ]),
             'statsHtml' => $this->renderView('expense/expense/_stats.html.twig', [
                 'stats' => $this->expenseService->stats($this->currentUser(), $filters),
+                'cash_fund_stats' => $this->isGranted('ROLE_ADMIN') ? $this->cashFundService->stats() : null,
             ]),
             'count' => $result['total'],
             'page' => $result['page'],

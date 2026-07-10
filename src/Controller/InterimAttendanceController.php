@@ -200,6 +200,43 @@ final class InterimAttendanceController extends AbstractController
         ]);
     }
 
+    #[Route('/journal/interimaires/{id}/dates', name: 'app_interim_attendance_journal_date_modal', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function journalDateModal(InterimWorker $worker, Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'pointage-personnel');
+        $this->denyAccessUnlessGranted(InterimWorkerVoter::EDIT, $worker);
+
+        return $this->render('interim_attendance/_journal_date_modal.html.twig', $this->attendanceService->journalDateCorrection($worker, $this->journalFiltersFromRequest($request)));
+    }
+
+    #[Route('/pointages/{id}/date', name: 'app_interim_attendance_update_date', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function updateDate(InterimAttendance $attendance, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'pointage-personnel');
+        $worker = $attendance->getWorker();
+        if (!$worker instanceof InterimWorker) {
+            return $this->jsonResponder->error('Interimaire introuvable.', [], 404);
+        }
+        $this->denyAccessUnlessGranted(InterimWorkerVoter::EDIT, $worker);
+
+        if (!$this->isCsrfTokenValid('update_attendance_date_'.$attendance->getId(), (string) $request->request->get('_token', ''))) {
+            return $this->jsonResponder->error('Jeton de securite invalide. Rechargez la page.', [], 422);
+        }
+
+        $date = trim((string) $request->request->get('attendanceDate', ''));
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return $this->jsonResponder->error('Date de pointage invalide.', [], 422);
+        }
+
+        try {
+            $this->attendanceService->updateAttendanceDate($attendance, new \DateTimeImmutable($date), $this->currentUser());
+        } catch (\DomainException $exception) {
+            return $this->jsonResponder->error($exception->getMessage(), [], 422);
+        }
+
+        return $this->jsonResponder->success('Date de pointage modifiee.', ['reload' => true]);
+    }
+
     #[Route('/tarifs', name: 'app_interim_attendance_rate_index', methods: ['GET'])]
     public function rates(): Response
     {

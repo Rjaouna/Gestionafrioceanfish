@@ -1,0 +1,74 @@
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Origine / depense</th>
+                    <th>Paiement</th>
+                    <th class="text-end">Montant</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                    <tr>
+                        <td>
+                            <strong>{{ transaction.reference }}</strong>
+                            {% if transaction.notes %}
+                                <div class="small text-secondary text-truncate expense-cash-fund-note" title="{{ transaction.notes }}">{{ transaction.notes }}</div>
+                            {% endif %}
+                        </td>
+                        <td>{{ transaction.movementDate ? transaction.movementDate|date('d/m/Y') : '-' }}</td>
+                        <td><span class="badge {{ transaction.typeBadgeClass }}">{{ transaction.typeLabel }}</span></td>
+                        <td>
+                            {% if transaction.expense %}
+                                <a href="{{ path('app_expense_view', {id: transaction.expense.id}) }}" class="fw-semibold" data-remote-modal="{{ path('app_expense_view', {id: transaction.expense.id}) }}">
+                                    {{ transaction.expense.reference }}
+                                </a>
+                                <div class="small text-secondary text-truncate">{{ transaction.expense.title }}</div>
+                            {% else %}
+                                <span class="fw-semibold">{{ transaction.sourceName ?: '-' }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ transaction.paymentMethodLabel }}</td>
+                        <td class="text-end">
+                            <strong class="{{ transaction.amountValue < 0 ? 'text-danger' : 'text-success' }}">
+                                {{ transaction.amountValue < 0 ? '-' : '+' }}{{ transaction.absoluteAmountValue|number_format(2, ',', ' ') }} dh
+                            </strong>
+                        </td>
+                        <td class="text-end">
+                            {% if transaction.type == constant('App\\Entity\\CashFundTransaction::TYPE_FUNDING') %}
+                                <button class="btn btn-outline-danger btn-sm" title="Supprimer" aria-label="Supprimer" data-confirm-url="{{ path('app_expense_cash_fund_delete', {id: transaction.id}) }}" data-confirm-method="DELETE" data-token="{{ csrf_token('delete_cash_fund_' ~ transaction.id) }}" data-confirm-message="Supprimer cette alimentation de cagnotte ?">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            {% else %}
+                                <span class="badge text-bg-light">Auto</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-secondary">Aucun mouvement de cagnotte.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if pagination.pages > 1 %}
+    <div class="d-flex justify-content-center gap-2 mt-4">
+        {% set previous_params = filters|merge({page: pagination.page - 1}) %}
+        {% set next_params = filters|merge({page: pagination.page + 1}) %}
+        <a class="btn btn-outline-secondary btn-sm {{ pagination.page <= 1 ? 'disabled' : '' }}" href="{{ path('app_expense_cash_fund_index', previous_params) }}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="btn btn-light btn-sm disabled">Page {{ pagination.page }} / {{ pagination.pages }}</span>
+        <a class="btn btn-outline-secondary btn-sm {{ pagination.page >= pagination.pages ? 'disabled' : '' }}" href="{{ path('app_expense_cash_fund_index', next_params) }}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+{% endif %}

@@ -11,6 +11,7 @@
                     <th class="text-end">Heures / kg</th>
                     <th class="text-end">Taux</th>
                     <th class="text-end">Montant</th>
+                    <th class="text-end">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -41,6 +42,19 @@
                             {% endif %}
                         </td>
                         <td class="text-end fw-semibold text-nowrap">{{ item.totalAmountValue|number_format(2, ',', ' ') }} MAD</td>
+                        <td class="text-end">
+                            {% if item.worker and item.attendanceDate %}
+                                <button
+                                    class="btn btn-outline-primary btn-sm"
+                                    type="button"
+                                    title="Modifier la date de pointage"
+                                    aria-label="Modifier la date de pointage"
+                                    data-remote-modal="{{ path('app_interim_attendance_journal_date_modal', {id: item.worker.id, dateFrom: item.attendanceDate|date('Y-m-d'), dateTo: item.attendanceDate|date('Y-m-d')}) }}"
+                                >
+                                    <i class="bi bi-calendar-event"></i>
+                                </button>
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
