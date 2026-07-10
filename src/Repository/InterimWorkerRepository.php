@@ -72,13 +72,15 @@ class InterimWorkerRepository extends ServiceEntityRepository
     }
 
     /** @return list<InterimWorker> */
-    public function findForAttendanceSheet(): array
+    public function findForAttendanceSheet(bool $internalStaff = false): array
     {
         return $this->createQueryBuilder('w')
             ->andWhere('w.isDeleted = false')
             ->andWhere('w.isActive = true')
             ->andWhere('w.status = :activeStatus')
+            ->andWhere('w.isInternalStaff = :internalStaff')
             ->setParameter('activeStatus', InterimWorker::STATUS_ACTIVE)
+            ->setParameter('internalStaff', $internalStaff)
             ->orderBy('w.lastName', 'ASC')
             ->addOrderBy('w.firstName', 'ASC')
             ->addOrderBy('w.registrationNumber', 'ASC')
@@ -124,6 +126,12 @@ class InterimWorkerRepository extends ServiceEntityRepository
             $builder
                 ->andWhere('w.workerType = :workerType')
                 ->setParameter('workerType', (string) $filters['workerType']);
+        }
+
+        if (($filters['internalStaff'] ?? '') !== '') {
+            $builder
+                ->andWhere('w.isInternalStaff = :internalStaff')
+                ->setParameter('internalStaff', (string) $filters['internalStaff'] === '1');
         }
 
         if (!empty($filters['familySituation']) && isset(InterimWorker::FAMILY_LABELS[(string) $filters['familySituation']])) {

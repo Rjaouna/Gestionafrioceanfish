@@ -31,6 +31,9 @@
                     {% endif %}
                     <span class="badge {{ worker.statusBadgeClass }}">{{ worker.statusLabel }}</span>
                     <span class="badge {{ worker.workerTypeBadgeClass }}">{{ worker.workerTypeLabel }}</span>
+                    {% if worker.internalStaff %}
+                        <span class="badge text-bg-info">Interne</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -48,6 +51,7 @@
                 <div class="col-md-6"><div class="text-secondary small">Lieu de naissance</div><strong>{{ worker.birthPlace ?: '-' }}</strong></div>
                 <div class="col-12"><div class="text-secondary small">Adresse</div><strong>{{ worker.address ?: '-' }}</strong></div>
                 <div class="col-md-6"><div class="text-secondary small">Profil</div><strong>{{ worker.workerTypeLabel }}</strong></div>
+                <div class="col-md-6"><div class="text-secondary small">Equipe</div><strong>{{ worker.internalStaff ? 'Interne' : 'Autres' }}</strong></div>
                 <div class="col-md-6"><div class="text-secondary small">Situation familiale</div><strong>{{ worker.familySituationLabel }}</strong></div>
                 <div class="col-md-6"><div class="text-secondary small">Nombre d'enfants</div><strong>{{ worker.childrenCount }}</strong></div>
                 <div class="col-md-6"><div class="text-secondary small">Date d'embauche</div><strong>{{ worker.hireDate ? worker.hireDate|date('d/m/Y') : '-' }}</strong></div>

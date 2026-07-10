@@ -293,7 +293,23 @@ final readonly class InterimAttendanceService
         return [
             'filters' => ['date' => $date],
             'attendanceDate' => new \DateTimeImmutable($date),
-            'workers' => $this->workerRepository->findForAttendanceSheet(),
+            'workers' => $this->workerRepository->findForAttendanceSheet(false),
+            'generatedAt' => new \DateTimeImmutable(),
+        ];
+    }
+
+    /** @return array{filters: array<string, string>, attendanceDate: \DateTimeImmutable, workers: list<InterimWorker>, generatedAt: \DateTimeImmutable} */
+    public function internalAttendanceSheet(array $filters = []): array
+    {
+        $date = trim((string) ($filters['date'] ?? ''));
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $date = (new \DateTimeImmutable('today'))->format('Y-m-d');
+        }
+
+        return [
+            'filters' => ['date' => $date],
+            'attendanceDate' => new \DateTimeImmutable($date),
+            'workers' => $this->workerRepository->findForAttendanceSheet(true),
             'generatedAt' => new \DateTimeImmutable(),
         ];
     }

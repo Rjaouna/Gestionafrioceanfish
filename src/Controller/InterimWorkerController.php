@@ -365,6 +365,7 @@ final class InterimWorkerController extends AbstractController
             'q' => trim((string) $request->query->get('q', '')),
             'position' => trim((string) $request->query->get('position', '')),
             'workerType' => trim((string) $request->query->get('workerType', '')),
+            'internalStaff' => trim((string) $request->query->get('internalStaff', '')),
             'familySituation' => trim((string) $request->query->get('familySituation', '')),
             'status' => trim((string) $request->query->get('status', '')),
             'hireDate' => trim((string) $request->query->get('hireDate', '')),

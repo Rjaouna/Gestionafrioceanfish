@@ -45,6 +45,12 @@
             <span class="app-card-detail-label"><i class="bi bi-person-badge"></i>Profil</span>
             <span class="badge {{ worker.workerTypeBadgeClass }}">{{ worker.workerTypeLabel }}</span>
         </div>
+        {% if worker.internalStaff %}
+            <div class="app-card-detail-line mb-2">
+                <span class="app-card-detail-label"><i class="bi bi-building-check"></i>Equipe</span>
+                <span class="badge text-bg-info">Interne</span>
+            </div>
+        {% endif %}
         <div class="app-card-detail-line mb-2">
             <span class="app-card-detail-label"><i class="bi bi-hash"></i>Matricule</span>
             <span class="app-card-detail-value text-nowrap">{{ worker.registrationNumber }}</span>

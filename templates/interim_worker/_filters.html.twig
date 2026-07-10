@@ -34,6 +34,14 @@
                 </select>
             </div>
             <div class="col-12 col-md-6 col-lg-2">
+                <label class="form-label" for="interimInternalFilter">Equipe</label>
+                <select id="interimInternalFilter" name="internalStaff" class="form-select">
+                    <option value="">Toutes</option>
+                    <option value="1" {{ filters.internalStaff == '1' ? 'selected' : '' }}>Interne</option>
+                    <option value="0" {{ filters.internalStaff == '0' ? 'selected' : '' }}>Autres</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-6 col-lg-2">
                 <label class="form-label" for="interimFamilyFilter">Situation</label>
                 <select id="interimFamilyFilter" name="familySituation" class="form-select">
                     <option value="">Toutes</option>

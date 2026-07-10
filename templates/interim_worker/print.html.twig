@@ -41,6 +41,7 @@
         ['Nom et Prénom', worker.fullName],
         ['Adresse', worker.address],
         ['Poste', worker.position],
+        ['Equipe', worker.internalStaff ? 'Interne' : 'Autres'],
         ['Matricule', worker.registrationNumber],
         ['Téléphone', worker.phone],
         ['Date de naissance', worker.birthDate ? worker.birthDate|date('d/m/Y') : ''],

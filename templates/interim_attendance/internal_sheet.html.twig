@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Feuille internes - {{ attendanceDate|date('d/m/Y') }}</title>
+    <style>
+        @page { size: A4 landscape; margin: 9mm; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            color: #0f172a;
+            background: #eef4f8;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10px;
+        }
+        .screen-actions {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, .12);
+        }
+        .screen-actions input,
+        .screen-actions button,
+        .screen-actions a {
+            border: 1px solid #142b68;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font: inherit;
+            font-weight: 700;
+        }
+        .screen-actions input {
+            border-color: #cbd5e1;
+            font-weight: 400;
+        }
+        .screen-actions button,
+        .screen-actions a {
+            color: #fff;
+            background: #142b68;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .page {
+            width: 297mm;
+            min-height: 210mm;
+            margin: 0 auto;
+            padding: 9mm;
+            background: #fff;
+        }
+        .topbar {
+            display: grid;
+            grid-template-columns: 185px 1fr;
+            gap: 18px;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #142b68;
+        }
+        .logo {
+            width: 185px;
+            height: auto;
+            display: block;
+            padding: 8px 10px;
+            background: #142b68;
+        }
+        .company {
+            text-align: right;
+            color: #334155;
+            line-height: 1.45;
+        }
+        .company strong {
+            display: block;
+            color: #142b68;
+            font-size: 17px;
+            letter-spacing: .08em;
+        }
+        .title-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 18px;
+            align-items: start;
+            margin: 14px 0 10px;
+        }
+        h1 {
+            margin: 0 0 5px;
+            color: #142b68;
+            font-size: 23px;
+            line-height: 1.15;
+        }
+        .subtitle {
+            color: #64748b;
+            font-size: 12px;
+        }
+        .doc-meta {
+            min-width: 285px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .doc-meta div {
+            display: grid;
+            grid-template-columns: 105px 1fr;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .doc-meta div:last-child { border-bottom: 0; }
+        .doc-meta span,
+        .doc-meta strong { padding: 6px 8px; }
+        .doc-meta span {
+            color: #64748b;
+            background: #f8fafc;
+            font-weight: 700;
+        }
+        .legend-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .legend-card {
+            min-height: 42px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            padding: 8px 10px;
+            background: #f8fafc;
+            color: #334155;
+            font-size: 10px;
+            line-height: 1.35;
+        }
+        .legend-card strong {
+            display: block;
+            color: #142b68;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            page-break-inside: auto;
+        }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+        th {
+            padding: 6px 5px;
+            border: 1px solid #94a3b8;
+            background: #eaf1f8;
+            color: #142b68;
+            text-align: center;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+        }
+        td {
+            height: 35px;
+            padding: 4px;
+            border: 1px solid #cbd5e1;
+            vertical-align: middle;
+        }
+        .text-center { text-align: center; }
+        .name-cell strong {
+            display: block;
+            font-size: 10px;
+        }
+        .muted { color: #64748b; }
+        .line { color: transparent; }
+        .time-box {
+            display: block;
+            min-height: 22px;
+            border-bottom: 1.5px solid #0f172a;
+        }
+        .footer {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+            margin-top: 22px;
+        }
+        .signature {
+            min-height: 50px;
+            padding-top: 8px;
+            border-top: 1px solid #0f172a;
+            color: #334155;
+            font-weight: 700;
+        }
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            body { background: #fff; }
+            .screen-actions { display: none; }
+            .page { width: auto; min-height: auto; margin: 0; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <form class="screen-actions" method="get">
+        <input type="date" name="date" value="{{ filters.date }}">
+        <button type="submit">Afficher</button>
+        <button type="button" onclick="window.print()">Imprimer</button>
+        <a href="{{ path('app_interim_attendance_index') }}">Retour</a>
+    </form>
+
+    <main class="page">
+        <header class="topbar">
+            <img class="logo" src="{{ asset('images/logo-afriocean-fish.svg') }}" alt="AFRIOCEAN FISH">
+            <div class="company">
+                <strong>AFRIOCEAN FISH</strong>
+                Gestion interne usine<br>
+                Feuille horaire equipe interne<br>
+                Document genere depuis l'application
+            </div>
+        </header>
+
+        <section class="title-row">
+            <div>
+                <h1>Feuille de pointage internes</h1>
+                <div class="subtitle">Horaires matin et apres-midi - journee du {{ attendanceDate|date('d/m/Y') }}</div>
+            </div>
+            <div class="doc-meta">
+                <div><span>Date</span><strong>{{ attendanceDate|date('d/m/Y') }}</strong></div>
+                <div><span>Prepare par</span><strong>{{ generated_by }}</strong></div>
+                <div><span>Internes</span><strong>{{ workers|length }}</strong></div>
+                <div><span>Edition</span><strong>{{ generatedAt|date('d/m/Y H:i') }}</strong></div>
+            </div>
+        </section>
+
+        <section class="legend-strip">
+            <div class="legend-card">
+                <strong>Matin</strong>
+                Renseigner l'heure d'entree et l'heure de sortie du creneau matin.
+            </div>
+            <div class="legend-card">
+                <strong>Apres-midi</strong>
+                Renseigner l'heure d'entree et l'heure de sortie du creneau apres-midi.
+            </div>
+            <div class="legend-card">
+                <strong>Total</strong>
+                Noter le total d'heures validees et faire signer la personne.
+            </div>
+        </section>
+
+        <table>
+            <thead>
+            <tr>
+                <th style="width: 3%;">N</th>
+                <th style="width: 22%; text-align: left;">Nom et prenom</th>
+                <th style="width: 13%; text-align: left;">Poste</th>
+                <th style="width: 9%;">Matin entree</th>
+                <th style="width: 9%;">Matin sortie</th>
+                <th style="width: 10%;">Apres-midi entree</th>
+                <th style="width: 10%;">Apres-midi sortie</th>
+                <th style="width: 7%;">Total h</th>
+                <th style="width: 8%;">Signature</th>
+                <th style="width: 9%;">Observation</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for worker in workers %}
+                <tr>
+                    <td class="text-center">{{ loop.index }}</td>
+                    <td class="name-cell"><strong>{{ worker.fullName ?: '-' }}</strong></td>
+                    <td>{{ worker.position ?: '-' }}</td>
+                    <td><span class="time-box"></span></td>
+                    <td><span class="time-box"></span></td>
+                    <td><span class="time-box"></span></td>
+                    <td><span class="time-box"></span></td>
+                    <td><span class="time-box"></span></td>
+                    <td><span class="time-box"></span></td>
+                    <td><span class="time-box"></span></td>
+                </tr>
+            {% else %}
+                {% for i in 1..18 %}
+                    <tr>
+                        <td class="text-center">{{ i }}</td>
+                        <td class="line">.</td>
+                        <td class="line">.</td>
+                        <td><span class="time-box"></span></td>
+                        <td><span class="time-box"></span></td>
+                        <td><span class="time-box"></span></td>
+                        <td><span class="time-box"></span></td>
+                        <td><span class="time-box"></span></td>
+                        <td><span class="time-box"></span></td>
+                        <td><span class="time-box"></span></td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <section class="footer">
+            <div class="signature">Responsable pointage</div>
+            <div class="signature">Chef equipe</div>
+            <div class="signature">Validation administration</div>
+        </section>
+    </main>
+
+    <script>
+        window.addEventListener('load', function () {
+            if (new URLSearchParams(window.location.search).get('auto') === '1') {
+                window.print();
+            }
+        });
+    </script>
+</body>
+</html>

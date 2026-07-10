@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\InterimWorker;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
@@ -83,6 +84,11 @@ final class InterimWorkerType extends AbstractType
                 'choices' => array_flip(InterimWorker::TYPE_LABELS),
                 'empty_data' => InterimWorker::TYPE_OTHER,
                 'help' => 'Sélectionnez Étudiant(e) pour les personnes prévues uniquement pendant les vacances.',
+            ])
+            ->add('internalStaff', CheckboxType::class, [
+                'label' => 'Interne',
+                'required' => false,
+                'help' => 'Oui pour l equipe interne.',
             ])
             ->add('registrationNumber', TextType::class, [
                 'label' => 'Matricule',

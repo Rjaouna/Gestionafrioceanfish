@@ -83,6 +83,16 @@ final class InterimAttendanceController extends AbstractController
         return $this->render('interim_attendance/sheet.html.twig', $data);
     }
 
+    #[Route('/feuille-pointage-interne', name: 'app_interim_attendance_internal_sheet', methods: ['GET'])]
+    public function internalSheet(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted(ModuleAccessVoter::ACCESS, 'pointage-personnel');
+        $data = $this->attendanceService->internalAttendanceSheet($this->sheetFiltersFromRequest($request));
+        $data['generated_by'] = $this->currentUser()->getDisplayName();
+
+        return $this->render('interim_attendance/internal_sheet.html.twig', $data);
+    }
+
     #[Route('/recherche', name: 'app_interim_attendance_search', methods: ['GET'])]
     public function search(Request $request): JsonResponse
     {

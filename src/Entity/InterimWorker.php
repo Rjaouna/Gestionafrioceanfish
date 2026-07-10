@@ -20,6 +20,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_interim_worker_family_situation', columns: ['family_situation'])]
 #[ORM\Index(name: 'idx_interim_worker_hire_date', columns: ['hire_date'])]
 #[ORM\Index(name: 'idx_interim_worker_passport_number', columns: ['passport_number'])]
+#[ORM\Index(name: 'idx_interim_worker_internal_staff', columns: ['is_internal_staff'])]
 #[ORM\Index(name: 'idx_interim_worker_created_by', columns: ['created_by_id'])]
 #[ORM\Index(name: 'idx_interim_worker_updated_by', columns: ['updated_by_id'])]
 #[UniqueEntity(fields: ['registrationNumber'], message: 'Ce matricule est déjà utilisé.')]
@@ -125,6 +126,9 @@ class InterimWorker
 
     #[ORM\Column(length: 30, options: ['default' => self::TYPE_OTHER])]
     private string $workerType = self::TYPE_OTHER;
+
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isInternalStaff = false;
 
     #[ORM\Column(length: 50)]
     #[Assert\Length(max: 50)]
@@ -352,6 +356,18 @@ class InterimWorker
     public function getWorkerTypeBadgeClass(): string
     {
         return self::TYPE_BADGES[$this->workerType] ?? 'text-bg-light border';
+    }
+
+    public function isInternalStaff(): bool
+    {
+        return $this->isInternalStaff;
+    }
+
+    public function setInternalStaff(bool $isInternalStaff): static
+    {
+        $this->isInternalStaff = $isInternalStaff;
+
+        return $this;
     }
 
     public function getRegistrationNumber(): ?string

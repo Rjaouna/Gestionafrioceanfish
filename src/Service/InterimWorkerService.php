@@ -364,6 +364,7 @@ final readonly class InterimWorkerService
             'q' => trim((string) ($filters['q'] ?? '')),
             'position' => trim((string) ($filters['position'] ?? '')),
             'workerType' => trim((string) ($filters['workerType'] ?? '')),
+            'internalStaff' => trim((string) ($filters['internalStaff'] ?? '')),
             'familySituation' => trim((string) ($filters['familySituation'] ?? '')),
             'status' => trim((string) ($filters['status'] ?? '')),
             'hireDate' => trim((string) ($filters['hireDate'] ?? '')),
@@ -371,6 +372,10 @@ final readonly class InterimWorkerService
 
         if ($normalized['workerType'] !== '' && !isset(InterimWorker::TYPE_LABELS[$normalized['workerType']])) {
             $normalized['workerType'] = '';
+        }
+
+        if (!in_array($normalized['internalStaff'], ['', '0', '1'], true)) {
+            $normalized['internalStaff'] = '';
         }
 
         if ($normalized['familySituation'] !== '' && !isset(InterimWorker::FAMILY_LABELS[$normalized['familySituation']])) {
