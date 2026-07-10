@@ -167,28 +167,28 @@
         .line { color: transparent; }
         .check-grid {
             display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 3px;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 2px;
             align-items: center;
         }
         .write-box-grid {
             display: grid;
-            grid-template-columns: repeat(10, minmax(28px, 1fr));
-            gap: 4px;
+            grid-template-columns: repeat(12, minmax(30px, 1fr));
+            gap: 3px;
             align-items: center;
         }
         .mini-box {
             display: block;
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             margin: 0 auto;
             border: 1.4px solid #0f172a;
             background: #fff;
         }
         .write-box {
             display: block;
-            min-width: 28px;
-            height: 20px;
+            min-width: 30px;
+            height: 19px;
             border: 1.2px solid #0f172a;
             background: #fff;
         }
@@ -251,11 +251,11 @@
         <section class="legend-strip">
             <div class="legend-card">
                 <strong>Nettoyage</strong>
-                10 cases par personne. 1 case = 1 caisse nettoyee.
+                15 cases par personne. 1 case = 1 caisse nettoyee.
             </div>
             <div class="legend-card">
                 <strong>Classement / mise en caisse</strong>
-                Cases larges pour noter le poids de chaque caisse, ex. 1.50 kg.
+                12 cases larges pour noter le poids de chaque caisse, ex. 1.50 kg.
             </div>
         </section>
 
@@ -263,26 +263,24 @@
             <thead>
             <tr>
                 <th style="width: 3%;" class="text-center">N</th>
-                <th style="width: 9%;">Matricule</th>
-                <th style="width: 24%;">Nom et prenom</th>
-                <th style="width: 22%;" class="text-center">Nettoyage - 10 cases</th>
-                <th style="width: 42%;" class="text-center">Mise en caisse - poids par caisse</th>
+                <th style="width: 27%;">Nom et prenom</th>
+                <th style="width: 30%;" class="text-center">Nettoyage - 15 cases</th>
+                <th style="width: 40%;" class="text-center">Mise en caisse - poids par caisse</th>
             </tr>
             </thead>
             <tbody>
             {% for worker in workers %}
                 <tr>
                     <td class="text-center">{{ loop.index }}</td>
-                    <td>{{ worker.registrationNumber ?: '-' }}</td>
                     <td><strong>{{ worker.fullName ?: '-' }}</strong></td>
                     <td>
                         <div class="check-grid">
-                            {% for i in 1..10 %}<span class="mini-box"></span>{% endfor %}
+                            {% for i in 1..15 %}<span class="mini-box"></span>{% endfor %}
                         </div>
                     </td>
                     <td>
                         <div class="write-box-grid">
-                            {% for i in 1..10 %}<span class="write-box"></span>{% endfor %}
+                            {% for i in 1..12 %}<span class="write-box"></span>{% endfor %}
                         </div>
                     </td>
                 </tr>
@@ -291,15 +289,14 @@
                     <tr>
                         <td class="text-center">{{ i }}</td>
                         <td class="line">.</td>
-                        <td class="line">.</td>
                         <td>
                             <div class="check-grid">
-                                {% for j in 1..10 %}<span class="mini-box"></span>{% endfor %}
+                                {% for j in 1..15 %}<span class="mini-box"></span>{% endfor %}
                             </div>
                         </td>
                         <td>
                             <div class="write-box-grid">
-                                {% for j in 1..10 %}<span class="write-box"></span>{% endfor %}
+                                {% for j in 1..12 %}<span class="write-box"></span>{% endfor %}
                             </div>
                         </td>
                     </tr>
