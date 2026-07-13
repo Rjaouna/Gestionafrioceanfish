@@ -2556,13 +2556,8 @@ function calculateDailyProductionCost(form) {
 
     const hourlyPerPerson = dailyCostValue(form, 'hourlyHours') * dailyCostValue(form, 'hourlyRate');
     const hourlyLaborTotal = dailyCostValue(form, 'hourlyWorkers') * hourlyPerPerson;
-    const cleaningKgAuto = raw;
-    const cleaningCratesAuto = raw > 0 ? raw / 10 : 0;
-    const cleaningPricePerKgAuto = 25 / 30;
-    const cleaningTotal = raw > 0 ? (raw / 30) * 25 : 0;
-    const boxingKgAuto = finished;
-    const boxingPricePerKgAuto = 2;
-    const boxingTotal = finished > 0 ? finished * 2 : 0;
+    const cleaningTotal = dailyCostValue(form, 'cleaningKg') * dailyCostValue(form, 'cleaningPricePerKg');
+    const boxingTotal = dailyCostValue(form, 'boxingKg') * dailyCostValue(form, 'boxingPricePerKg');
     const taskLaborTotal = cleaningTotal + boxingTotal + dailyCostValue(form, 'otherTaskAmount');
     const fixedDays = Math.max(1, dailyCostValue(form, 'fixedSalaryWorkingDays') || 26);
     const fixedSalaryDailyTotal = dailyCostValue(form, 'fixedSalaryMonthlyTotal') / fixedDays;
@@ -2593,12 +2588,7 @@ function calculateDailyProductionCost(form) {
         yieldPercent,
         hourlyPerPerson,
         hourlyLaborTotal,
-        cleaningKgAuto,
-        cleaningCratesAuto,
-        cleaningPricePerKgAuto,
         cleaningTotal,
-        boxingKgAuto,
-        boxingPricePerKgAuto,
         boxingTotal,
         taskLaborTotal,
         fixedSalaryDailyTotal,
@@ -2627,15 +2617,6 @@ function syncDailyProductionCostForm(form) {
     });
 
     const result = calculateDailyProductionCost(form);
-    const cleaningInput = coutField(form, 'cleaningKg');
-    const cleaningPriceInput = coutField(form, 'cleaningPricePerKg');
-    const boxingInput = coutField(form, 'boxingKg');
-    const boxingPriceInput = coutField(form, 'boxingPricePerKg');
-    if (cleaningInput) cleaningInput.value = result.cleaningKgAuto.toFixed(3);
-    if (cleaningPriceInput) cleaningPriceInput.value = result.cleaningPricePerKgAuto.toFixed(2);
-    if (boxingInput) boxingInput.value = result.boxingKgAuto.toFixed(3);
-    if (boxingPriceInput) boxingPriceInput.value = result.boxingPricePerKgAuto.toFixed(2);
-
     form.querySelectorAll('[data-daily-cost-output]').forEach((output) => {
         const key = output.dataset.dailyCostOutput;
         output.textContent = coutFormat(result[key] ?? 0);

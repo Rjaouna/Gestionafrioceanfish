@@ -1,0 +1,124 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cout journalier{% endblock %}
+
+{% block body %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Cout de revient journalier</h1>
+        <p class="text-secondary mb-0">{{ pagination.total }} journee{{ pagination.total > 1 ? 's' : '' }} de production.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_cout_revient_index') }}">
+            <i class="bi bi-calculator me-2"></i>Cout par lot
+        </a>
+        <a class="btn btn-primary" href="{{ path('app_daily_production_cost_new') }}">
+            <i class="bi bi-plus-circle me-2"></i>Nouvelle journee
+        </a>
+    </div>
+</div>
+
+<form class="card border-0 shadow-sm mb-4" method="get">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-lg-4">
+                <label class="form-label fw-semibold" for="dailyCostSearch">Recherche</label>
+                <input id="dailyCostSearch" class="form-control" type="search" name="q" value="{{ filters.q }}" placeholder="Reference, produit, responsable">
+            </div>
+            <div class="col-6 col-lg-3">
+                <label class="form-label fw-semibold" for="dailyCostDateFrom">Du</label>
+                <input id="dailyCostDateFrom" class="form-control" type="date" name="dateFrom" value="{{ filters.dateFrom }}">
+            </div>
+            <div class="col-6 col-lg-3">
+                <label class="form-label fw-semibold" for="dailyCostDateTo">Au</label>
+                <input id="dailyCostDateTo" class="form-control" type="date" name="dateTo" value="{{ filters.dateTo }}">
+            </div>
+            <div class="col-12 col-lg-2 d-grid">
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-funnel me-2"></i>Filtrer
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body">
+            <div class="small text-secondary">Produit fini</div>
+            <div class="h3 mb-0">{{ totals.finished|number_format(0, ',', ' ') }} kg</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body">
+            <div class="small text-secondary">Charges globales</div>
+            <div class="h3 mb-0">{{ totals.total|number_format(0, ',', ' ') }} dh</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body">
+            <div class="small text-secondary">Rendement moyen</div>
+            <div class="h3 mb-0">{{ totals.raw > 0 ? (totals.finished / totals.raw * 100)|number_format(1, ',', ' ') : '0,0' }} %</div>
+        </div></div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card border-0 shadow-sm h-100"><div class="card-body">
+            <div class="small text-secondary">Cout moyen / kg PF</div>
+            <div class="h3 mb-0">{{ totals.finished > 0 ? (totals.total / totals.finished)|number_format(2, ',', ' ') : '0,00' }} dh</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Reference</th>
+                    <th>Produit</th>
+                    <th class="text-end">MP</th>
+                    <th class="text-end">PF</th>
+                    <th class="text-end">Rendement</th>
+                    <th class="text-end">Cout total</th>
+                    <th class="text-end">Cout / kg PF</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td>{{ item.productionDate ? item.productionDate|date('d/m/Y') : '-' }}</td>
+                        <td><span class="fw-semibold">{{ item.reference }}</span></td>
+                        <td>{{ item.productName }}</td>
+                        <td class="text-end">{{ item.rawQuantityKg|number_format(0, ',', ' ') }} kg</td>
+                        <td class="text-end">{{ item.finishedProductKg|number_format(0, ',', ' ') }} kg</td>
+                        <td class="text-end">
+                            <span class="badge text-bg-{{ item.productionDiagnosticClass }}">{{ item.yieldPercent|number_format(1, ',', ' ') }} %</span>
+                        </td>
+                        <td class="text-end fw-semibold">{{ item.totalCost|number_format(2, ',', ' ') }} dh</td>
+                        <td class="text-end">{{ item.costPerFinishedKg|number_format(2, ',', ' ') }} dh</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a class="btn btn-outline-primary" href="{{ path('app_daily_production_cost_view', {id: item.id}) }}" title="Voir">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a class="btn btn-outline-secondary" href="{{ path('app_daily_production_cost_edit', {id: item.id}) }}" title="Modifier">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a class="btn btn-outline-success" href="{{ path('app_daily_production_cost_pdf', {id: item.id}) }}" target="_blank" rel="noopener" title="Rapport PDF">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-secondary">Aucune journee de production enregistree.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

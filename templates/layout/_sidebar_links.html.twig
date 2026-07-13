@@ -52,7 +52,7 @@
             </div>
         </section>
     {% elseif module.slug == 'cout-revient' %}
-        {% set cout_active = module_active or current_route starts with 'app_fish_yield_study' %}
+        {% set cout_active = module_active or current_route starts with 'app_fish_yield_study' or current_route starts with 'app_daily_production_cost' %}
         <section class="sidebar-open-section {{ cout_active ? 'active' : '' }}">
             <div class="sidebar-open-body">
                 <a class="sidebar-sub-link {{ module_active ? 'active' : '' }}" href="{{ path('app_cout_revient_index') }}">
@@ -62,6 +62,10 @@
                 <a class="sidebar-sub-link ps-4 {{ current_route == 'app_cout_revient_dashboard' ? 'active' : '' }}" href="{{ path('app_cout_revient_dashboard') }}">
                     <i class="bi bi-speedometer2"></i>
                     <span>Dashboard</span>
+                </a>
+                <a class="sidebar-sub-link ps-4 {{ current_route starts with 'app_daily_production_cost' ? 'active' : '' }}" href="{{ path('app_daily_production_cost_index') }}">
+                    <i class="bi bi-calendar2-check"></i>
+                    <span>Cout journalier</span>
                 </a>
                 <a class="sidebar-sub-link ps-4 {{ current_route == 'app_cout_revient_new' ? 'active' : '' }}" href="{{ path('app_cout_revient_new') }}">
                     <i class="bi bi-plus-circle"></i>

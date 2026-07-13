@@ -6,6 +6,7 @@ use App\Entity\CoutRevientChargeConfig;
 use App\Entity\User;
 use App\Repository\CoutRevientChargeConfigRepository;
 use App\Repository\CoutRevientChargeLineRepository;
+use App\Repository\DailyProductionCostChargeLineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -14,6 +15,7 @@ final readonly class CoutRevientChargeConfigService
     public function __construct(
         private CoutRevientChargeConfigRepository $repository,
         private CoutRevientChargeLineRepository $chargeLineRepository,
+        private DailyProductionCostChargeLineRepository $dailyChargeLineRepository,
         private EntityManagerInterface $entityManager,
         private CoutRevientPermissionService $permission,
     ) {
@@ -80,6 +82,7 @@ final readonly class CoutRevientChargeConfigService
     {
         $this->assertAccess($actor);
         $detachedLines = $this->chargeLineRepository->detachConfigReferences($config);
+        $detachedLines += $this->dailyChargeLineRepository->detachConfigReferences($config);
 
         $this->entityManager->remove($config);
         $this->entityManager->flush();

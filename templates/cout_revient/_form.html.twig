@@ -64,6 +64,44 @@
 
             <section class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Main d'oeuvre au kg automatique</h2>
+                    <p class="text-secondary small mb-0">Nettoyage : 25 dh / 30 kg, soit 3 caisses de 10 kg. Mise en caisse : 2 dh / kg de produit fini.</p>
+                </div>
+                <div class="card-body">
+                    <div class="cout-live-grid">
+                        <div class="cout-live-pill">
+                            <span>Matiere sortie</span>
+                            <strong><span data-cout-output="poidsProductionKgAuto">0,00</span> kg</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Caisses 10 kg</span>
+                            <strong><span data-cout-output="nombreCaissesNettoyageAuto">0,00</span></strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Nettoyage</span>
+                            <strong><span data-cout-output="coutNettoyageKgAuto">0,00</span> dh</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Produit fini</span>
+                            <strong><span data-cout-output="poidsFiniKgAuto">0,00</span> kg</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Mise en caisse</span>
+                            <strong><span data-cout-output="coutMiseEnCaisseKgAuto">0,00</span> dh</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Total au kg</span>
+                            <strong><span data-cout-output="coutMainOeuvreKgAuto">0,00</span> dh</strong>
+                        </div>
+                    </div>
+                    <div class="alert alert-info small mb-0 mt-3">
+                        Si le mode main d'oeuvre est <strong>Au kg automatique</strong>, ce total est applique directement dans le cout de revient.
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
                     <h2 class="h5 mb-1">Production</h2>
                     <p class="text-secondary small mb-0">Référence anchois en filet : 35 à 45 % de produit fini, 50 à 60 % de déchets, 3 à 8 % de pertes process.</p>
                 </div>
@@ -120,7 +158,7 @@
             <section class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-0 pb-0">
                     <h2 class="h5 mb-1">Main d oeuvre</h2>
-                    <p class="text-secondary small mb-0">Choisissez le mode adapte : heure, tache/kg ou montant direct.</p>
+                    <p class="text-secondary small mb-0">Choisissez le mode adapte : heure, au kg automatique ou montant direct.</p>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
@@ -132,8 +170,15 @@
                         <div class="col-12 col-md-4">{{ form_row(form.coutHoraireMoyen) }}</div>
                     </div>
                     <div class="row g-3 mt-1" data-cout-mode-section="kg">
-                        <div class="col-12 col-md-6">{{ form_row(form.prixTacheKg) }}</div>
-                        <div class="col-12 col-md-6">{{ form_row(form.kgTraitesMainOeuvre) }}</div>
+                        <div class="col-12">
+                            <div class="alert alert-light border mb-0">
+                                Calcul automatique applique : nettoyage sur la matiere sortie + mise en caisse sur le produit fini. Les bases restent visibles dans le bloc juste au-dessus.
+                            </div>
+                            <div class="d-none">
+                                {{ form_widget(form.prixTacheKg) }}
+                                {{ form_widget(form.kgTraitesMainOeuvre) }}
+                            </div>
+                        </div>
                     </div>
                     <div class="row g-3 mt-1" data-cout-mode-section="montant_direct">
                         <div class="col-12 col-md-6">{{ form_row(form.coutMainOeuvreDirect) }}</div>
@@ -150,11 +195,15 @@
                     </div>
                     <div class="cout-live-grid mt-3" data-cout-mode-result="kg">
                         <div class="cout-live-pill">
-                            <span>Kg traites</span>
-                            <strong><span data-cout-output="kgTraitesMainOeuvre">0,00</span> kg</strong>
+                            <span>Nettoyage</span>
+                            <strong><span data-cout-output="coutNettoyageKgAuto">0,00</span> dh</strong>
                         </div>
                         <div class="cout-live-pill">
-                            <span>Total tache</span>
+                            <span>Mise en caisse</span>
+                            <strong><span data-cout-output="coutMiseEnCaisseKgAuto">0,00</span> dh</strong>
+                        </div>
+                        <div class="cout-live-pill">
+                            <span>Total au kg</span>
                             <strong><span data-cout-output="coutMainOeuvre">{{ item.coutMainOeuvre|number_format(2, ',', ' ') }}</span> dh</strong>
                         </div>
                     </div>

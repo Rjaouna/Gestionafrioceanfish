@@ -1,0 +1,268 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ title }}</h1>
+        <p class="text-secondary mb-0">Calcul de la charge de production d'une journee et du cout par kg.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ path('app_daily_production_cost_index') }}">
+        <i class="bi bi-arrow-left me-2"></i>Retour
+    </a>
+</div>
+
+{{ form_start(form, {attr: {'data-ajax-form': 'true', 'data-daily-production-cost-form': 'true'}}) }}
+    <div class="row g-4 align-items-start">
+        <div class="col-12 col-xl-8">
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Informations journee</h2>
+                    <p class="text-secondary small mb-0">Date, produit et responsable de la production.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-3">{{ form_row(form.productionDate) }}</div>
+                        <div class="col-12 col-md-3">{{ form_row(form.reference) }}</div>
+                        <div class="col-12 col-md-3">{{ form_row(form.productName) }}</div>
+                        <div class="col-12 col-md-3">{{ form_row(form.responsible) }}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Production</h2>
+                    <p class="text-secondary small mb-0">Reference anchois filet : 35 a 45 % PF, 50 a 60 % dechets, 3 a 8 % pertes process.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">{{ form_row(form.rawQuantityKg) }}</div>
+                        <div class="col-12 col-md-4">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                {{ form_label(form.finishedProductKg, null, {label_attr: {class: 'form-label mb-0'}}) }}
+                                <span class="badge text-bg-success" data-daily-cost-norm="finished">Norme -- kg</span>
+                            </div>
+                            {{ form_widget(form.finishedProductKg) }}
+                            {{ form_errors(form.finishedProductKg) }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                {{ form_label(form.wasteKg, null, {label_attr: {class: 'form-label mb-0'}}) }}
+                                <span class="badge text-bg-warning" data-daily-cost-norm="waste">Norme -- kg</span>
+                            </div>
+                            {{ form_widget(form.wasteKg) }}
+                            {{ form_errors(form.wasteKg) }}
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                {{ form_label(form.lossKg, null, {label_attr: {class: 'form-label mb-0'}}) }}
+                                <span class="badge text-bg-danger" data-daily-cost-norm="loss">Norme -- kg</span>
+                            </div>
+                            {{ form_widget(form.lossKg) }}
+                            {{ form_errors(form.lossKg) }}
+                        </div>
+                    </div>
+                    <div class="cout-live-grid mt-3">
+                        <div class="cout-live-pill"><span>Total sortie</span><strong><span data-daily-cost-output="totalOutputKg">{{ item.totalOutputKg|number_format(2, ',', ' ') }}</span> kg</strong></div>
+                        <div class="cout-live-pill"><span>Ecart poids</span><strong><span data-daily-cost-output="weightGapKg">{{ item.weightGapKg|number_format(2, ',', ' ') }}</span> kg</strong></div>
+                        <div class="cout-live-pill"><span>Rendement</span><strong><span data-daily-cost-output="yieldPercent">{{ item.yieldPercent|number_format(2, ',', ' ') }}</span> %</strong></div>
+                    </div>
+                    <div class="alert alert-secondary small mb-0 mt-3" data-daily-cost-diagnostic>Renseignez les poids pour analyser la production.</div>
+                    <div class="border rounded-2 p-3 bg-light-subtle mt-3">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+                            <div>
+                                <h3 class="h6 mb-1">Charge main d'oeuvre a la tache</h3>
+                                <p class="text-secondary small mb-0">Nettoyage : 25 dh / 30 kg. Mise en caisse : 2 dh / kg de produit fini.</p>
+                            </div>
+                            <span class="badge text-bg-primary">Calcul automatique</span>
+                        </div>
+                        <div class="cout-live-grid">
+                            <div class="cout-live-pill">
+                                <span>MP nettoyee</span>
+                                <strong><span data-daily-cost-output="cleaningKgAuto">{{ item.rawQuantityKg|number_format(2, ',', ' ') }}</span> kg</strong>
+                            </div>
+                            <div class="cout-live-pill">
+                                <span>Caisses 10 kg</span>
+                                <strong><span data-daily-cost-output="cleaningCratesAuto">{{ item.rawQuantityKg > 0 ? (item.rawQuantityKg / 10)|number_format(2, ',', ' ') : '0,00' }}</span></strong>
+                            </div>
+                            <div class="cout-live-pill">
+                                <span>Nettoyeuses</span>
+                                <strong><span data-daily-cost-output="cleaningTotal">{{ item.rawQuantityKg > 0 ? (item.rawQuantityKg / 30 * 25)|number_format(2, ',', ' ') : '0,00' }}</span> dh</strong>
+                            </div>
+                            <div class="cout-live-pill">
+                                <span>PF mis en caisse</span>
+                                <strong><span data-daily-cost-output="boxingKgAuto">{{ item.finishedProductKg|number_format(2, ',', ' ') }}</span> kg</strong>
+                            </div>
+                            <div class="cout-live-pill">
+                                <span>Mise en caisse</span>
+                                <strong><span data-daily-cost-output="boxingTotal">{{ item.finishedProductKg > 0 ? (item.finishedProductKg * 2)|number_format(2, ',', ' ') : '0,00' }}</span> dh</strong>
+                            </div>
+                            <div class="cout-live-pill">
+                                <span>Total tache</span>
+                                <strong><span data-daily-cost-output="taskLaborTotal">{{ item.taskLaborTotal|number_format(2, ',', ' ') }}</span> dh</strong>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-12 col-md-4">{{ form_row(form.otherTaskAmount) }}</div>
+                        </div>
+                        <div class="d-none">
+                            {{ form_widget(form.cleaningKg) }}
+                            {{ form_widget(form.cleaningPricePerKg) }}
+                            {{ form_widget(form.boxingKg) }}
+                            {{ form_widget(form.boxingPricePerKg) }}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Main d oeuvre a l heure</h2>
+                    <p class="text-secondary small mb-0">Equipe payee au temps passe sur la journee.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.hourlyWorkers) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.hourlyHours) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.hourlyRate) }}</div>
+                    </div>
+                    <div class="cout-live-grid mt-3">
+                        <div class="cout-live-pill"><span>Total par personne</span><strong><span data-daily-cost-output="hourlyPerPerson">0,00</span> dh</strong></div>
+                        <div class="cout-live-pill"><span>Total equipe heure</span><strong><span data-daily-cost-output="hourlyLaborTotal">{{ item.hourlyLaborTotal|number_format(2, ',', ' ') }}</span> dh</strong></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Salaires fixes</h2>
+                    <p class="text-secondary small mb-0">Masse salariale fixe proratee sur la journee.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">{{ form_row(form.fixedSalaryMonthlyTotal) }}</div>
+                        <div class="col-12 col-md-3">{{ form_row(form.fixedSalaryWorkingDays) }}</div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label fw-semibold">Charge fixe jour</label>
+                            <div class="form-control bg-light"><strong data-daily-cost-output="fixedSalaryDailyTotal">{{ item.fixedSalaryDailyTotal|number_format(2, ',', ' ') }}</strong> dh</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Emballage</h2>
+                    <p class="text-secondary small mb-0">Cartons, sachets, etiquettes, film et autres emballages.</p>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">{{ form_row(form.cartonCount) }}</div>
+                        <div class="col-6 col-md-3">{{ form_row(form.cartonUnitCost) }}</div>
+                        <div class="col-6 col-md-3">{{ form_row(form.sachetCount) }}</div>
+                        <div class="col-6 col-md-3">{{ form_row(form.sachetUnitCost) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.labelCost) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.plasticFilmCost) }}</div>
+                        <div class="col-12 col-md-4">{{ form_row(form.otherPackagingCost) }}</div>
+                    </div>
+                    <div class="cout-live-grid mt-3">
+                        <div class="cout-live-pill"><span>Total cartons</span><strong><span data-daily-cost-output="cartonsTotal">0,00</span> dh</strong></div>
+                        <div class="cout-live-pill"><span>Total sachets</span><strong><span data-daily-cost-output="sachetsTotal">0,00</span> dh</strong></div>
+                        <div class="cout-live-pill"><span>Total emballage</span><strong><span data-daily-cost-output="packagingTotal">{{ item.packagingTotal|number_format(2, ',', ' ') }}</span> dh</strong></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                        <div>
+                            <h2 class="h5 mb-1">Charges configurees</h2>
+                            <p class="text-secondary small mb-0">Selectionnez les charges de production a appliquer a cette journee.</p>
+                        </div>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_cout_revient_charge_index') }}">
+                            <i class="bi bi-sliders me-1"></i>Configurer
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3" data-cout-charge-lines>
+                        {% for line in item.chargeLines %}
+                            {% include 'cout_revient/_charge_line.html.twig' with {
+                                line: line,
+                                index: loop.index0,
+                                charge_configs: charge_configs|default([])
+                            } %}
+                        {% endfor %}
+                    </div>
+
+                    <div class="alert alert-light border mt-3 mb-0 {{ item.chargeLines|length > 0 ? 'd-none' : '' }}" data-cout-charge-empty>
+                        Aucune charge configuree sur cette journee.
+                    </div>
+
+                    <template data-cout-charge-template>
+                        {% include 'cout_revient/_charge_line.html.twig' with {
+                            line: null,
+                            index: '__INDEX__',
+                            charge_configs: charge_configs|default([])
+                        } %}
+                    </template>
+
+                    <button class="btn btn-outline-primary mt-3" type="button" data-daily-cost-charge-add>
+                        <i class="bi bi-plus-circle me-2"></i>Ajouter une charge
+                    </button>
+
+                    <div class="row g-3 mt-3">
+                        <div class="col-12 col-md-4">{{ form_row(form.manualChargesAdjustment) }}</div>
+                    </div>
+                    <div class="cout-live-grid mt-3">
+                        <div class="cout-live-pill"><span>Charges configurees</span><strong><span data-daily-cost-output="configuredChargesTotal">{{ item.configuredChargesTotal|number_format(2, ',', ' ') }}</span> dh</strong></div>
+                        <div class="cout-live-pill"><span>Total charges</span><strong><span data-daily-cost-output="chargesTotal">{{ item.chargesTotal|number_format(2, ',', ' ') }}</span> dh</strong></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pb-0">
+                    <h2 class="h5 mb-1">Observations</h2>
+                </div>
+                <div class="card-body">
+                    {{ form_row(form.notes) }}
+                </div>
+            </section>
+        </div>
+
+        <aside class="col-12 col-xl-4">
+            <div class="position-sticky" style="top: 1rem;">
+                <section class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white border-0 pb-0">
+                        <h2 class="h5 mb-1">Resultat direction</h2>
+                        <p class="text-secondary small mb-0">Synthese instantanee de la journee.</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6"><div class="p-3 rounded-2 bg-primary-subtle"><div class="small text-secondary">Cout global</div><strong data-daily-cost-output="totalCost">{{ item.totalCost|number_format(2, ',', ' ') }}</strong> dh</div></div>
+                            <div class="col-6"><div class="p-3 rounded-2 bg-info-subtle"><div class="small text-secondary">Cout / kg PF</div><strong data-daily-cost-output="costPerFinishedKg">{{ item.costPerFinishedKg|number_format(2, ',', ' ') }}</strong> dh</div></div>
+                            <div class="col-6"><div class="p-3 rounded-2 bg-success-subtle"><div class="small text-secondary">Cout / kg sorti</div><strong data-daily-cost-output="costPerInputKg">{{ item.costPerInputKg|number_format(2, ',', ' ') }}</strong> dh</div></div>
+                            <div class="col-6"><div class="p-3 rounded-2 bg-warning-subtle"><div class="small text-secondary">Main oeuvre</div><strong data-daily-cost-output="laborTotal">{{ item.laborTotal|number_format(2, ',', ' ') }}</strong> dh</div></div>
+                        </div>
+                        <div class="mt-3 d-grid gap-2" data-daily-cost-alerts>
+                            {% for alert in item.alertMessages %}
+                                <div class="alert alert-warning small mb-0">{{ alert }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-save me-2"></i>{{ submit_label }}
+                    </button>
+                    {% if item.id %}
+                        <a class="btn btn-outline-success" href="{{ path('app_daily_production_cost_pdf', {id: item.id}) }}" target="_blank" rel="noopener">
+                            <i class="bi bi-file-earmark-pdf me-2"></i>Rapport PDF
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
+    </div>
+    {{ form_rest(form) }}
+{{ form_end(form) }}

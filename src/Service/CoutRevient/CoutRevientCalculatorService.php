@@ -7,6 +7,11 @@ use App\Entity\CoutRevientChargeLine;
 
 final readonly class CoutRevientCalculatorService
 {
+    private const CLEANING_RATE_AMOUNT = 25.0;
+    private const CLEANING_RATE_KG = 30.0;
+    private const CLEANING_CRATE_KG = 10.0;
+    private const BOXING_RATE_PER_KG = 2.0;
+
     /**
      * Recalcule et ecrit tous les champs calcules.
      *
@@ -29,8 +34,7 @@ final readonly class CoutRevientCalculatorService
             CoutRevient::MODE_HOUR => $coutRevient->getNombreOperatrices()
                 * $this->num($coutRevient->getNombreHeures())
                 * $this->num($coutRevient->getCoutHoraireMoyen()),
-            CoutRevient::MODE_KG => $this->num($coutRevient->getPrixTacheKg())
-                * $this->num($coutRevient->getKgTraitesMainOeuvre()),
+            CoutRevient::MODE_KG => $this->calculateAutomaticKgLabor($poidsProduction, $poidsFini),
             default => $this->num($coutRevient->getCoutMainOeuvreDirect()),
         };
 
@@ -139,6 +143,10 @@ final readonly class CoutRevientCalculatorService
         return [
             'coutMatierePremiere' => (float) $coutRevient->getCoutMatierePremiere(),
             'coutMainOeuvre' => (float) $coutRevient->getCoutMainOeuvre(),
+            'coutNettoyageKgAuto' => $this->calculateCleaningLabor((float) $coutRevient->getPoidsMisEnProduction()),
+            'coutMiseEnCaisseKgAuto' => $this->calculateBoxingLabor((float) $coutRevient->getPoidsProduitFini()),
+            'coutMainOeuvreKgAuto' => $this->calculateAutomaticKgLabor((float) $coutRevient->getPoidsMisEnProduction(), (float) $coutRevient->getPoidsProduitFini()),
+            'nombreCaissesNettoyageAuto' => $this->calculateCleaningCrates((float) $coutRevient->getPoidsMisEnProduction()),
             'coutEmballageTotal' => (float) $coutRevient->getCoutEmballageTotal(),
             'coutChargesTotal' => (float) $coutRevient->getCoutChargesTotal(),
             'coutTotalProduction' => (float) $coutRevient->getCoutTotalProduction(),
@@ -188,5 +196,25 @@ final readonly class CoutRevientCalculatorService
         $normalized = str_replace(',', '.', trim((string) ($value ?? '0')));
 
         return is_numeric($normalized) ? (float) $normalized : 0.0;
+    }
+
+    private function calculateAutomaticKgLabor(float $poidsProduction, float $poidsFini): float
+    {
+        return $this->calculateCleaningLabor($poidsProduction) + $this->calculateBoxingLabor($poidsFini);
+    }
+
+    private function calculateCleaningLabor(float $poidsProduction): float
+    {
+        return $poidsProduction > 0 ? ($poidsProduction / self::CLEANING_RATE_KG) * self::CLEANING_RATE_AMOUNT : 0.0;
+    }
+
+    private function calculateBoxingLabor(float $poidsFini): float
+    {
+        return $poidsFini > 0 ? $poidsFini * self::BOXING_RATE_PER_KG : 0.0;
+    }
+
+    private function calculateCleaningCrates(float $poidsProduction): float
+    {
+        return $poidsProduction > 0 ? $poidsProduction / self::CLEANING_CRATE_KG : 0.0;
     }
 }

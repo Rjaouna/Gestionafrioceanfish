@@ -102,6 +102,11 @@
                 <dl class="row mb-0">
                     <dt class="col-6 text-secondary">Main d oeuvre</dt><dd class="col-6 text-end">{{ item.coutMainOeuvre|number_format(2, ',', ' ') }} dh</dd>
                     <dt class="col-6 text-secondary">Mode main oeuvre</dt><dd class="col-6 text-end">{{ item.modeCalculMainOeuvreLabel }}</dd>
+                    {% if item.modeCalculMainOeuvre == 'kg' %}
+                        <dt class="col-6 text-secondary">Nettoyage</dt><dd class="col-6 text-end">{{ (item.poidsMisEnProduction / 30 * 25)|number_format(2, ',', ' ') }} dh</dd>
+                        <dt class="col-6 text-secondary">Caisses 10 kg</dt><dd class="col-6 text-end">{{ (item.poidsMisEnProduction / 10)|number_format(2, ',', ' ') }}</dd>
+                        <dt class="col-6 text-secondary">Mise en caisse</dt><dd class="col-6 text-end">{{ (item.poidsProduitFini * 2)|number_format(2, ',', ' ') }} dh</dd>
+                    {% endif %}
                     <dt class="col-6 text-secondary">Emballage</dt><dd class="col-6 text-end">{{ item.coutEmballageTotal|number_format(2, ',', ' ') }} dh</dd>
                     <dt class="col-6 text-secondary">Charges</dt><dd class="col-6 text-end">{{ item.coutChargesTotal|number_format(2, ',', ' ') }} dh</dd>
                     <dt class="col-6 text-secondary">Prix vente/kg</dt><dd class="col-6 text-end">{{ item.prixVenteKg is not null ? item.prixVenteKg|number_format(2, ',', ' ') ~ ' dh' : '-' }}</dd>

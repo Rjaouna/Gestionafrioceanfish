@@ -1,0 +1,142 @@
+{% macro donut(title, rows, total, center, unit) %}
+    {% set p0 = total > 0 and rows[0] is defined ? rows[0].value / total * 100 : 0 %}
+    {% set p1 = total > 0 and rows[1] is defined ? rows[1].value / total * 100 : 0 %}
+    {% set p2 = total > 0 and rows[2] is defined ? rows[2].value / total * 100 : 0 %}
+    <div class="chart-box">
+        <h3>{{ title }}</h3>
+        <table class="chart-layout">
+            <tr>
+                <td class="chart-cell">
+                    <svg width="140" height="140" viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" r="42" fill="none" stroke="#e5e7eb" stroke-width="18"></circle>
+                        {% if rows[0] is defined %}<circle cx="60" cy="60" r="42" fill="none" stroke="{{ rows[0].color }}" stroke-width="18" pathLength="100" stroke-dasharray="{{ p0 }} {{ 100 - p0 }}" stroke-dashoffset="0" transform="rotate(-90 60 60)"></circle>{% endif %}
+                        {% if rows[1] is defined %}<circle cx="60" cy="60" r="42" fill="none" stroke="{{ rows[1].color }}" stroke-width="18" pathLength="100" stroke-dasharray="{{ p1 }} {{ 100 - p1 }}" stroke-dashoffset="-{{ p0 }}" transform="rotate(-90 60 60)"></circle>{% endif %}
+                        {% if rows[2] is defined %}<circle cx="60" cy="60" r="42" fill="none" stroke="{{ rows[2].color }}" stroke-width="18" pathLength="100" stroke-dasharray="{{ p2 }} {{ 100 - p2 }}" stroke-dashoffset="-{{ p0 + p1 }}" transform="rotate(-90 60 60)"></circle>{% endif %}
+                        <circle cx="60" cy="60" r="27" fill="#ffffff"></circle>
+                        <text x="60" y="57" text-anchor="middle" font-size="15" font-weight="800" fill="#0f172a">{{ center }}</text>
+                        <text x="60" y="73" text-anchor="middle" font-size="8" font-weight="700" fill="#64748b">{{ unit }}</text>
+                    </svg>
+                </td>
+                <td class="legend-cell">
+                    {% for row in rows %}
+                        <div class="legend-line">
+                            <span class="dot" style="background: {{ row.color }}"></span>
+                            <span>{{ row.label }}</span>
+                            <strong>{{ row.value|number_format(unit == 'KG PF' ? 0 : 2, ',', ' ') }} {{ unit == 'KG PF' ? 'kg' : 'dh' }}</strong>
+                        </div>
+                    {% endfor %}
+                </td>
+            </tr>
+        </table>
+    </div>
+{% endmacro %}
+
+{% import _self as charts_macro %}
+
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { margin: 24px 28px; }
+        body { font-family: DejaVu Sans, sans-serif; color: #10223f; font-size: 11px; }
+        .header { border-bottom: 3px solid #0f3b82; padding-bottom: 12px; margin-bottom: 18px; }
+        .logo { width: 170px; height: auto; }
+        .title { float: right; text-align: right; }
+        .title h1 { margin: 0; font-size: 21px; color: #0b2b63; }
+        .title p { margin: 4px 0 0; color: #64748b; }
+        .clear { clear: both; }
+        .kpis { width: 100%; border-collapse: separate; border-spacing: 8px; margin: 0 -8px 12px; }
+        .kpi { border: 1px solid #dbe7f3; border-radius: 8px; padding: 10px; background: #f8fbff; }
+        .kpi span { display: block; color: #64748b; font-size: 9px; text-transform: uppercase; font-weight: 700; }
+        .kpi strong { display: block; margin-top: 4px; font-size: 18px; color: #0f172a; }
+        .grid { width: 100%; border-collapse: separate; border-spacing: 10px; margin: 0 -10px; }
+        .chart-box, .box { border: 1px solid #dbe7f3; border-radius: 10px; padding: 12px; background: #ffffff; vertical-align: top; }
+        h2 { margin: 18px 0 8px; color: #0b2b63; font-size: 16px; }
+        h3 { margin: 0 0 8px; color: #0b2b63; font-size: 13px; }
+        .chart-layout { width: 100%; border-collapse: collapse; }
+        .chart-cell { width: 150px; }
+        .legend-line { margin: 8px 0; border-bottom: 1px solid #edf2f7; padding-bottom: 5px; }
+        .legend-line strong { float: right; color: #0f172a; }
+        .dot { display: inline-block; width: 9px; height: 9px; border-radius: 9px; margin-right: 5px; }
+        .data { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        .data th { background: #0f2d67; color: #fff; padding: 7px; text-align: left; font-size: 9px; }
+        .data td { padding: 7px; border-bottom: 1px solid #e5edf7; }
+        .right { text-align: right; }
+        .badge { display: inline-block; border-radius: 999px; padding: 3px 8px; background: #e0f2fe; color: #075985; font-weight: 700; }
+        .notes { white-space: pre-line; color: #334155; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        {% if logo_data_uri %}
+            <img class="logo" src="{{ logo_data_uri }}" alt="AFRIOCEAN FISH">
+        {% else %}
+            <strong>AFRIOCEAN FISH</strong>
+        {% endif %}
+        <div class="title">
+            <h1>Rapport cout journalier</h1>
+            <p>{{ item.reference }} - {{ item.productionDate ? item.productionDate|date('d/m/Y') : '-' }}</p>
+        </div>
+        <div class="clear"></div>
+    </div>
+
+    <table class="kpis">
+        <tr>
+            <td class="kpi"><span>Cout global</span><strong>{{ item.totalCost|number_format(2, ',', ' ') }} dh</strong></td>
+            <td class="kpi"><span>Cout / kg PF</span><strong>{{ item.costPerFinishedKg|number_format(2, ',', ' ') }} dh</strong></td>
+            <td class="kpi"><span>Cout / kg sorti</span><strong>{{ item.costPerInputKg|number_format(2, ',', ' ') }} dh</strong></td>
+            <td class="kpi"><span>Rendement</span><strong>{{ item.yieldPercent|number_format(1, ',', ' ') }} %</strong></td>
+        </tr>
+    </table>
+
+    <table class="grid">
+        <tr>
+            <td style="width:50%">{{ charts_macro.donut('Production du jour', charts.production, charts.production_total, item.finishedProductKg|number_format(0, ',', ' '), 'KG PF') }}</td>
+            <td style="width:50%">{{ charts_macro.donut('Repartition des couts', charts.costs, charts.costs_total, item.totalCost|number_format(0, ',', ' '), 'DH') }}</td>
+        </tr>
+    </table>
+
+    <h2>Details de calcul</h2>
+    <table class="data">
+        <tr>
+            <th>Bloc</th>
+            <th class="right">Montant</th>
+            <th>Base</th>
+        </tr>
+        <tr><td>Main oeuvre a l'heure</td><td class="right">{{ item.hourlyLaborTotal|number_format(2, ',', ' ') }} dh</td><td>{{ item.hourlyWorkers }} pers. x {{ item.hourlyHours|number_format(2, ',', ' ') }} h x {{ item.hourlyRate|number_format(2, ',', ' ') }} dh</td></tr>
+        <tr><td>Main oeuvre a la tache</td><td class="right">{{ item.taskLaborTotal|number_format(2, ',', ' ') }} dh</td><td>Nettoyage {{ item.cleaningKg|number_format(0, ',', ' ') }} kg, mise en caisse {{ item.boxingKg|number_format(0, ',', ' ') }} kg</td></tr>
+        <tr><td>Salaires fixes jour</td><td class="right">{{ item.fixedSalaryDailyTotal|number_format(2, ',', ' ') }} dh</td><td>{{ item.fixedSalaryMonthlyTotal|number_format(2, ',', ' ') }} dh / {{ item.fixedSalaryWorkingDays }} jours</td></tr>
+        <tr><td>Emballage</td><td class="right">{{ item.packagingTotal|number_format(2, ',', ' ') }} dh</td><td>Cartons, sachets, etiquettes, film et autres</td></tr>
+        <tr><td>Charges configurees</td><td class="right">{{ item.configuredChargesTotal|number_format(2, ',', ' ') }} dh</td><td>Charges selectionnees dans la configuration</td></tr>
+        <tr><td>Ajustement manuel</td><td class="right">{{ item.manualChargesAdjustment|number_format(2, ',', ' ') }} dh</td><td>Charges non configurees</td></tr>
+    </table>
+
+    <h2>Charges appliquees</h2>
+    <table class="data">
+        <tr>
+            <th>Charge</th>
+            <th>Categorie</th>
+            <th>Unite</th>
+            <th class="right">Quantite</th>
+            <th class="right">Total</th>
+        </tr>
+        {% for line in item.chargeLines %}
+            <tr>
+                <td>{{ line.name }}</td>
+                <td>{{ line.categoryLabel }}</td>
+                <td>{{ line.calculationUnitLabel }}</td>
+                <td class="right">{{ line.quantity|number_format(3, ',', ' ') }}</td>
+                <td class="right">{{ line.totalAmount|number_format(2, ',', ' ') }} dh</td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5">Aucune charge configuree.</td></tr>
+        {% endfor %}
+    </table>
+
+    {% if item.notes %}
+        <h2>Observations</h2>
+        <div class="box notes">{{ item.notes }}</div>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,116 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ item.reference }}{% endblock %}
+
+{% block body %}
+{% set production_total = charts.production_total > 0 ? charts.production_total : 1 %}
+{% set pf_pct = item.finishedProductKg / production_total * 100 %}
+{% set waste_pct = item.wasteKg / production_total * 100 %}
+{% set cost_total = charts.costs_total > 0 ? charts.costs_total : 1 %}
+{% set labor_pct = item.laborTotal / cost_total * 100 %}
+{% set packaging_pct = item.packagingTotal / cost_total * 100 %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">{{ item.reference }}</h1>
+        <p class="text-secondary mb-0">{{ item.productionDate ? item.productionDate|date('d/m/Y') : '-' }} - {{ item.productName }}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ path('app_daily_production_cost_index') }}">
+            <i class="bi bi-arrow-left me-2"></i>Retour
+        </a>
+        <a class="btn btn-outline-primary" href="{{ path('app_daily_production_cost_edit', {id: item.id}) }}">
+            <i class="bi bi-pencil me-2"></i>Modifier
+        </a>
+        <a class="btn btn-success" href="{{ path('app_daily_production_cost_pdf', {id: item.id}) }}" target="_blank" rel="noopener">
+            <i class="bi bi-file-earmark-pdf me-2"></i>Rapport PDF
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-secondary">Cout global</div><div class="h3 mb-0">{{ item.totalCost|number_format(2, ',', ' ') }} dh</div></div></div></div>
+    <div class="col-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-secondary">Cout / kg PF</div><div class="h3 mb-0">{{ item.costPerFinishedKg|number_format(2, ',', ' ') }} dh</div></div></div></div>
+    <div class="col-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-secondary">Rendement</div><div class="h3 mb-0">{{ item.yieldPercent|number_format(1, ',', ' ') }} %</div></div></div></div>
+    <div class="col-6 col-xl-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-secondary">Produit fini</div><div class="h3 mb-0">{{ item.finishedProductKg|number_format(0, ',', ' ') }} kg</div></div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h2 class="h5 mb-1">Bilan production</h2>
+            </div>
+            <div class="card-body">
+                <div class="daily-cost-chart-wrap">
+                    <div class="daily-cost-donut" style="background: conic-gradient(#10b981 0 {{ pf_pct }}%, #f59e0b {{ pf_pct }}% {{ pf_pct + waste_pct }}%, #ef4444 {{ pf_pct + waste_pct }}% 100%);">
+                        <span>{{ item.yieldPercent|number_format(0, ',', ' ') }}%</span>
+                    </div>
+                    <div class="daily-cost-legend">
+                        <div><span style="background:#10b981"></span>PF <strong>{{ item.finishedProductKg|number_format(0, ',', ' ') }} kg</strong></div>
+                        <div><span style="background:#f59e0b"></span>Dechets <strong>{{ item.wasteKg|number_format(0, ',', ' ') }} kg</strong></div>
+                        <div><span style="background:#ef4444"></span>Pertes <strong>{{ item.lossKg|number_format(0, ',', ' ') }} kg</strong></div>
+                    </div>
+                </div>
+                <div class="cout-live-grid mt-4">
+                    <div class="cout-live-pill"><span>Matiere sortie</span><strong>{{ item.rawQuantityKg|number_format(0, ',', ' ') }} kg</strong></div>
+                    <div class="cout-live-pill"><span>Total sortie</span><strong>{{ item.totalOutputKg|number_format(0, ',', ' ') }} kg</strong></div>
+                    <div class="cout-live-pill"><span>Ecart poids</span><strong>{{ item.weightGapKg|number_format(2, ',', ' ') }} kg</strong></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <section class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 pb-0">
+                <h2 class="h5 mb-1">Repartition des charges</h2>
+            </div>
+            <div class="card-body">
+                <div class="daily-cost-chart-wrap">
+                    <div class="daily-cost-donut" style="background: conic-gradient(#2563eb 0 {{ labor_pct }}%, #14b8a6 {{ labor_pct }}% {{ labor_pct + packaging_pct }}%, #8b5cf6 {{ labor_pct + packaging_pct }}% 100%);">
+                        <span>{{ item.totalCost|number_format(0, ',', ' ') }} dh</span>
+                    </div>
+                    <div class="daily-cost-legend">
+                        <div><span style="background:#2563eb"></span>Main oeuvre <strong>{{ item.laborTotal|number_format(2, ',', ' ') }} dh</strong></div>
+                        <div><span style="background:#14b8a6"></span>Emballage <strong>{{ item.packagingTotal|number_format(2, ',', ' ') }} dh</strong></div>
+                        <div><span style="background:#8b5cf6"></span>Charges <strong>{{ item.chargesTotal|number_format(2, ',', ' ') }} dh</strong></div>
+                    </div>
+                </div>
+                <div class="cout-live-grid mt-4">
+                    <div class="cout-live-pill"><span>Heure</span><strong>{{ item.hourlyLaborTotal|number_format(2, ',', ' ') }} dh</strong></div>
+                    <div class="cout-live-pill"><span>Tache</span><strong>{{ item.taskLaborTotal|number_format(2, ',', ' ') }} dh</strong></div>
+                    <div class="cout-live-pill"><span>Salaires fixes</span><strong>{{ item.fixedSalaryDailyTotal|number_format(2, ',', ' ') }} dh</strong></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-12">
+        <section class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0">
+                <h2 class="h5 mb-1">Charges appliquees</h2>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Charge</th><th>Categorie</th><th>Unite</th><th class="text-end">Quantite</th><th class="text-end">Cout unitaire</th><th class="text-end">Total</th></tr></thead>
+                    <tbody>
+                    {% for line in item.chargeLines %}
+                        <tr>
+                            <td>{{ line.name }}</td>
+                            <td>{{ line.categoryLabel }}</td>
+                            <td>{{ line.calculationUnitLabel }}</td>
+                            <td class="text-end">{{ line.quantity|number_format(3, ',', ' ') }}</td>
+                            <td class="text-end">{{ line.unitCost|number_format(2, ',', ' ') }} dh</td>
+                            <td class="text-end fw-semibold">{{ line.totalAmount|number_format(2, ',', ' ') }} dh</td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="6" class="text-center text-secondary py-4">Aucune charge configuree.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

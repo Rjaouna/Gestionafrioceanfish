@@ -51,7 +51,7 @@ class CoutRevient
 
     public const MODE_LABELS = [
         self::MODE_HOUR => 'A l heure',
-        self::MODE_KG => 'A la tache / kg',
+        self::MODE_KG => 'Au kg automatique',
         self::MODE_DIRECT => 'Montant direct',
     ];
 
@@ -135,7 +135,7 @@ class CoutRevient
     #[ORM\Column(length: 30, options: ['default' => self::MODE_DIRECT])]
     #[Assert\NotBlank]
     #[Assert\Choice(choices: [self::MODE_HOUR, self::MODE_KG, self::MODE_DIRECT])]
-    private string $modeCalculMainOeuvre = self::MODE_DIRECT;
+    private string $modeCalculMainOeuvre = self::MODE_KG;
 
     #[ORM\Column(options: ['default' => 0])]
     #[Assert\PositiveOrZero]
